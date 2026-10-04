@@ -3,7 +3,7 @@
 ## Provenance and license
 
 - Source: the constituent list comes from `datasets/s-and-p-500-companies` (ODC-PDDL per `docs/en/realtime.md`), prices from the Nasdaq historical API, with the Yahoo chart API as fallback (both split-adjusted, not dividend-adjusted).
-- The Nasdaq and Yahoo terms forbid redistribution of the prices, so `redistribution` is `link-only`; only the constituent list (ODC-PDDL) is open.
+- The Nasdaq and Yahoo terms forbid redistribution of the prices, so `redistribution` is `script`; only the constituent list (ODC-PDDL) is open.
 - The weekly workflow mirrors releases to the **private** Hugging Face dataset `Diaugeia/TSFLab-RealTime` (`stock_sp500/`) for team use only. Vendor terms forbid public re-hosting, so that repository must stay private; outside the team, build the store locally (README, Protocol and pitfalls).
 
 ## Structure and statistics

@@ -16,7 +16,7 @@ citation = "TFB: Towards Comprehensive and Fair Benchmarking of Time Series Fore
 citation_url = "https://arxiv.org/abs/2403.20150"
 license = "CC-BY-4.0 with WHO additional terms"
 license_url = "https://data.who.int/dashboards/covid19/more-resources"
-redistribution = "conditional"
+redistribution = "hosted"
 conditions = "Attribute WHO and follow the additional WHO terms of use at license_url."
 
 [shape]

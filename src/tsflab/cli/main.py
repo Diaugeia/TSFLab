@@ -12,7 +12,7 @@ Read path:
     catalog          overview, search, list, show <name> for models, components, datasets
 
 Modules:
-    data             add, prepare (--from traffic|ultratraffic|gift), inspect, analyze, plot,
+    data             add, prepare (--from traffic|ultratraffic|gift-eval|tfb|dcrnn), inspect, analyze, plot,
                      download, publish, audit datasets
     model            scaffold, add, artifacts, verify, compose, audit models
     run              run experiments; --smoke, --dry-run, --backend local|queue|slurm

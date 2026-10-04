@@ -513,3 +513,87 @@ def test_dataset_storage_contract_resolves_path_and_optional_id() -> None:
     assert DATASET_REGISTRY.get("synthetic_st").resolve_location("", None) == ("", "")
     assert DATASET_REGISTRY.get("gift_eval").resolve_location("./dataset/gift_eval", "electricity/15T") == (
         "./dataset/gift_eval", "electricity/15T")
+
+
+# ---------------------------------------------------------------------------
+# Source fetchers (tsf data prepare --from tfb|dcrnn), no network
+# ---------------------------------------------------------------------------
+
+
+def _tfb_long(rotate: bool = False) -> pd.DataFrame:
+    dates = ["2020-01-01", "2020-01-02", "2020-01-03"]
+    rows = []
+    for j, (col, base) in enumerate((("b", 10.0), ("a", 20.0), ("z", 30.0))):
+        labels = dates[-j:] + dates[:-j] if rotate and j else dates
+        rows += [{"date": d, "data": base + i, "cols": col} for i, d in enumerate(labels)]
+    return pd.DataFrame(rows)
+
+
+def test_tfb_long_to_wide_keeps_first_appearance_order():
+    from tsflab.data.prepare.tfb import long_to_wide
+
+    wide = long_to_wide(_tfb_long())
+    assert list(wide.columns) == ["date", "b", "a", "z"]
+    assert wide["a"].tolist() == [20.0, 21.0, 22.0]
+    assert list(long_to_wide(_tfb_long(), rename_last_to_ot=True).columns) == ["date", "b", "a", "OT"]
+    with pytest.raises(ValueError, match="dates differ"):
+        long_to_wide(_tfb_long(rotate=True))
+    positional = long_to_wide(_tfb_long(rotate=True), positional=True)
+    assert positional["date"].tolist() == ["2020-01-01", "2020-01-02", "2020-01-03"]
+    assert positional["z"].tolist() == [30.0, 31.0, 32.0]
+    with pytest.raises(ValueError, match="ragged"):
+        long_to_wide(_tfb_long().iloc[:-1])
+
+
+def test_tfb_convert_verifies_member_and_output_digests(tmp_path):
+    import hashlib
+
+    from tsflab.data.prepare import tfb
+
+    payload = _tfb_long().to_csv(index=False).encode()
+    archive = tmp_path / "forecasting.zip"
+    with zipfile.ZipFile(archive, "w") as bundle:
+        bundle.writestr("forecasting/Toy.csv", payload)
+    wide = tfb.long_to_wide(_tfb_long()).to_csv(index=False).encode()
+    good = tfb.TFBSet("Toy", "toy", hashlib.sha256(payload).hexdigest(), hashlib.sha256(wide).hexdigest())
+    written = tfb.convert(archive, [good], tmp_path / "out")
+    assert written == [tmp_path / "out" / "Toy" / "Toy.csv"] and written[0].read_bytes() == wide
+    bad_output = tfb.TFBSet("Toy", "toy", good.member_sha256, "0" * 64)
+    with pytest.raises(ValueError, match="checksum mismatch for converted"):
+        tfb.convert(archive, [bad_output], tmp_path / "other")
+    assert not (tmp_path / "other" / "Toy" / "Toy.csv").exists()
+    with pytest.raises(ValueError, match="archive member"):
+        tfb.convert(archive, [tfb.TFBSet("Toy", "toy", "0" * 64, good.sha256)], tmp_path / "other")
+
+
+def test_tfb_sets_cover_script_class_presets():
+    from tsflab.data.prepare import tfb
+
+    assert {"fred_md", "nasdaq", "nyse", "wike2000"} <= {s.preset for s in tfb.SETS.values()}
+    assert [s.name for s in tfb.resolve(["FRED-MD", "nasdaq"])] == ["FRED-MD", "NASDAQ"]
+    with pytest.raises(ValueError, match="unknown TFB dataset"):
+        tfb.resolve(["m4"])
+    for item in tfb.SETS.values():
+        config = ROOT / "configs" / "datasets" / f"{item.preset}.toml"
+        assert f'"./dataset/{item.relative}"' in config.read_text(encoding="utf-8")
+
+
+def test_verify_sha256_raises_on_mismatch(tmp_path):
+    import hashlib
+
+    from tsflab.data.prepare.fetch import verify_sha256
+
+    path = tmp_path / "x.bin"
+    path.write_bytes(b"abc")
+    assert verify_sha256(path, hashlib.sha256(b"abc").hexdigest()) == path
+    with pytest.raises(ValueError, match="checksum mismatch"):
+        verify_sha256(path, "0" * 64)
+
+
+def test_dcrnn_without_gdown_points_to_manual_download(tmp_path, monkeypatch, capsys):
+    from tsflab.data.prepare import dcrnn
+
+    monkeypatch.setenv("TSFLAB_CACHE", str(tmp_path))
+    monkeypatch.setitem(sys.modules, "gdown", None)
+    assert dcrnn.main(["--out", str(tmp_path / "metr_la")]) == 2
+    assert "--h5" in capsys.readouterr().err

@@ -11,7 +11,7 @@ description: "Daily log returns of about 300 CSI-300 constituents from 2019-01-0
 
 ## Protocol and pitfalls
 
-- **Get the data (`link-only`).** Vendor terms forbid re-hosting the prices. Build the store from the vendors with `uv run tsf realtime update --bootstrap --track stock_hs300`; it is written to `dataset/realtime/stock_hs300`, where this preset reads it.
+- **Get the data (`script`).** Vendor terms forbid re-hosting the prices. Build the store from the vendors with `uv run tsf realtime update --bootstrap --track stock_hs300`; it is written to `dataset/realtime/stock_hs300`, where this preset reads it.
 - **Survivorship bias.** The panel is built from the constituents at bootstrap, so the history contains only stocks that were in the index then; static results look better than live ones.
 - **Returns, not prices.** Values are daily log returns with a near-zero mean and heavy tails; a zero forecast is a strong baseline and MSE is dominated by volatile days.
 - **Holidays and suspensions.** Exchange holidays and halts are unobserved cells on a business-day grid; the loader forward-fills them, which turns a missing return into a repeated one rather than a zero.

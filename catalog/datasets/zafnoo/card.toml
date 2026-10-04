@@ -16,7 +16,7 @@ citation = "Global transpiration data from sap flow measurements: the SAPFLUXNET
 citation_url = "https://doi.org/10.5194/essd-13-2607-2021"
 license = "CC-BY-4.0 (SAPFLUXNET Zenodo record)"
 license_url = "https://doi.org/10.5281/zenodo.3971689"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "30 minutes (30min)"

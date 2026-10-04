@@ -113,7 +113,61 @@ def train_range_stats(
     return block.mean(0), block.std(0), train_end
 
 
-def main() -> None:
+def build_bundle(
+    values: np.ndarray,
+    output_dir: str,
+    *,
+    adj: np.ndarray | None = None,
+    seq_len: int = 12,
+    pred_len: int = 12,
+    add_time: bool = False,
+    freq_min: int = 5,
+    splits: tuple[float, float, float] = (0.7, 0.1, 0.2),
+) -> None:
+    """Write a node bundle from a ``(T, N[, C])`` value array and an optional adjacency."""
+    values = np.asarray(values).astype(np.float32)
+    if values.ndim == 2:  # (T, N) -> (T, N, 1)
+        values = values[..., None]
+    if values.ndim != 3:
+        raise ValueError(f"values must be (T, N) or (T, N, C); got {values.shape}")
+    if add_time:
+        values = _add_time_features(values[..., :1], freq_min)
+
+    t, n, c = values.shape
+    r_tr, r_va, r_te = splits
+    train_c, val_c, test_c = split_windows(t, seq_len, pred_len, (r_tr, r_va, r_te))
+    # Statistics come from the training range only, so scale=true cannot leak
+    # validation/test information.
+    mean, std, train_end = train_range_stats(values, train_c, pred_len)
+
+    os.makedirs(output_dir, exist_ok=True)
+    np.savez(
+        os.path.join(output_dir, "his.npz"),
+        data=values, mean=mean, std=std, train_end=np.int64(train_end),
+        seq_len=np.int64(seq_len), pred_len=np.int64(pred_len),
+    )
+
+    if adj is not None:
+        np.save(os.path.join(output_dir, "adj_mx.npy"), np.asarray(adj).astype(np.float32))
+
+    np.save(os.path.join(output_dir, "idx_train.npy"), train_c)
+    np.save(os.path.join(output_dir, "idx_val.npy"), val_c)
+    np.save(os.path.join(output_dir, "idx_test.npy"), test_c)
+    split_info = {
+        "seq_len": seq_len, "pred_len": pred_len, "splits": [r_tr, r_va, r_te],
+        "rows": t, "train_end": train_end,
+        "windows": {"train": len(train_c), "val": len(val_c), "test": len(test_c)},
+        "stats": "mean/std fitted on rows [0, train_end) only",
+    }
+    with open(os.path.join(output_dir, "split.json"), "w", encoding="utf-8") as f:
+        json.dump(split_info, f, indent=2)
+    centers = np.concatenate([train_c, val_c, test_c])
+
+    adj_note = f", adj {n}x{n}" if adj is not None else ", no adjacency"
+    print(f"Wrote bundle to {output_dir}  data={values.shape}{adj_note}  windows={len(centers)}  train_end={train_end}")
+
+
+def main(argv: list[str] | None = None) -> None:
     """Convert raw traffic arrays into a TSFLab node bundle."""
     p = argparse.ArgumentParser(description="Convert traffic data to a node bundle")
     p.add_argument("--values", required=True, help="Path to the value array (.npy/.npz)")
@@ -130,49 +184,16 @@ def main() -> None:
     p.add_argument(
         "--splits", default="0.7,0.1,0.2", help="train,val,test ratios (comma-separated)"
     )
-    args = p.parse_args()
+    args = p.parse_args(argv)
 
-    values = _load_array(args.values, args.values_key).astype(np.float32)
-    if values.ndim == 2:  # (T, N) -> (T, N, 1)
-        values = values[..., None]
-    if values.ndim != 3:
-        raise ValueError(f"values must be (T, N) or (T, N, C); got {values.shape}")
-    if args.add_time:
-        values = _add_time_features(values[..., :1], args.freq_min)
-
-    t, n, c = values.shape
     r_tr, r_va, r_te = (float(x) for x in args.splits.split(","))
-    train_c, val_c, test_c = split_windows(t, args.seq_len, args.pred_len, (r_tr, r_va, r_te))
-    # Statistics come from the training range only, so scale=true cannot leak
-    # validation/test information.
-    mean, std, train_end = train_range_stats(values, train_c, args.pred_len)
-
-    os.makedirs(args.output_dir, exist_ok=True)
-    np.savez(
-        os.path.join(args.output_dir, "his.npz"),
-        data=values, mean=mean, std=std, train_end=np.int64(train_end),
-        seq_len=np.int64(args.seq_len), pred_len=np.int64(args.pred_len),
+    build_bundle(
+        _load_array(args.values, args.values_key),
+        args.output_dir,
+        adj=_load_adjacency(args.adj, args.adj_key) if args.adj else None,
+        seq_len=args.seq_len, pred_len=args.pred_len,
+        add_time=args.add_time, freq_min=args.freq_min, splits=(r_tr, r_va, r_te),
     )
-
-    if args.adj:
-        adj = _load_adjacency(args.adj, args.adj_key).astype(np.float32)
-        np.save(os.path.join(args.output_dir, "adj_mx.npy"), adj)
-
-    np.save(os.path.join(args.output_dir, "idx_train.npy"), train_c)
-    np.save(os.path.join(args.output_dir, "idx_val.npy"), val_c)
-    np.save(os.path.join(args.output_dir, "idx_test.npy"), test_c)
-    split_info = {
-        "seq_len": args.seq_len, "pred_len": args.pred_len, "splits": [r_tr, r_va, r_te],
-        "rows": t, "train_end": train_end,
-        "windows": {"train": len(train_c), "val": len(val_c), "test": len(test_c)},
-        "stats": "mean/std fitted on rows [0, train_end) only",
-    }
-    with open(os.path.join(args.output_dir, "split.json"), "w", encoding="utf-8") as f:
-        json.dump(split_info, f, indent=2)
-    centers = np.concatenate([train_c, val_c, test_c])
-
-    adj_note = f", adj {n}x{n}" if args.adj else ", no adjacency"
-    print(f"Wrote bundle to {args.output_dir}  data={values.shape}{adj_note}  windows={len(centers)}  train_end={train_end}")
 
 
 if __name__ == "__main__":

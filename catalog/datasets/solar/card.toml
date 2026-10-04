@@ -16,7 +16,7 @@ citation = "Modeling Long- and Short-Term Temporal Patterns with Deep Neural Net
 citation_url = "https://arxiv.org/abs/1703.07015"
 license = "NREL Data Use Disclaimer"
 license_url = "https://www.nlr.gov/disclaimer.html"
-redistribution = "conditional"
+redistribution = "hosted"
 conditions = "Credit DOE/NREL as the source, include the NREL data disclaimer, and imply no DOE/NREL endorsement."
 
 [shape]

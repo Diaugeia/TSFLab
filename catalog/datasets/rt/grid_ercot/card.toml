@@ -17,7 +17,7 @@ citation = "n/a (no dataset paper; TSFLab real-time track)"
 citation_url = "n/a"
 license = "ERCOT website terms of use"
 license_url = "https://www.ercot.com/help/terms"
-redistribution = "conditional"
+redistribution = "hosted"
 conditions = "Re-host the data unmodified and credit ERCOT as the source."
 
 [shape]

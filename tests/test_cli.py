@@ -59,7 +59,7 @@ def test_help_for_every_routed_command(capsys) -> None:
 def test_option_extractors() -> None:
     assert _extract_kind(["show", "x", "--kind", "model", "--json"]) == ("model", ["show", "x", "--json"])
     assert _extract_kind(["--kind=dataset", "a"]) == ("dataset", ["a"])
-    assert _extract_from(["--from", "gift", "--link-only"]) == ("gift", ["--link-only"])
+    assert _extract_from(["--from", "gift-eval", "--link-only"]) == ("gift-eval", ["--link-only"])
     assert _extract_backend(["add", "dir", "--backend", "queue"]) == (["add", "dir"], "queue")
     assert _extract_backend(["cfg.toml"]) == (["cfg.toml"], "local")
     with pytest.raises(SystemExit):

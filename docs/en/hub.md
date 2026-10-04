@@ -86,9 +86,11 @@ uv run tsf data publish --path ultratraffic      # a whole store, every year
 ```
 
 Each dataset keeps its source license. Publish only presets whose card says
-`redistribution = "allowed"`, or `"conditional"` when the card's `conditions` are
-met. Never publish `link-only` presets (users fetch them from the source) or
-`upstream` GIFT-Eval files (`tsf data prepare --from gift` fetches them).
+`redistribution = "hosted"`, and meet the card's `conditions` when it has them.
+Never publish `upstream` presets (`tsf data download` fetches them from the other
+party's repository, and `tsf data prepare --from gift-eval` fetches GIFT-Eval) or
+`script` presets (users fetch them from the original source with the command in
+the card).
 
 ## Weights bundles
 

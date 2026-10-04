@@ -3,7 +3,7 @@
 ## Provenance and license
 
 - Source: the Nasdaq historical price API, with the Yahoo chart API and Sina as fallbacks (`docs/en/realtime.md`). Nasdaq and Yahoo return split-adjusted, not dividend-adjusted, closes; the Sina fallback is dividend-adjusted and can differ by the dividend yield on ex-dividend days.
-- The Nasdaq and Yahoo terms forbid redistribution, so `redistribution` is `link-only`; only the Nasdaq-100 constituent list is open.
+- The Nasdaq and Yahoo terms forbid redistribution, so `redistribution` is `script`; only the Nasdaq-100 constituent list is open.
 - The weekly workflow mirrors releases to the **private** Hugging Face dataset `Diaugeia/TSFLab-RealTime` (`stock_nasdaq100/`) for team use only. Vendor terms forbid public re-hosting, so that repository must stay private; outside the team, build the store locally (README, Protocol and pitfalls).
 
 ## Structure and statistics

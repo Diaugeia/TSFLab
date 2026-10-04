@@ -2,7 +2,7 @@
 
 ## Provenance and license
 
-- Source system: Caltrans PeMS (https://pems.dot.ca.gov), District 4. The PeMS conditions of use (https://pems.dot.ca.gov/?view=tou) put the data in the public domain; `redistribution` is `allowed` with attribution to Caltrans PeMS.
+- Source system: Caltrans PeMS (https://pems.dot.ca.gov), District 4. The PeMS conditions of use (https://pems.dot.ca.gov/?view=tou) put the data in the public domain; `redistribution` is `hosted` with attribution to Caltrans PeMS.
 - History: the UltraTraffic_CL archive (inside `TrafficCL.zip`; publisher not identified, no paper or repository found) holds hourly total flow per station for region `PEMS_BA`, one static panel per year from 2003 to 2023 (1,177 to 2,472 stations per year), plus continual-learning slices (2023: 23 added, 2,449 common stations). 2023 values range 0 to 13,314, mean 2,780.5 vehicles per hour (measured from the store).
 - Build the history store once with `uv run tsf data prepare --from ultratraffic --archive TrafficCL.zip` (written to `dataset/ultratraffic`, or `ULTRATRAFFIC_ROOT`); the track bootstrap reads the `static` panels from 2019 and keeps the 2023 station set. The archive has no station coordinates.
 - Weekly increments come from the PeMS clearinghouse `station_5min` files summed to hourly flow. They need a free PeMS account (`PEMS_USER`, `PEMS_PASSWORD`); without it the track keeps its history only.

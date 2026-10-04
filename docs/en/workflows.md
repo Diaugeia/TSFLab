@@ -353,10 +353,9 @@ were measured from local files or reported by the source.
 
 | Value | Meaning | Presets |
 | --- | --- | --- |
-| `allowed` | re-host with attribution only | 21 |
-| `conditional` | re-host only under the extra `conditions` in the card (ETT, `solar`, `covid19`, `wike2000`, `rt/grid_ercot`, `rt/air_airnow_us`) | 9 |
-| `link-only` | never re-hosted; fetch the file from the source, as the card's README says (`exchange`, `fred_md`, `nasdaq`, `nyse`, `metr_la`, `rt/stock_*`) | 8 |
-| `upstream` | fetched from the upstream GIFT-Eval package (`tsf data prepare --from gift`), never re-hosted | 55 |
+| `hosted` | TSFLab re-hosts the files in TSFLab-Static (`tsf data download <preset>`); extra source terms, if any, are in `conditions` (ETT, `solar`, `covid19`, `rt/grid_ercot`, `rt/air_airnow_us`) | 29 |
+| `upstream` | fetched from another party's Hugging Face repository, never re-hosted: GIFT-Eval with `tsf data prepare --from gift-eval` (55 presets and the family card), `exchange` with `tsf data download exchange` | 57 |
+| `script` | the license forbids re-hosting; TSFLab ships a fetch command and you download from the original source: `tsf data prepare --from tfb` (`fred_md`, `nasdaq`, `nyse`, `wike2000`), `tsf data prepare --from dcrnn` (`metr_la`), `tsf realtime update --bootstrap --track <t>` (`rt/stock_*`) | 8 |
 
 Use an existing CSV preset or create a loader-backed dataset:
 
@@ -380,8 +379,20 @@ diagnostic-only and never becomes a characteristic. Results go to `work_dirs/pro
 `--json` prints the profile). For a file that has no preset, pass `--path FILE`
 with `--split-ratio TRAIN VAL TEST` and optionally `--freq`.
 
-`tsf data prepare [--from traffic|ultratraffic|gift]` provides explicit
-conversion/download operations; inspect their `--help` before writing. Scaling
+`tsf data prepare [--from traffic|ultratraffic|gift-eval|tfb|dcrnn]` provides explicit
+conversion/download operations; inspect their `--help` before writing. `tfb` and
+`dcrnn` download from the original source and check the archive, every input, and
+every output against a pinned SHA-256:
+
+```bash
+uv run tsf data prepare --from tfb                     # TFB archive -> dataset/<Name>/<Name>.csv
+uv run tsf data prepare --from tfb --datasets fred_md --archive forecasting.zip
+uv run tsf data prepare --from dcrnn                   # DCRNN METR-LA -> dataset/metr_la
+```
+
+Google Drive downloads use `gdown` and `metr-la.h5` needs `h5py` (both in the `data`
+extra). If Google Drive refuses a download, save the file in a browser and pass it
+with `--archive` (TFB) or `--h5` (DCRNN). Scaling
 must fit training data only, split boundaries must be stable, and graph/covariate
 loaders must declare compatible task modes.
 

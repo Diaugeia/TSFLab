@@ -16,7 +16,7 @@ citation = "Modeling Long- and Short-Term Temporal Patterns with Deep Neural Net
 citation_url = "https://arxiv.org/abs/1703.07015"
 license = "No license stated (LSTNet repository; the origin of the rates is not stated)"
 license_url = "https://github.com/laiguokun/multivariate-time-series-data"
-redistribution = "link-only"
+redistribution = "upstream"
 
 [shape]
 frequency = "daily (1d)"

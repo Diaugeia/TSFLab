@@ -223,17 +223,51 @@ def test_packaged_manifest_is_well_formed() -> None:
     assert manifest["repo"] == hd.DEFAULT_STATIC_REPO
     for name, entry in manifest["files"].items():
         assert not name.startswith("/") and set(entry) == {"revision", "sha256", "size"}
+    for name, entry in manifest.get("upstream", {}).items():
+        assert not name.startswith("/") and set(entry) == {"url", "sha256", "size"}
+        assert name not in manifest["files"]
 
 
 def test_publish_refuses_presets_we_may_not_rehost(tmp_path) -> None:
     from tsflab.release.hub import datasets as hub_datasets
 
     root = Path(__file__).resolve().parents[1]
-    assert hub_datasets.redistribution("etth1", root) == "conditional"
-    assert hub_datasets.redistribution("exchange", root) == "link-only"
+    assert hub_datasets.REHOSTABLE == ("hosted",)
+    assert hub_datasets.redistribution("etth1", root) == "hosted"
+    assert hub_datasets.redistribution("exchange", root) == "upstream"
+    assert hub_datasets.redistribution("fred_md", root) == "script"
     assert hub_datasets.redistribution("gift_eval/m4_daily", root) == "upstream"
-    with pytest.raises(PermissionError, match="exchange=link-only"):
-        hub_datasets.publish_presets(["etth1", "exchange"], tmp_path, root=root)
+    with pytest.raises(PermissionError, match="exchange=upstream, fred_md=script"):
+        hub_datasets.publish_presets(["etth1", "exchange", "fred_md"], tmp_path, root=root)
+
+
+def test_redistribution_class_counts() -> None:
+    import tomllib
+    from collections import Counter
+
+    root = Path(__file__).resolve().parents[1]
+    cards = sorted((root / "catalog" / "datasets").rglob("card.toml"))
+    counts = Counter(tomllib.loads(card.read_text(encoding="utf-8"))["source"]["redistribution"] for card in cards)
+    assert counts == {"hosted": 29, "upstream": 57, "script": 8}  # upstream: 55 GIFT-Eval sets, family, exchange
+
+
+def test_upstream_entries_download_from_their_own_url(tmp_path, monkeypatch) -> None:
+    root = Path(__file__).resolve().parents[1]
+    entry = hd.load_manifest(root)["upstream"]["exchange_rate/exchange_rate.csv"]
+    assert entry["url"].startswith("https://huggingface.co/datasets/thuml/Time-Series-Library/")
+    calls = []
+    monkeypatch.setattr(hd, "download", lambda url, dest, sha: calls.append((url, dest, sha)) or dest)
+    hd.fetch_preset("exchange", tmp_path, root)
+    assert calls == [(entry["url"], tmp_path / "exchange_rate/exchange_rate.csv", entry["sha256"])]
+    assert "exchange" in hd.available_presets(root)
+
+
+def test_unpublished_presets_name_their_fetch_command() -> None:
+    root = Path(__file__).resolve().parents[1]
+    with pytest.raises(FileNotFoundError, match="--from gift-eval --datasets electricity/15T"):
+        hd.fetch_preset("gift_eval/electricity_15T", root=root)
+    with pytest.raises(FileNotFoundError, match="may not be re-hosted"):
+        hd.fetch_preset("fred_md", root=root)
 
 
 def test_hf_token_falls_back_to_the_login_file(tmp_path, monkeypatch) -> None:

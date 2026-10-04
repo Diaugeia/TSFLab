@@ -17,7 +17,7 @@ citation = "n/a (no dataset paper; TSFLab real-time track)"
 citation_url = "n/a"
 license = "AirNow data use guidelines (US EPA AirNow)"
 license_url = "https://docs.airnowapi.org/docs/DataUseGuidelines.pdf"
-redistribution = "conditional"
+redistribution = "hosted"
 conditions = "Attribute AirNow and state that the data are preliminary and unvalidated (not for regulatory use)."
 
 [shape]

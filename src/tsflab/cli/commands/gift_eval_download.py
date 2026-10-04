@@ -3,16 +3,16 @@
 Usage examples
 --------------
 # Download all datasets to default location (~/.cache/gift_eval):
-  uv run tsf data prepare --from gift
+  uv run tsf data prepare --from gift-eval
 
 # Download to a custom location:
-  uv run tsf data prepare --from gift --output-dir /data/gift_eval
+  uv run tsf data prepare --from gift-eval --output-dir /data/gift_eval
 
 # Download specific datasets only:
-  uv run tsf data prepare --from gift --datasets electricity/15T ett1/H m4_monthly
+  uv run tsf data prepare --from gift-eval --datasets electricity/15T ett1/H m4_monthly
 
 # Link an already-downloaded directory (skip download):
-  uv run tsf data prepare --from gift --link-only --output-dir /data/gift_eval
+  uv run tsf data prepare --from gift-eval --link-only --output-dir /data/gift_eval
 
 The script creates a symlink at ``./dataset/gift_eval`` pointing to the
 download directory so that TOML configs with ``path = "./dataset/gift_eval"``

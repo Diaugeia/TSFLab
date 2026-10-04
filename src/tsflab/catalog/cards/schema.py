@@ -30,10 +30,11 @@ ISSUE_KINDS = ("code-bug", "paper-code-mismatch", "paper-error", "underspecified
                "leakage", "license")
 DATA_PARAM_SOURCES = ("period", "frequency", "channels", "nodes", "covariates", "seq_len", "pred_len",
                       "graph", "train-split")
-#: ``allowed``: attribution only; ``conditional``: extra conditions, stated in ``source.conditions``;
-#: ``link-only``: never re-hosted, users fetch the file from the source; ``upstream``: fetched
-#: from the upstream benchmark package (GIFT-Eval), never re-hosted.
-REDISTRIBUTION = ("allowed", "conditional", "link-only", "upstream")
+#: ``hosted``: TSFLab re-hosts the files in Diaugeia/TSFLab-Static (``tsf data download``), with
+#: any extra source terms stated in ``source.conditions``; ``upstream``: fetched from another
+#: party's Hugging Face repository, never re-hosted; ``script``: the license forbids re-hosting,
+#: so TSFLab ships a fetch command and users download from the original source.
+REDISTRIBUTION = ("hosted", "upstream", "script")
 #: Application domain of a dataset (exactly one); ``mixed`` only for a dataset family.
 DOMAINS = ("energy", "transport", "environment", "finance", "healthcare", "cloud-web", "sales")
 FAMILY_DOMAINS = (*DOMAINS, "mixed")
@@ -178,14 +179,8 @@ class Source(_Strict):
     #: Evidence for ``license`` (terms page or license file).
     license_url: str = ""
     redistribution: Literal[REDISTRIBUTION]  # type: ignore[valid-type]
-    #: Required when ``redistribution`` is ``conditional``: what a re-host must do.
+    #: Extra terms the source attaches to a re-host (attribution notices, verbatim copies only).
     conditions: str = ""
-
-    @model_validator(mode="after")
-    def _conditions(self) -> "Source":
-        if self.redistribution == "conditional" and not self.conditions.strip():
-            raise ValueError("conditional redistribution needs conditions")
-        return self
 
 
 class Shape(_Strict):

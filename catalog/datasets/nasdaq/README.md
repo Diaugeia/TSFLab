@@ -11,7 +11,7 @@ NASDAQ is one stock from the NASDAQ universe of Feng et al.'s Relational Stock R
 
 ## Protocol and pitfalls
 
-- **Get the file (`link-only`).** The price terms forbid re-hosting, so TSFLab does not ship it. Download the TFB forecasting archive (https://drive.google.com/file/d/1vgpOmAygokoUt235piWKUjfwao6KwLv7/view, linked from the TFB README), pivot member `forecasting/NASDAQ.csv` to wide by position (dates from the first block, as TFB's `read_data` does; see reference.md), and put it at `dataset/NASDAQ/NASDAQ.csv`.
+- **Get the file (`script`).** The price terms forbid re-hosting, so TSFLab does not ship it. Run `uv run tsf data prepare --from tfb --datasets nasdaq`: it downloads the TFB forecasting archive from Google Drive, pivots member `forecasting/NASDAQ.csv` to wide by position (dates from the first block, as TFB's `read_data` does; see reference.md), checks every sha256, and writes `dataset/NASDAQ/NASDAQ.csv`.
 - **Protocol.** Horizons 24/36/48/60 trading days with lookback 36 or 104, as TFB does for its short datasets; 7:1:2 leaves about 249 test rows.
 - **Split.** 7:1:2 chronological, as in TFB for this dataset (TFB's `rolling_forecast_config.json` reserves 6:2:2 for ETT, PEMS, AQShunyi/AQWan and Solar). Train-only z-scoring per channel.
 - **Not OHLCV.** Despite the names, channels 1 to 4 are moving averages of the close and `Volume` is the close; there is no traded volume. Moving averages are nearly deterministic given recent closes, so all-channel averages look easier than forecasting a price.

@@ -16,7 +16,7 @@ citation = "Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffi
 citation_url = "https://arxiv.org/abs/1707.01926"
 license = "No data license (the DCRNN repository's MIT license covers code only)"
 license_url = "https://github.com/liyaguang/DCRNN"
-redistribution = "link-only"
+redistribution = "script"
 
 [shape]
 frequency = "5-minute (5min)"

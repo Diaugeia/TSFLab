@@ -16,7 +16,7 @@ citation = "Cautionary tales on air-quality improvement in Beijing (Zhang et al.
 citation_url = "https://doi.org/10.1098/rspa.2017.0457"
 license = "CC-BY-4.0 (UCI Machine Learning Repository, dataset 501)"
 license_url = "https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "hourly (1h)"
