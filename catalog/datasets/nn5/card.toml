@@ -16,7 +16,7 @@ citation = "Monash Time Series Forecasting Archive (Godahewa et al., NeurIPS 202
 citation_url = "https://arxiv.org/abs/2105.06643"
 license = "CC-BY-4.0 (Monash/Zenodo copy)"
 license_url = "https://zenodo.org/records/3889740"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "daily (1d)"

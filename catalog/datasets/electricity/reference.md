@@ -5,7 +5,7 @@
 - Raw data: Artur Trindade, UCI Machine Learning Repository, ElectricityLoadDiagrams20112014 (https://doi.org/10.24432/C58C86), license CC BY 4.0 ("sharing and adaptation of the datasets for any purpose, provided that the appropriate credit is given").
 - Preprocessing: Lai et al. 2018 (LSTNet), https://github.com/laiguokun/multivariate-time-series-data. That repository carries no license file, so the preprocessed copy is derived from CC BY data and must credit Trindade.
 - Cite LSTNet and the UCI dataset. UCI reports kW per 15 minutes while the LSTNet README says kWh, so the unit of this file is ambiguous; treat values as relative load.
-- Redistribution: `allowed` with attribution (CC BY 4.0, UCI dataset 321); the LSTNet preprocessing adds no terms of its own. Credit Trindade and UCI.
+- Redistribution: `hosted` with attribution (CC BY 4.0, UCI dataset 321); the LSTNet preprocessing adds no terms of its own. Credit Trindade and UCI.
 
 ## Structure and statistics
 

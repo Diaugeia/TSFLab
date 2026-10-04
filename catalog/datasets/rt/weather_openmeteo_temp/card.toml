@@ -17,7 +17,7 @@ citation = "n/a (no dataset paper; TSFLab real-time track)"
 citation_url = "n/a"
 license = "CC-BY-4.0 (Open-Meteo data; the free API is non-commercial, used here for collection only)"
 license_url = "https://open-meteo.com/en/terms"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "hourly (1h)"

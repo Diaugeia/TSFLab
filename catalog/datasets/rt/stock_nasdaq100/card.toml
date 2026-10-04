@@ -16,7 +16,7 @@ url = "https://www.nasdaq.com/market-activity/quotes/historical"
 citation = "n/a (no dataset paper; TSFLab real-time track)"
 citation_url = "n/a"
 license = "Nasdaq and Yahoo terms forbid redistribution; the Nasdaq-100 constituent list is open"
-redistribution = "link-only"
+redistribution = "script"
 
 [shape]
 frequency = "business-daily (1b)"

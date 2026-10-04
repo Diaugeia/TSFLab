@@ -6,8 +6,8 @@
 - Packaging: GIFT-Eval (https://arxiv.org/abs/2410.10393; data on Hugging Face `Salesforce/GiftEval`; code https://github.com/SalesforceAIResearch/gift-eval). The benchmark itself is `apache-2.0` (Hugging Face dataset card and repository LICENSE).
 - GIFT-Eval wrapper: the Hugging Face card for `Salesforce/GiftEval` (https://huggingface.co/datasets/Salesforce/GiftEval) declares `license: apache-2.0` for the whole benchmark and lists no per-subset licenses; its Ethical Considerations say the release is "for research purposes only in support of an academic paper". The Apache-2.0 tag does not relicense the underlying data, so the terms below come from each original source.
 - Underlying data terms: LibCity's M-DENSE comes from the Madrid City Council traffic-measurement history (de Medrano and Aznarte, 2020, https://arxiv.org/abs/2003.13977, which names the municipality's open data portal as the source). The portal record "Trafico. Historico de datos del trafico desde 2013" (https://datos.madrid.es/dataset/208627-0-transporte-ptomedida-historico) lists the licence "Creative Commons Attribution 4.0 International (CC BY 4.0)". The link from LibCity's 30-sensor 2018-2019 extract to that portal record is by the paper's description, not a per-file statement; redistribute with attribution to Ayuntamiento de Madrid.
-- Bytes are not bundled; download them with `tsf data prepare --from gift`.
-- Redistribution: `upstream`. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use). The license above still binds the data.
+- Bytes are not bundled; download them with `tsf data prepare --from gift-eval`.
+- Redistribution: `upstream`. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift-eval` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use). The license above still binds the data.
 
 ## Structure and statistics
 

@@ -42,8 +42,8 @@ dependencies = [
 
 [project.optional-dependencies]
 # One extra per module; the core install already runs every model and experiment.
-# data: dataset registration, Hub-published presets, parquet panels.
-data = ["pyarrow", "huggingface_hub>=0.25"]
+# data: dataset registration, Hub-published presets, parquet panels, source fetchers (gdown, h5py).
+data = ["pyarrow", "huggingface_hub>=0.25", "gdown>=5.2", "h5py>=3.11"]
 # models: pinned model artifacts and safetensors weights for foundation-model adapters.
 models = ["huggingface_hub>=0.25", "safetensors>=0.4"]
 # experiments: run tracking beyond the built-in records.

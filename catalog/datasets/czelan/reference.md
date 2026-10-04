@@ -7,7 +7,7 @@
 - License: the SAPFLUXNET Zenodo record is released under Creative Commons Attribution 4.0 International. TFB's MIT license covers code, not data.
 - Packaging: TFB: Towards Comprehensive and Fair Benchmarking of Time Series Forecasting Methods (Qiu et al., PVLDB 2024), https://arxiv.org/abs/2403.20150.
 - File: TFB's pre-processed forecasting archive (Google Drive id `1vgpOmAygokoUt235piWKUjfwao6KwLv7`, linked from the TFB README; archive sha256 `01794d0000ccc7e033523481cfa117f647c9740d6efbf0626f56228f1bcf785c`), member `forecasting/CzeLan.csv`, pivoted from TFB's long `date,data,cols` layout to a wide CSV in TFB's channel order with values and dates unchanged; channel names are TFB's. `dataset/CzeLan/SOURCE.txt` records the member and converted-file hashes.
-- Redistribution: `allowed` with attribution (CC BY 4.0).
+- Redistribution: `hosted` with attribution (CC BY 4.0).
 
 ## Structure and statistics
 

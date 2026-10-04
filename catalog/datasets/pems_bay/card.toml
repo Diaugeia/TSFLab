@@ -16,7 +16,7 @@ citation = "Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffi
 citation_url = "https://arxiv.org/abs/1707.01926"
 license = "Public domain (Caltrans PeMS conditions of use)"
 license_url = "https://pems.dot.ca.gov/?view=tou"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "5-minute (5min)"

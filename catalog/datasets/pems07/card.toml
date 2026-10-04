@@ -16,7 +16,7 @@ citation = "Spatial-Temporal Synchronous Graph Convolutional Networks (Song et a
 citation_url = "https://ojs.aaai.org/index.php/AAAI/article/view/5438"
 license = "Public domain (Caltrans PeMS conditions of use)"
 license_url = "https://pems.dot.ca.gov/?view=tou"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "5-minute (5min)"

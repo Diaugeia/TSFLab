@@ -16,7 +16,7 @@ citation = "Modeling Long- and Short-Term Temporal Patterns with Deep Neural Net
 citation_url = "https://arxiv.org/abs/1703.07015"
 license = "CC-BY-4.0 (UCI Machine Learning Repository, dataset 321)"
 license_url = "https://archive.ics.uci.edu/dataset/321/electricityloaddiagrams20112014"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "hourly (1h)"

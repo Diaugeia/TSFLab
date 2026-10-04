@@ -16,7 +16,7 @@ citation = "Autoformer: Decomposition Transformers with Auto-Correlation for Lon
 citation_url = "https://arxiv.org/abs/2106.13008"
 license = "US Government work, public domain (CDC FluView)"
 license_url = "https://www.cdc.gov/other/agencymaterials.html"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "weekly (1w)"

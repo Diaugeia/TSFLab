@@ -19,7 +19,10 @@ source. Stop before replacing an existing output directory without authorization
      --seq-len 96 --label-len 48 --pred-len 96
    # graph traffic bundles and GIFT-Eval: read the options first
    uv run tsf data prepare --from traffic --help
-   uv run tsf data prepare --from gift --help
+   uv run tsf data prepare --from gift-eval --help
+   # script-class sources, fetched from the original source with pinned SHA-256
+   uv run tsf data prepare --from tfb --list     # TFB archive -> dataset/<Name>/<Name>.csv
+   uv run tsf data prepare --from dcrnn          # DCRNN METR-LA -> dataset/metr_la
    # UltraTraffic archive -> dataset/ultratraffic (history of the traffic_pems_* tracks)
    uv run tsf data prepare --from ultratraffic --archive <TrafficCL.zip>
    ```
@@ -30,5 +33,5 @@ source. Stop before replacing an existing output directory without authorization
 3. Verify every split, shape, window, and the train-only scaling policy.
 4. Publishing local files (`uv run tsf data publish <preset>`) is a maintainer
    action that needs explicit authorization and redistributable source terms.
-   Read the card's `license` and `redistribution`: publish only `allowed`, or
-   `conditional` with its `conditions` met; never publish `link-only` or `upstream`.
+   Read the card's `license` and `redistribution`: publish only `hosted`, with its
+   `conditions` met; never publish `upstream` or `script`.

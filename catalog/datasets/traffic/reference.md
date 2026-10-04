@@ -2,8 +2,8 @@
 
 ## Provenance and license
 
-- Source system: Caltrans Performance Measurement System (PeMS), http://pems.dot.ca.gov. Caltrans PeMS Conditions of Use (https://pems.dot.ca.gov/?view=tou) say: "In general, information presented on this web site, unless otherwise indicated, is considered in the public domain", and that to use information "not owned or created by the State, you must seek permission directly from the owning (or holding) sources". The packagers add no terms of their own, so `redistribution` is `allowed` with credit to Caltrans PeMS.
-- Packaging: Lai et al. 2018, https://github.com/laiguokun/multivariate-time-series-data, which has no license file (GitHub API: none) and no data terms in its README; the preprocessed copy therefore carries no license of its own. The PeMS public-domain policy applies, so the LSTNet copy is `allowed` with credit to Caltrans PeMS.
+- Source system: Caltrans Performance Measurement System (PeMS), http://pems.dot.ca.gov. Caltrans PeMS Conditions of Use (https://pems.dot.ca.gov/?view=tou) say: "In general, information presented on this web site, unless otherwise indicated, is considered in the public domain", and that to use information "not owned or created by the State, you must seek permission directly from the owning (or holding) sources". The packagers add no terms of their own, so `redistribution` is `hosted` with credit to Caltrans PeMS.
+- Packaging: Lai et al. 2018, https://github.com/laiguokun/multivariate-time-series-data, which has no license file (GitHub API: none) and no data terms in its README; the preprocessed copy therefore carries no license of its own. The PeMS public-domain policy applies, so the LSTNet copy is `hosted` with credit to Caltrans PeMS.
 - Cite LSTNet (SIGIR 2018) and credit Caltrans PeMS.
 
 ## Structure and statistics

@@ -2,7 +2,7 @@
 
 ## Provenance and license
 
-- Producer: DCRNN authors packaged Caltrans PeMS (Bay Area) data; repository https://github.com/liyaguang/DCRNN (code MIT per GitHub API). The README gives only Google Drive / Baidu links for `pems-bay.h5` and states no data license. Caltrans PeMS Conditions of Use (https://pems.dot.ca.gov/?view=tou) say: "In general, information presented on this web site, unless otherwise indicated, is considered in the public domain", and that to use information "not owned or created by the State, you must seek permission directly from the owning (or holding) sources". The packagers add no terms of their own, so `redistribution` is `allowed` with credit to Caltrans PeMS.
+- Producer: DCRNN authors packaged Caltrans PeMS (Bay Area) data; repository https://github.com/liyaguang/DCRNN (code MIT per GitHub API). The README gives only Google Drive / Baidu links for `pems-bay.h5` and states no data license. Caltrans PeMS Conditions of Use (https://pems.dot.ca.gov/?view=tou) say: "In general, information presented on this web site, unless otherwise indicated, is considered in the public domain", and that to use information "not owned or created by the State, you must seek permission directly from the owning (or holding) sources". The packagers add no terms of their own, so `redistribution` is `hosted` with credit to Caltrans PeMS.
 - Cite: Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting (Li et al., ICLR 2018), https://arxiv.org/abs/1707.01926.
 - Obtain `pems-bay.h5` and `adj_mx_bay.pkl` from the DCRNN README; TSFLab does not ship them.
 

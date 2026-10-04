@@ -2,7 +2,7 @@
 
 ## Provenance and license
 
-- Source: ERCOT public load data (`Native_Load` archives, refreshed monthly, and the MIS report NP6-345-CD). The ERCOT terms of use (https://www.ercot.com/help/terms) allow re-hosting unmodified data that credit ERCOT, so `redistribution` is `conditional`.
+- Source: ERCOT public load data (`Native_Load` archives, refreshed monthly, and the MIS report NP6-345-CD). The ERCOT terms of use (https://www.ercot.com/help/terms) allow re-hosting unmodified data that credit ERCOT, so `redistribution` is `hosted` with `conditions`.
 - Releases are mirrored to the Hugging Face dataset `Diaugeia/TSFLab-RealTime` (`grid_ercot/`).
 
 ## Structure and statistics

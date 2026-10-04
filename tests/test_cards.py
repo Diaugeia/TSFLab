@@ -63,7 +63,7 @@ DATASET = {
     "name": "toy_data", "domain": "energy", "topic": "toy load", "benchmarks": ["ltsf"],
     "tags": ["toy", "hourly", "fixture"],
     "source": {"name": "Toy", "url": "https://example.com", "citation": "Toy (2026)",
-               "citation_url": "https://example.com/cite", "license": "CC-BY-4.0", "redistribution": "allowed"},
+               "citation_url": "https://example.com/cite", "license": "CC-BY-4.0", "redistribution": "hosted"},
     "shape": {"frequency": "1h", "length": 100, "channels": 3, "channel_kind": "channels", "stats_basis": "measured"},
     "protocol": {"protocol": "70/10/20 chronological split", "seq_lens": [96], "pred_lens": [24]},
 }
@@ -150,12 +150,12 @@ def test_component_and_dataset_schemas() -> None:
     assert dataset(characteristics=["strong-seasonality"], characteristics_basis="tsf data analyze").characteristics
     with pytest.raises(ValidationError):
         dataset(source={**DATASET["source"], "redistribution": "maybe"})
-    for retired in ("unknown", "restricted"):
+    for retired in ("unknown", "restricted", "allowed", "conditional", "link-only"):
         with pytest.raises(ValidationError):
             dataset(source={**DATASET["source"], "redistribution": retired})
-    with pytest.raises(ValidationError, match="conditions"):
-        dataset(source={**DATASET["source"], "redistribution": "conditional"})
-    assert dataset(source={**DATASET["source"], "redistribution": "conditional",
+    for klass in ("hosted", "upstream", "script"):
+        assert dataset(source={**DATASET["source"], "redistribution": klass}).source.redistribution == klass
+    assert dataset(source={**DATASET["source"], "redistribution": "hosted",
                            "conditions": "verbatim copies only"}).source.conditions
     for bad in ({"domain": "Energy / power"}, {"domain": "weather"}, {"domain": "mixed"},
                 {"benchmarks": ["m4"]}, {"benchmarks": ["ltsf", "ltsf"]}):

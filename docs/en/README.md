@@ -60,7 +60,7 @@ Eleven commands, one per module (`tsf <command> --help`):
 | Command | Purpose |
 | --- | --- |
 | `tsf catalog` | overview, `search`, `list`, `show <name> [--kind] [--depth]`, `match <dataset>` for models, components, datasets |
-| `tsf data` | `add`, `prepare [--from traffic\|ultratraffic\|gift]`, `inspect`, `analyze`, `plot`, `download`, `publish`, `audit` |
+| `tsf data` | `add`, `prepare [--from traffic\|ultratraffic\|gift-eval\|tfb\|dcrnn]`, `inspect`, `analyze`, `plot`, `download`, `publish`, `audit` |
 | `tsf model` | `scaffold`, `add [--verify]`, `artifacts`, `verify <Name...>\|--all\|--changed`, `compose`, `audit [--components] [--release]` |
 | `tsf run` | run configs; `--smoke`, `--dry-run`, `--backend local\|queue\|slurm` |
 | `tsf env` | environment audit; `storage` and `usage` subcommands |

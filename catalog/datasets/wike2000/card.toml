@@ -10,14 +10,14 @@ characteristics = ["weak-seasonality", "low-forecastability", "regime-changes", 
 characteristics_basis = "measured by tsf data analyze (tsflab.dataset-profile/1, decision-safe train/val metrics, thresholds in profile_rules.toml) on 2026-10-03"
 
 [source]
-name = "GluonTS dataset repository, wiki2000_nips (GP-Copula datasets of Salinas et al., 2019), Wikipedia page-view counts; TFB packaging by Qiu et al., who cite Gasthaus et al. (AISTATS 2019)"
-url = "https://github.com/awslabs/gluonts/blob/dev/src/gluonts/dataset/repository/_gp_copula_2019.py"
+name = "TFB forecasting archive (Qiu et al., PVLDB 2024), member forecasting/Wike2000.csv; Wikipedia page-view counts equal to the train split of GluonTS wiki2000_nips (GP-Copula datasets of Salinas et al., 2019); TFB cites Gasthaus et al. (AISTATS 2019)"
+url = "https://drive.google.com/file/d/1vgpOmAygokoUt235piWKUjfwao6KwLv7/view"
 citation = "High-dimensional multivariate forecasting with low-rank Gaussian Copula Processes (Salinas et al., NeurIPS 2019); TFB cites Probabilistic Forecasting with Spline Quantile Function RNNs (Gasthaus et al., AISTATS 2019)"
 citation_url = "https://arxiv.org/abs/1910.03002"
-license = "CC0-1.0 (Wikimedia pageviews)"
-license_url = "https://dumps.wikimedia.org/other/pageviews/readme.html"
-redistribution = "conditional"
-conditions = "Re-host only a copy rebuilt from the Wikimedia pageview dumps; the current file comes from the GluonTS/Kaggle copy, whose own terms are not stated."
+license = "No data license: TFB repackages GluonTS wiki2000_nips (Salinas et al., GP-Copula, NeurIPS 2019; 2,000 Wikipedia pages, daily 2012-01-01 to 2014-03-02), released without a data license; the underlying Wikimedia page counts are CC0-1.0"
+license_url = "https://github.com/awslabs/gluonts/blob/dev/src/gluonts/dataset/repository/_gp_copula_2019.py"
+redistribution = "script"
+conditions = "Never re-host this file; users rebuild it from the TFB archive with `tsf data prepare --from tfb --datasets wike2000`. Only a copy rebuilt from the CC0 Wikimedia pageview dumps could be hosted."
 
 [shape]
 frequency = "daily (1d)"

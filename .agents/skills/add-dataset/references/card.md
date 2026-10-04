@@ -22,10 +22,14 @@ modes, and parameters are derived from code; never copy them into the card.
   terms (`spatial-graph`, `calendar-effects`, `exogenous-covariates`, ...) by hand
   only when the loader or source supports them.
 - Set `redistribution` from the source terms, with `license_url` as evidence:
-  `allowed` (attribution only), `conditional` (write the extra terms in
-  `conditions`), `link-only` (no explicit terms, or terms that forbid re-hosting:
-  users fetch the file, and Protocol and pitfalls says where to get it and where to
-  put it), or `upstream` (fetched from the upstream benchmark package, GIFT-Eval).
+  `hosted` (TSFLab re-hosts the files in TSFLab-Static; write any extra terms the
+  source attaches, such as verbatim copies only, in `conditions`), `upstream`
+  (fetched from another party's Hugging Face repository: GIFT-Eval through
+  `tsf data prepare --from gift-eval`, others through an `upstream` entry in
+  `configs/hub/datasets.json`), or `script` (no explicit terms, or terms that forbid
+  re-hosting: TSFLab ships a fetch command, such as `tsf data prepare --from tfb`,
+  and users download from the original source). For `upstream` and `script`,
+  Protocol and pitfalls names the one command that gets the data.
   Never guess a license or a number.
 - Document split conventions, `drop_last`, scaling, zeros or sentinels, shift, and
   leakage risks under Protocol and pitfalls; a differing literature protocol goes

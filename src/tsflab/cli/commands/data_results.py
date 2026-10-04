@@ -112,7 +112,7 @@ def data_command(args: list[str]) -> int:
     """Route dataset scaffolding, preparation, inspection, plotting, and publishing."""
     usage = (
         "usage: tsf data {add,prepare,inspect,analyze,plot,download,publish,audit} [args...]\n"
-        "       tsf data prepare [--from traffic|ultratraffic|gift] [args...]\n"
+        "       tsf data prepare [--from traffic|ultratraffic|gift-eval|tfb|dcrnn] [args...]\n"
         "Find and read datasets with `tsf catalog search|show --kind dataset`."
     )
     if not args or args[0] in {"-h", "--help", "help"}:
@@ -138,10 +138,19 @@ def data_command(args: list[str]) -> int:
             return convert_ultratraffic(rest)
         if source == "traffic":
             return passthrough("convert_traffic.py", rest)
-        if source == "gift":
+        if source == "gift-eval":
             return passthrough("gift_eval_download.py", rest)
+        if source == "tfb":
+            from tsflab.data.prepare.tfb import main as fetch_tfb
+
+            return fetch_tfb(rest)
+        if source == "dcrnn":
+            from tsflab.data.prepare.dcrnn import main as fetch_dcrnn
+
+            return fetch_dcrnn(rest)
         if source is not None:
-            print(f"unknown --from source {source!r}; choose traffic, ultratraffic, or gift", file=sys.stderr)
+            print(f"unknown --from source {source!r}; choose traffic, ultratraffic, gift-eval, tfb, or dcrnn",
+                  file=sys.stderr)
             return 2
     script = scripts.get(action)
     if script is None:
@@ -202,7 +211,8 @@ def _hub_dataset_command(action: str, rest: list[str]) -> int:
             issues = check_manifest(ROOT)
             for issue in issues:
                 print(f"ERROR: {issue}")
-            total = len(load_manifest(ROOT)["files"])
+            manifest = load_manifest(ROOT)
+            total = len(manifest["files"]) + len(manifest.get("upstream", {}))
             print(f"Pinned dataset files: {total - len(issues)}/{total} reachable")
             return 1 if issues else 0
         published = hub.available_presets(ROOT)

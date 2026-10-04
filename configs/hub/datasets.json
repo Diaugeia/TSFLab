@@ -462,5 +462,12 @@
       "sha256": "18130da0fdb23d4e03dbded9af578bda0fb76b88eb3b466bcdc1b21f7cf20586",
       "size": 7182728
     }
+  },
+  "upstream": {
+    "exchange_rate/exchange_rate.csv": {
+      "url": "https://huggingface.co/datasets/thuml/Time-Series-Library/resolve/main/exchange_rate/exchange_rate.csv",
+      "sha256": "48b4d9d3d508f5104162e85b9a6042e3557fde11aa9f2944eba8c0d0efc89842",
+      "size": 637800
+    }
   }
 }

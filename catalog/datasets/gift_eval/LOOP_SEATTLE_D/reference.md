@@ -5,9 +5,9 @@
 - Original source: LibCity / LOOP Seattle (Cui et al.); https://github.com/LibCity/Bigscity-LibCity.
 - Packaging: GIFT-Eval (https://arxiv.org/abs/2410.10393; data on Hugging Face `Salesforce/GiftEval`; code https://github.com/SalesforceAIResearch/gift-eval). The benchmark itself is `apache-2.0` (Hugging Face dataset card and repository LICENSE).
 - GIFT-Eval wrapper: the Hugging Face card for `Salesforce/GiftEval` (https://huggingface.co/datasets/Salesforce/GiftEval) declares `license: apache-2.0` for the whole benchmark and lists no per-subset licenses; its Ethical Considerations say the release is "for research purposes only in support of an academic paper". The Apache-2.0 tag does not relicense the underlying data, so the terms below come from each original source.
-- Underlying data terms: the Seattle Inductive Loop Detector Dataset README (https://github.com/zhiyongc/Seattle-Loop-Data) says "This dataset should only be used for research" and asks users to cite Cui, Ke and Wang (2018) or Cui, Henrickson, Ke and Wang (2019). The repository has no LICENSE file (GitHub API: none); LibCity (Apache-2.0 code) redistributes it without adding terms. Redistribution is `conditional` on research-only use and citation.
-- Bytes are not bundled; download them with `tsf data prepare --from gift`.
-- Redistribution: `upstream`. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use). The license above still binds the data.
+- Underlying data terms: the Seattle Inductive Loop Detector Dataset README (https://github.com/zhiyongc/Seattle-Loop-Data) says "This dataset should only be used for research" and asks users to cite Cui, Ke and Wang (2018) or Cui, Henrickson, Ke and Wang (2019). The repository has no LICENSE file (GitHub API: none); LibCity (Apache-2.0 code) redistributes it without adding terms. Redistribution is conditional on research-only use and citation.
+- Bytes are not bundled; download them with `tsf data prepare --from gift-eval`.
+- Redistribution: `upstream`. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift-eval` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use). The license above still binds the data.
 
 ## Structure and statistics
 

@@ -6,7 +6,7 @@
 - License: Creative Commons Attribution 4.0 ("sharing and adaptation of the datasets for any purpose, provided that the appropriate credit is given"). The TFB package adds no separate data license.
 - Cite Cautionary tales on air-quality improvement in Beijing (Zhang et al., Proceedings of the Royal Society A, 2017) and TFB: Towards Comprehensive and Fair Benchmarking of Time Series Forecasting Methods (Qiu et al., PVLDB 2024).
 - `AQShunyi` is the Shunyi station (verified from the TFB file's source name `PRSA_Data_Shunyi_20130301-20170228.csv`).
-- Redistribution: `allowed` with attribution (CC BY 4.0).
+- Redistribution: `hosted` with attribution (CC BY 4.0).
 
 ## Structure and statistics
 

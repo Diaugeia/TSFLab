@@ -6,8 +6,8 @@
 - Paper: https://arxiv.org/abs/2410.10393. Data: https://huggingface.co/datasets/Salesforce/GiftEval. Code: https://github.com/SalesforceAIResearch/gift-eval. Leaderboard: https://huggingface.co/spaces/Salesforce/GIFT-Eval.
 - License of the benchmark packaging: `apache-2.0` (Hugging Face dataset card; the repository LICENSE is Apache License 2.0, Copyright 2024 Salesforce, Inc.).
 - Each underlying dataset keeps its own license. The member cards record it: CC-BY-4.0 for the Monash, M4, KDD Cup 2018, UCI Electricity, M-DENSE, and Jena weather series; CC-BY-ND-4.0 for ETT; CDLA-Sharing-1.0 for BizITObs; CC-BY-NC-3.0 (non-commercial) for Hierarchical Sales; custom terms for Bitbrains (free use with acknowledgement) and LOOP Seattle (research use with citation, no formal license); and `unknown` for the Solar, SZ-Taxi, and Restaurant sources. `redistribution: "unknown"` on a member means no explicit terms were found, not that republishing is allowed.
-- TSFLab does not bundle these bytes. Download with `tsf data prepare --from gift`; it links `./dataset/gift_eval` to the download directory.
-- Redistribution: `upstream` for the family and every member. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use; sub-datasets keep their own licenses).
+- TSFLab does not bundle these bytes. Download with `tsf data prepare --from gift-eval`; it links `./dataset/gift_eval` to the download directory.
+- Redistribution: `upstream` for the family and every member. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift-eval` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use; sub-datasets keep their own licenses).
 
 ## Structure and statistics
 

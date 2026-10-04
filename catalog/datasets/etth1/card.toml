@@ -16,7 +16,7 @@ citation = "Informer: Beyond Efficient Transformer for Long Sequence Time-Series
 citation_url = "https://arxiv.org/abs/2012.07436"
 license = "CC-BY-ND-4.0"
 license_url = "https://github.com/zhouhaoyi/ETDataset/blob/main/LICENSE"
-redistribution = "conditional"
+redistribution = "hosted"
 conditions = "Verbatim copies only, with attribution to Zhou et al. (ETDataset); a format shift such as CSV to parquet is allowed, cleaned, cropped, or re-split variants are not."
 
 [shape]

@@ -1,8 +1,11 @@
 """Publish and download benchmark dataset files through one pinned manifest.
 
 ``configs/hub/datasets.json`` maps every published file (a path relative to the
-local ``dataset/`` root) to the commit that holds it and its SHA-256. A preset's
-files are selected from its config ``path`` (a file or a directory subtree).
+local ``dataset/`` root) to the commit that holds it and its SHA-256. Its
+``upstream`` table maps files of ``upstream``-class presets to another party's
+pinned URL and SHA-256; ``tsf data download`` fetches them from there and
+TSFLab never re-hosts them. A preset's files are selected from its config
+``path`` (a file or a directory subtree).
 Downloads use only the standard library;
 publishing requires ``huggingface_hub`` and explicit authorization.
 """
@@ -58,8 +61,25 @@ def load_manifest(root: Path | None = None) -> dict:
 
 
 def published_files(preset: str, manifest: dict, root: Path | None = None) -> dict[str, dict]:
+    """Files of ``preset``: TSFLab-hosted entries and ``upstream`` entries (with a ``url``)."""
     chosen = selection(preset, root)
-    return {name: entry for name, entry in manifest["files"].items() if chosen.matches(name)}
+    entries = {**manifest["files"], **manifest.get("upstream", {})}
+    return {name: entry for name, entry in entries.items() if chosen.matches(name)}
+
+
+def _not_published(preset: str, root: Path | None) -> str:
+    """Say where an unpublished preset's files come from, by its card's redistribution class."""
+    klass = redistribution(preset, root)
+    if klass == "upstream":
+        config = (root or repository_root()) / "configs" / "datasets" / f"{preset}.toml"
+        dataset = tomllib.loads(config.read_text(encoding="utf-8")).get("dataset", {})
+        if dataset.get("name") == "gift_eval":
+            return (f"preset {preset!r} comes from Salesforce/GiftEval, not TSFLab; run "
+                    f"`tsf data prepare --from gift-eval --datasets {dataset.get('id', '')}`".rstrip())
+    if klass == "script":
+        return (f"preset {preset!r} may not be re-hosted; fetch it from the original source with the "
+                f"command in its card (`tsf catalog show {preset}`, Protocol and pitfalls)")
+    return f"preset {preset!r} is not published; see `tsf data download --list`"
 
 
 def available_presets(root: Path | None = None) -> list[str]:
@@ -81,15 +101,16 @@ def fetch_preset(preset: str, data_root: Path = Path("dataset"), root: Path | No
     manifest = load_manifest(root)
     files = published_files(preset, manifest, root)
     if not files:
-        raise FileNotFoundError(
-            f"preset {preset!r} is not published; see `tsf data download --list`"
-        )
-    repo = manifest["repo"]
+        raise FileNotFoundError(_not_published(preset, root))
     written = []
     for name, entry in sorted(files.items()):
-        uri = f"hf://datasets/{repo}@{entry['revision']}/{name}"
-        written.append(download(uri, data_root / name, entry["sha256"]))
+        written.append(download(_entry_url(manifest, name, entry), data_root / name, entry["sha256"]))
     return written
+
+
+def _entry_url(manifest: dict, name: str, entry: dict) -> str:
+    """An upstream entry's own URL, else the pinned TSFLab-Static ``hf://`` URI."""
+    return entry.get("url") or f"hf://datasets/{manifest['repo']}@{entry['revision']}/{name}"
 
 
 def local_files(preset: str, data_root: Path = Path("dataset"), root: Path | None = None,
@@ -101,8 +122,8 @@ def local_files(preset: str, data_root: Path = Path("dataset"), root: Path | Non
     return [name for name in names if chosen.matches(name) and not Path(name).name.startswith(".")]
 
 
-#: Redistribution classes whose files TSFLab may host; ``link-only`` and ``upstream`` never.
-REHOSTABLE = ("allowed", "conditional")
+#: Redistribution classes whose files TSFLab may host; ``upstream`` and ``script`` never.
+REHOSTABLE = ("hosted",)
 
 
 def redistribution(preset: str, root: Path | None = None) -> str:
@@ -182,8 +203,8 @@ def check_manifest(root: Path | None = None) -> list[str]:
 
     manifest = load_manifest(root)
     problems = []
-    for name, entry in manifest["files"].items():
-        url = resolve_url(f"hf://datasets/{manifest['repo']}@{entry['revision']}/{name}")
+    for name, entry in {**manifest["files"], **manifest.get("upstream", {})}.items():
+        url = resolve_url(_entry_url(manifest, name, entry))
         try:
             # HF answers HEAD on /resolve/ with the file size before any LFS redirect.
             request = Request(url, method="HEAD")

@@ -11,7 +11,7 @@ FRED-MD is a monthly database of US macroeconomic indicators (output, labor, hou
 
 ## Protocol and pitfalls
 
-- **Get the file (`link-only`).** FRED's terms forbid re-hosting, so TSFLab does not ship it. Download the TFB forecasting archive (https://drive.google.com/file/d/1vgpOmAygokoUt235piWKUjfwao6KwLv7/view, linked from the TFB README), pivot member `forecasting/FRED-MD.csv` from the long `date,data,cols` layout to wide (channels in first-appearance order, last channel renamed `OT`), and put it at `dataset/FRED-MD/FRED-MD.csv`.
+- **Get the file (`script`).** FRED's terms forbid re-hosting, so TSFLab does not ship it. Run `uv run tsf data prepare --from tfb --datasets fred_md`: it downloads the TFB forecasting archive from Google Drive, pivots member `forecasting/FRED-MD.csv` to wide (channels in first-appearance order, last channel renamed `OT`), checks every sha256, and writes `dataset/FRED-MD/FRED-MD.csv`.
 - **Protocol.** Horizons 24/36/48/60 months with lookback 36 or 104 and split 7:1:2; the test split starts around mid-2007 (row 582 of 728, assuming the file starts in 1959-01) and therefore covers the 2008 financial crisis, with only about 146 test rows.
 - **Revisions.** FRED-MD is revised monthly; a file downloaded later contains different vintages and a different series count than the TFB snapshot.
 - **Transformations.** The standard FRED-MD recommends stationarity transformations per series; the preset forecasts levels as given in the file, which are trending.

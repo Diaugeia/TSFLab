@@ -6,7 +6,7 @@
 - License: the Data Download page (https://www.bgc-jena.mpg.de/wetter/weather_data.html) states "Terms of Use (as per Creative Commons CC-BY-4.0)"; the landing page itself states none. Redistribution and adaptation are allowed with attribution.
 - Cite Autoformer for this subset and credit the Max Planck Institute for Biogeochemistry.
 - Do not confuse it with Informer's own "Weather" set (NOAA local climatological data, 2010-2013), which is a different dataset.
-- Redistribution: `allowed` with attribution (CC BY 4.0).
+- Redistribution: `hosted` with attribution (CC BY 4.0).
 
 ## Structure and statistics
 

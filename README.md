@@ -176,7 +176,7 @@ checkpoints through the offline runtime boundary; see
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Real-time data remain subject to
 their providers' terms (Caltrans PeMS, AirNow, Open-Meteo, ERCOT, and the stock
 vendors behind AKShare, Nasdaq, and Yahoo). Each dataset card records its license
-and redistribution class; `link-only` data are never re-hosted.
+and redistribution class; `upstream` and `script` data are never re-hosted.
 
 ---
 

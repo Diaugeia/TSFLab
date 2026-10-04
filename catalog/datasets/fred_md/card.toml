@@ -16,7 +16,7 @@ citation = "FRED-MD: A Monthly Database for Macroeconomic Research (McCracken an
 citation_url = "https://doi.org/10.20955/wp.2015.012"
 license = "FRED terms of use (no archiving or compiling of FRED data)"
 license_url = "https://fred.stlouisfed.org/legal/"
-redistribution = "link-only"
+redistribution = "script"
 
 [shape]
 frequency = "monthly (1mo)"

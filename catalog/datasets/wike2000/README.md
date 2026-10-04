@@ -11,6 +11,7 @@ Wike2000 is TFB's (Qiu et al., 2024) web-traffic benchmark: daily page-view coun
 
 ## Protocol and pitfalls
 
+- **Get the file (`script`).** The GluonTS/TFB copy carries no data license, so TSFLab does not ship it. Run `uv run tsf data prepare --from tfb --datasets wike2000`: it downloads the TFB forecasting archive from Google Drive, pivots member `forecasting/Wike2000.csv` to wide (last channel renamed `OT`), checks every sha256, and writes `dataset/Wike2000/Wike2000.csv`.
 - **Protocol.** Horizons 24/36/48/60 days with lookback 36 or 104, as TFB does for its short datasets; 7:1:2 leaves about 159 test rows, so the longest setting has few windows.
 - **Split.** 7:1:2 chronological, as in TFB for this dataset (TFB's `rolling_forecast_config.json` reserves 6:2:2 for ETT, PEMS, AQShunyi/AQWan and Solar). Train-only z-scoring per channel.
 - **Outage day.** 2014-01-05 is zero for every page and falls in the test split (which starts about 2013-09-25); it is an artifact, and errors on and around it dominate squared-error metrics. Report whether it was masked.

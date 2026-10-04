@@ -16,7 +16,7 @@ citation = "Autoformer: Decomposition Transformers with Auto-Correlation for Lon
 citation_url = "https://arxiv.org/abs/2106.13008"
 license = "CC-BY-4.0 (Max Planck Institute for Biogeochemistry, Jena weather station)"
 license_url = "https://www.bgc-jena.mpg.de/wetter/weather_data.html"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "10-minute (10min)"

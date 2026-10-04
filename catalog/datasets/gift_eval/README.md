@@ -13,6 +13,7 @@ Use a family member when you need breadth (many domains, frequencies, series cou
 
 ## Protocol and pitfalls
 
+- **Get the data (`upstream`).** TSFLab does not re-host GIFT-Eval. Run `uv run tsf data prepare --from gift-eval`: it downloads all 55 sets from https://huggingface.co/datasets/Salesforce/GiftEval and links them at `dataset/gift_eval` (`--datasets` picks a subset).
 - Official protocol: the last 10% of each series is test, scored with non-overlapping rolling windows of length equal to the horizon (at most 20 windows); the window before the test region serves as validation. Context length is chosen by the model.
 - The loader in this repository derives the number of test windows from the shortest series of the dataset (`min(max(1, ceil(0.1 * min_len / pred_len)), 20)`, 1 for M4), which can differ from the per-dataset counts in the paper. Inspect `tsf catalog show gift_eval/<id>` and the loader before comparing against leaderboard numbers.
 - The scaler is fitted on the training regions of all series together; z-scored losses weigh series by their original variance unlike the scale-free official metrics (MASE, CRPS on the leaderboard).

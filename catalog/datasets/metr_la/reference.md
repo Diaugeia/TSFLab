@@ -2,7 +2,7 @@
 
 ## Provenance and license
 
-- Producer: DCRNN authors (USC and Caltech) packaged Los Angeles County loop-detector data (Jagadish et al., 2014); repository https://github.com/liyaguang/DCRNN (code MIT per GitHub API). Checked: the DCRNN README (data only via Google Drive / Baidu Yun, no data terms) and the repository license. No terms from the original LA County / Caltrans provider were found for this extract (unlike PEMS-BAY, it is not documented as a PeMS download), so `redistribution` is `link-only` (the DCRNN MIT license covers code, not data).
+- Producer: DCRNN authors (USC and Caltech) packaged Los Angeles County loop-detector data (Jagadish et al., 2014); repository https://github.com/liyaguang/DCRNN (code MIT per GitHub API). Checked: the DCRNN README (data only via Google Drive / Baidu Yun, no data terms) and the repository license. No terms from the original LA County / Caltrans provider were found for this extract (unlike PEMS-BAY, it is not documented as a PeMS download), so `redistribution` is `script` (the DCRNN MIT license covers code, not data).
 - Cite: Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting (Li et al., ICLR 2018), https://arxiv.org/abs/1707.01926.
 - Obtain `metr-la.h5` and `adj_mx.pkl` from the DCRNN README; TSFLab does not ship them (see `tsf data prepare --from traffic --help`).
 

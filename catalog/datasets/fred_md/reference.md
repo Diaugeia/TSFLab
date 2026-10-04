@@ -3,7 +3,7 @@
 ## Provenance and license
 
 - Source: FRED-MD by McCracken and Ng, https://www.stlouisfed.org/research/economists/mccracken/fred-databases; cite the 2016 JBES paper.
-- License: checked the FRED-MD page (https://www.stlouisfed.org/research/economists/mccracken/fred-databases), which states no license, copyright or reuse terms for the CSV files, and FRED's legal terms (https://fred.stlouisfed.org/legal/), which say that before using series "owned by third parties for anything other than your own personal use, you must contact the data owner" and prohibit mirroring or scraping all of FRED; FRED-MD series are drawn from many original owners. FRED's terms forbid archiving or compiling FRED data and no FRED-MD-specific grant exists, so `redistribution` is `link-only`; do not publish copies.
+- License: checked the FRED-MD page (https://www.stlouisfed.org/research/economists/mccracken/fred-databases), which states no license, copyright or reuse terms for the CSV files, and FRED's legal terms (https://fred.stlouisfed.org/legal/), which say that before using series "owned by third parties for anything other than your own personal use, you must contact the data owner" and prohibit mirroring or scraping all of FRED; FRED-MD series are drawn from many original owners. FRED's terms forbid archiving or compiling FRED data and no FRED-MD-specific grant exists, so `redistribution` is `script`; do not publish copies.
 - TFB packaging: https://arxiv.org/abs/2403.20150.
 
 ## Structure and statistics

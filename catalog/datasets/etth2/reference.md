@@ -6,7 +6,7 @@
 - Cite: Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting (Zhou et al., AAAI 2021), https://arxiv.org/abs/2012.07436. The upstream README asks users to cite Informer.
 - License: Creative Commons Attribution-NoDerivatives 4.0 International (the repository's LICENSE file). Verbatim copies with attribution are allowed; a modified, re-split, or re-packaged copy is a derivative and is not covered, so publish only unmodified files. The Informer code repository is Apache-2.0 (separate from the data).
 - Hub: `tsf data download --list` shows whether this preset is published; check the license before running `tsf data publish`.
-- Redistribution: `conditional` (see `conditions` in `card.toml`): re-host only verbatim copies (a CSV-to-parquet format shift is allowed) with attribution; never cleaned, cropped, or re-split variants.
+- Redistribution: `hosted` under the `conditions` in `card.toml`: re-host only verbatim copies (a CSV-to-parquet format shift is allowed) with attribution; never cleaned, cropped, or re-split variants.
 
 ## Structure and statistics
 

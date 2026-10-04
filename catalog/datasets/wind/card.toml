@@ -16,7 +16,7 @@ citation = "Generative Time Series Forecasting with Diffusion, Denoise, and Dise
 citation_url = "https://arxiv.org/abs/2301.03028"
 license = "CC-BY-4.0 (SDWPF dataset)"
 license_url = "https://figshare.com/articles/dataset/SDWPF_dataset/24798654"
-redistribution = "allowed"
+redistribution = "hosted"
 
 [shape]
 frequency = "15 minutes (15min)"

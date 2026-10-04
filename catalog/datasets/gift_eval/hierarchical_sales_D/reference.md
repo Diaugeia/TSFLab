@@ -6,8 +6,8 @@
 - Packaging: GIFT-Eval (https://arxiv.org/abs/2410.10393; data on Hugging Face `Salesforce/GiftEval`; code https://github.com/SalesforceAIResearch/gift-eval). The benchmark itself is `apache-2.0` (Hugging Face dataset card and repository LICENSE).
 - GIFT-Eval wrapper: the Hugging Face card for `Salesforce/GiftEval` (https://huggingface.co/datasets/Salesforce/GiftEval) declares `license: apache-2.0` for the whole benchmark and lists no per-subset licenses; its Ethical Considerations say the release is "for research purposes only in support of an academic paper". The Apache-2.0 tag does not relicense the underlying data, so the terms below come from each original source.
 - Underlying data terms: the Mendeley Data records of Mancuso, Piccialli and Sudoso (https://data.mendeley.com/datasets/njdkntcpc9/1, DOI 10.17632/njdkntcpc9.1, also mirrored at UCI dataset 611, and the related https://data.mendeley.com/datasets/s8dgbs3rng/1) are licensed CC BY NC 3.0: "You are free to adapt, copy or redistribute the material, providing you attribute appropriately and do not use the material for commercial purposes." Redistribution is allowed only non-commercially with attribution.
-- Bytes are not bundled; download them with `tsf data prepare --from gift`.
-- Redistribution: `upstream`. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use). The license above still binds the data.
+- Bytes are not bundled; download them with `tsf data prepare --from gift-eval`.
+- Redistribution: `upstream`. TSFLab never re-hosts GIFT-Eval files; `uv run tsf data prepare --from gift-eval` fetches them from https://huggingface.co/datasets/Salesforce/GiftEval (Apache-2.0 packaging, research use). The license above still binds the data.
 
 ## Structure and statistics
 

@@ -16,9 +16,9 @@ days. All hourly stamps are naive in the track's `tz` (UTC unless noted).
 
 | Track | Source | Auth | License / terms | Bootstrap history | Frequency · horizon |
 | --- | --- | --- | --- | --- | --- |
-| `stock_hs300` | AKShare, forward-adjusted closes → daily log returns | none | vendor terms forbid redistribution (link-only) | AKShare, from 2019-01-02 | trading days · 5 |
-| `stock_nasdaq100` | Nasdaq API, then Yahoo chart API, Sina last resort → daily log returns | none | vendor terms forbid redistribution (link-only) | Nasdaq API, from 2019-01-02 | trading days · 5 |
-| `stock_sp500` | constituents from `datasets/s-and-p-500-companies` (Wikipedia fallback); closes as above | none | list ODC-PDDL; prices link-only | Nasdaq API, from 2019-01-02 | trading days · 5 |
+| `stock_hs300` | AKShare, forward-adjusted closes → daily log returns | none | vendor terms forbid redistribution (script: `tsf realtime update --bootstrap`) | AKShare, from 2019-01-02 | trading days · 5 |
+| `stock_nasdaq100` | Nasdaq API, then Yahoo chart API, Sina last resort → daily log returns | none | vendor terms forbid redistribution (script: `tsf realtime update --bootstrap`) | Nasdaq API, from 2019-01-02 | trading days · 5 |
+| `stock_sp500` | constituents from `datasets/s-and-p-500-companies` (Wikipedia fallback); closes as above | none | list ODC-PDDL; prices script-only (`tsf realtime update --bootstrap`) | Nasdaq API, from 2019-01-02 | trading days · 5 |
 | `traffic_pems_{ba,la,sac,sb}` | Caltrans PeMS clearinghouse `station_5min` (Districts 4, 7, 3, 8), summed to hourly flow | optional free PeMS account | public domain (Caltrans PeMS conditions of use) | UltraTraffic store (2019–2023) | hourly · 24 |
 | `air_airnow_us` | EPA AirNow `HourlyData` file products, US PM2.5 (preliminary) | none | AirNow data use guidelines: attribution, preliminary and unvalidated notice | AirNow archive files, 56 days | hourly · 24 |
 | `weather_openmeteo_temp` | Open-Meteo Historical Forecast API, 2 m temperature at 82 US and EU cities | none | CC BY 4.0 data; the free API is non-commercial (collection only) | same API, 365 days | hourly · 24 |

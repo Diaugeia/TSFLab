@@ -4,7 +4,7 @@
 
 - Competition data by Crone et al. (NN5 competition); republished by the Monash Time Series Forecasting Archive (https://zenodo.org/records/3889740, doi 10.5281/zenodo.3889740) under CC BY 4.0.
 - TFB packaging: TFB: Towards Comprehensive and Fair Benchmarking of Time Series Forecasting Methods (Qiu et al., PVLDB 2024), https://arxiv.org/abs/2403.20150; the TFB repository is MIT-licensed code with no separate data license.
-- Redistribution: `allowed` under the Monash/Zenodo CC BY 4.0 copy; credit Crone et al. and the Monash archive.
+- Redistribution: `hosted` under the Monash/Zenodo CC BY 4.0 copy; credit Crone et al. and the Monash archive.
 
 ## Structure and statistics
 

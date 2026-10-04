@@ -16,7 +16,7 @@ citation = "Temporal Relational Ranking for Stock Prediction (Feng et al., ACM T
 citation_url = "https://arxiv.org/abs/1809.09441"
 license = "Google Finance prices; no redistribution (the Feng et al. repository's AGPL-3.0 covers code)"
 license_url = "https://github.com/fulifeng/Temporal_Relational_Stock_Ranking"
-redistribution = "link-only"
+redistribution = "script"
 
 [shape]
 frequency = "daily trading days (1 business day; file dates are an integer row index)"

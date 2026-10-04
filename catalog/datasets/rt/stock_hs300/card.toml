@@ -16,7 +16,7 @@ url = "https://github.com/akfamily/akshare"
 citation = "n/a (no dataset paper; TSFLab real-time track)"
 citation_url = "n/a"
 license = "Eastmoney/Sina vendor terms forbid redistribution; the CSI 300 constituent list is open"
-redistribution = "link-only"
+redistribution = "script"
 
 [shape]
 frequency = "business-daily (1b)"
