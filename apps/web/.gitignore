@@ -7,7 +7,10 @@ next-env.d.ts
 __pycache__/
 *.pyc
 
-# synced from data/ at dev/build time (sync:data)
+# Fetched from board/ of Diaugeia/TSFLab-Checkpoints at dev/build time
+# (pipeline/fetch_board.py); results are not kept in Git.
+/data/leaderboard.json
+/data/model-meta.json
 /public/visualization_data.json
 
 # HF snapshot_download metadata
