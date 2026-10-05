@@ -24,9 +24,9 @@ loss = "loss:mse+local:leaf-l1-l2-regularization"
 enc_in = { from = "channels", rule = "equals the dataset channel count; the flattened input is seq_len * enc_in" }
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "aecc6bf2"
+device = "cpu"
 reference = "none"
-note = "re-verify: max_dense_parameters cap (2e9 dense weights) added on fix/smoke-failures; forward unchanged below the cap"
+note = ""

@@ -24,9 +24,9 @@ loss = "loss:mse"
 enc_in = { from = "channels", rule = "number of input channels; base, trees and backcasts map seq_len * enc_in inputs to pred_len * enc_in outputs" }
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "aecc6bf2"
+device = "cpu"
 reference = "none"
-note = "re-verify: max_dense_parameters cap (2e9 dense weights) added on fix/smoke-failures; forward unchanged below the cap"
+note = ""

@@ -24,9 +24,9 @@ head = "local:linear-base-plus-tree-corrections"
 loss = "loss:mse+local:feature-gate-sparsity-aux-loss"
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "aecc6bf2"
+device = "cpu"
 reference = "none"
-note = "re-verify: max_dense_parameters cap (2e9 dense weights) added on fix/smoke-failures; forward unchanged below the cap"
+note = ""

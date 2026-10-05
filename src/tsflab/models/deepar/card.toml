@@ -31,9 +31,9 @@ enc_in = { from = "channels", rule = "must equal the dataset channel count" }
 cov_feat_size = { from = "covariates", rule = "number of time-mark features fed as covariates, at most the mark width of the dataset's frequency encoding (shorter marks are zero-padded); 0 disables covariates" }
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "aecc6bf2"
+device = "cpu"
 reference = "official"
-note = "re-verify: training decoder rollout checkpointed in 24-step segments (checkpoint_steps) on fix/smoke-failures; inference path unchanged"
+note = ""
