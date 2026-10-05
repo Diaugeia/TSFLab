@@ -36,6 +36,15 @@ from tsflab.models._components.revin import RevIN
 # Discretization and MdBG construction (Section 2.1, Algorithm 1)
 # ----------------------------------------------------------------------------
 
+# Scale limits. As in the official code, the PPR diffusion is a dense ``N x N``
+# inverse and every window runs graph attention over the whole graph, so cost
+# grows with N^2 (host) and edges x heads x width (device). The node count depends
+# on the training series, so ``DragonEncoder.fit`` checks it (``training_setup``,
+# before the first epoch) and raises a ValueError above these limits.
+_MAX_GRAPH_NODES = 32768  # dense float64 N x N: 8.6 GB per matrix
+_MAX_EDGE_ACTIVATIONS = 1 << 30  # edges x heads x layer width floats in one attention layer
+_HYPER_PAIRS_PER_CHUNK = 1 << 24
+
 
 def uniform_bin_edges(series: np.ndarray, n_bins: int) -> np.ndarray:
     """Equal-width bin edges ``[D, n_bins + 1]`` between each column's min and max.
@@ -63,7 +72,21 @@ def discretize(values: np.ndarray, edges: np.ndarray) -> np.ndarray:
     return out
 
 
-def build_mdbg(series: np.ndarray, k: int, n_bins: int) -> dict[str, np.ndarray]:
+def count_mdbg_nodes(series: np.ndarray, k: int, n_bins: int) -> int:
+    """Number of MdBG nodes of :func:`build_mdbg`, without building the graph.
+
+    The nodes are the distinct ``(variable, (k-1)-tuple)`` codes over every
+    ``(k-1)``-window of the discretized series (each window is a prefix or a suffix).
+    """
+    series = np.asarray(series, dtype=np.float64)
+    if series.ndim != 2 or series.shape[0] < k:
+        raise ValueError("the MdBG needs a [T, D] series with T >= k")
+    codes = discretize(series, uniform_bin_edges(series, n_bins))
+    windows = np.lib.stride_tricks.sliding_window_view(codes, k - 1, axis=0)  # [T-k+2, D, k-1]
+    return int(sum(np.unique(windows[:, dim], axis=0).shape[0] for dim in range(codes.shape[1])))
+
+
+def build_mdbg(series: np.ndarray, k: int, n_bins: int, max_edges: int | None = None) -> dict[str, np.ndarray]:
     """Algorithm 1 on a ``[T, D]`` series.
 
     Nodes ``(d, (c_t, ..., c_{t+k-2}))`` are numbered in first-appearance order
@@ -72,6 +95,7 @@ def build_mdbg(series: np.ndarray, k: int, n_bins: int) -> dict[str, np.ndarray]
     all suffixes, of the ``D`` dimensions are joined by bidirectional hyper-tuple
     edges. Each node keeps the raw ``(k-1)``-tuples mapped to it, in insertion
     order (a tuple is recorded once as a suffix and once as the next prefix).
+    ``max_edges`` raises a ``ValueError`` as soon as the distinct edges exceed it.
     """
     series = np.asarray(series, dtype=np.float64)
     if series.ndim != 2 or series.shape[0] < k:
@@ -109,15 +133,28 @@ def build_mdbg(series: np.ndarray, k: int, n_bins: int) -> dict[str, np.ndarray]
                 prefix_ids[d] = prefix
             suffix_ids[t, d] = suffix
     num_nodes = len(node_dim)
-    pairs = [np.array(sorted(tuple_edges), dtype=np.int64).reshape(-1, 2)]
+    # Edges are deduplicated as sorted int64 keys ``source * N + target``, which is
+    # the lexicographic order of ``np.unique(pairs, axis=0)``. The hyper-tuple
+    # cliques (``D (D - 1)`` ordered pairs per step) are expanded a bounded number
+    # of pairs at a time, so host memory follows the number of distinct edges, not
+    # ``steps x D^2`` (several hundred GB for 2000 variables).
+    tuple_pairs = np.array(sorted(tuple_edges), dtype=np.int64).reshape(-1, 2)
+    keys = np.unique(tuple_pairs[:, 0] * num_nodes + tuple_pairs[:, 1])
     if dims > 1:
         left, right = np.where(~np.eye(dims, dtype=bool))
         groups = np.concatenate([prefix_ids[None], suffix_ids])
-        for start in range(0, len(groups), 4096):
-            chunk = groups[start : start + 4096]
-            hyper = np.stack([chunk[:, left].ravel(), chunk[:, right].ravel()], axis=1)
-            pairs.append(np.unique(hyper, axis=0))
-    edge_list = np.unique(np.concatenate(pairs), axis=0)
+        rows = max(1, _HYPER_PAIRS_PER_CHUNK // left.size)
+        for start in range(0, len(groups), rows):
+            chunk = groups[start : start + rows]
+            hyper = np.unique((chunk[:, left] * num_nodes + chunk[:, right]).ravel())
+            keys = np.union1d(keys, hyper)
+            if max_edges is not None and keys.size > max_edges:
+                raise ValueError(
+                    f"the MdBG has more than {max_edges} distinct edges ({dims} variables, "
+                    f"{num_nodes} nodes); DRAGON's graph attention over the whole graph per window "
+                    "does not fit this dataset"
+                )
+    edge_list = np.stack([keys // num_nodes, keys % num_nodes], axis=1)
     counts = np.array([len(rows) for rows in features], dtype=np.int64)
     return {
         "bin_edges": edges,
@@ -138,17 +175,25 @@ def ppr_topk_edges(edge_index: np.ndarray, num_nodes: int, alpha: float, topk: i
     ``S = alpha (I - (1 - alpha) T)^-1``, every node ``j`` keeps the ``topk``
     largest ``S_ij`` (ties by lower ``i``) as edges ``i -> j``.
     """
-    adjacency = torch.zeros(num_nodes, num_nodes, dtype=torch.float64)
+    # Dense like the official exact ``GDC``: about two ``N x N`` float64 matrices
+    # live at once (built in place); callers bound ``N`` (``_MAX_GRAPH_NODES``).
+    matrix = torch.zeros(num_nodes, num_nodes, dtype=torch.float64)
     source, target = torch.as_tensor(edge_index, dtype=torch.long)
-    adjacency.index_put_((source, target), torch.ones(source.numel(), dtype=torch.float64), accumulate=True)
-    adjacency += torch.eye(num_nodes, dtype=torch.float64)
-    degree = adjacency.sum(dim=0)
+    matrix.index_put_((source, target), torch.ones(source.numel(), dtype=torch.float64), accumulate=True)
+    matrix.diagonal().add_(1.0)
+    degree = matrix.sum(dim=0)
     inv_sqrt = degree.pow(-0.5)
     inv_sqrt[torch.isinf(inv_sqrt)] = 0.0
-    transition = inv_sqrt[:, None] * adjacency * inv_sqrt[None, :]
-    diffusion = alpha * torch.linalg.inv(torch.eye(num_nodes, dtype=torch.float64) - (1.0 - alpha) * transition)
+    matrix.mul_(inv_sqrt[:, None]).mul_(inv_sqrt[None, :])  # T = D^-1/2 A D^-1/2
+    matrix.mul_(-(1.0 - alpha)).diagonal().add_(1.0)  # I - (1 - alpha) T
+    diffusion = torch.linalg.inv(matrix)
+    del matrix
+    diffusion.mul_(alpha)
     keep = min(topk, num_nodes)
-    rows = torch.argsort(diffusion, dim=0, descending=True, stable=True)[:keep]
+    rows = torch.cat([
+        torch.argsort(diffusion[:, start : start + 1024], dim=0, descending=True, stable=True)[:keep]
+        for start in range(0, num_nodes, 1024)
+    ], dim=1)
     columns = torch.arange(num_nodes).repeat(keep)
     return torch.stack([rows.reshape(-1), columns]).numpy()
 
@@ -241,6 +286,7 @@ class DragonEncoder(nn.Module):
         self.use_gdc = use_gdc
         self.gdc_topk = gdc_topk
         self.ppr_alpha = ppr_alpha
+        self.heads = heads
         self.value_linear = nn.Linear((k - 1) * node_feat_size, channels)
         layers = [GraphAttentionConv(channels, channels, heads)]
         layers += [GraphAttentionConv(channels * heads, channels, heads) for _ in range(num_layers - 2)]
@@ -278,10 +324,27 @@ class DragonEncoder(nn.Module):
         series = np.asarray(series, dtype=np.float64)
         if series.ndim != 2 or series.shape[1] != self.channels:
             raise ValueError(f"DRAGON expects a [T, {self.channels}] training series")
-        graph = build_mdbg(series, self.k, self.n_bins)
+        nodes = count_mdbg_nodes(series, self.k, self.n_bins)
+        if nodes > _MAX_GRAPH_NODES:
+            raise ValueError(
+                f"DRAGON's MdBG (alphabet {self.n_bins}) has {nodes} nodes on this training series "
+                f"({series.shape[0]} steps x {self.channels} variables), above the limit of "
+                f"{_MAX_GRAPH_NODES}: the dense PPR diffusion and the whole-graph attention per window "
+                "do not scale to it (the method is not applicable to this dataset)"
+            )
+        # One attention layer holds about edges x heads x width floats per window.
+        per_edge = self.heads * max(self.channels, self.d_graph)
+        max_edges = max(_MAX_EDGE_ACTIVATIONS // per_edge - nodes, 0)
+        graph = build_mdbg(series, self.k, self.n_bins, max_edges=None if self.use_gdc else max_edges)
         edges = graph["edge_index"]
         if self.use_gdc:
-            edges = ppr_topk_edges(edges, len(graph["node_dim"]), self.ppr_alpha, self.gdc_topk)
+            edges = ppr_topk_edges(edges, nodes, self.ppr_alpha, self.gdc_topk)
+        if edges.shape[1] > max_edges:
+            raise ValueError(
+                f"DRAGON's MdBG (alphabet {self.n_bins}) keeps {edges.shape[1]} edges, above the limit of "
+                f"{max_edges} for {self.heads} heads x {self.channels} variables: the whole-graph "
+                "attention per window does not fit (the method is not applicable to this dataset)"
+            )
         graph["edge_index"] = edges
         device = self.time_queries.device
         for name in _GRAPH_BUFFERS:

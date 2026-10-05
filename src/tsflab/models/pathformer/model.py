@@ -12,6 +12,11 @@ from torch.nn import functional as F
 
 from tsflab.models._components.revin import RevIN
 
+# PyTorch's fused attention kernels reject more than 65535 sequences per call when
+# dropout is active; the local attention sees batch x channels x patches sequences
+# (220,672 on traffic at batch 16), so it runs in chunks along that dimension.
+_ATTENTION_CHUNK = 32768
+
 
 class DualScaleAttention(nn.Module):
     """Local sample attention followed by global patch attention."""
@@ -31,7 +36,9 @@ class DualScaleAttention(nn.Module):
         padded = F.pad(values, (0, patches * self.patch_size - length))
         samples = padded.reshape(batch * channels * patches, self.patch_size, 1)
         local = self.sample_embedding(samples)
-        attended, _ = self.local_attention(local, local, local, need_weights=False)
+        # Independent sequences, no masks: chunking gives the same result.
+        attended = torch.cat([self.local_attention(chunk, chunk, chunk, need_weights=False)[0]
+                              for chunk in local.split(_ATTENTION_CHUNK)], dim=0)
         local = self.local_norm(local + attended).mean(1)
         tokens = local.reshape(batch * channels, patches, -1)
         context, _ = self.global_attention(tokens, tokens, tokens, need_weights=False)

@@ -72,11 +72,28 @@ class Model(nn.Module):
 
     @staticmethod
     def _psd_sqrt(matrix: torch.Tensor) -> torch.Tensor:
+        """Symmetric PSD square root, computed in float64.
+
+        Follows the official ``sqrtm_svd_stable`` (``utils/fft_ot.py``):
+        symmetrise, decompose in float64, clamp the spectrum at zero. The
+        decomposition is ``eigh``; when the solver does not converge
+        (ill-conditioned or near-repeated spectra, e.g. 816 x 816 joint
+        covariances on traffic), it is retried with a diagonal jitter of
+        ``1e-10, 1e-8, 1e-6`` times the mean eigenvalue (``trace / d``), then
+        falls back to the official SVD route.
+        """
+        matrix = matrix.to(torch.float64)
         matrix = 0.5 * (matrix + matrix.transpose(-1, -2))
-        eigenvalues, eigenvectors = torch.linalg.eigh(matrix)
-        return (eigenvectors * eigenvalues.clamp_min(0).sqrt().unsqueeze(0)) @ eigenvectors.transpose(
-            -1, -2
-        )
+        scale = (torch.diagonal(matrix).sum() / matrix.shape[-1]).detach().abs().clamp_min(1e-12)
+        identity = torch.eye(matrix.shape[-1], dtype=matrix.dtype, device=matrix.device)
+        for jitter in (0.0, 1e-10, 1e-8, 1e-6):
+            try:
+                eigenvalues, eigenvectors = torch.linalg.eigh(matrix + (jitter * scale) * identity)
+            except torch.linalg.LinAlgError:
+                continue
+            return (eigenvectors * eigenvalues.clamp_min(0).sqrt().unsqueeze(0)) @ eigenvectors.transpose(-1, -2)
+        left, singular, _ = torch.linalg.svd(matrix, full_matrices=False)
+        return (left * singular.clamp_min(0).sqrt().unsqueeze(0)) @ left.transpose(-1, -2)
 
     @classmethod
     def bures_wasserstein(
@@ -86,12 +103,15 @@ class Model(nn.Module):
         covariance_a: torch.Tensor,
         covariance_b: torch.Tensor,
     ) -> torch.Tensor:
-        """Paper equation (5), squared Gaussian W2/Bures discrepancy."""
+        """Paper equation (5), squared Gaussian W2/Bures discrepancy (float64 inside)."""
+        dtype = covariance_a.dtype
+        covariance_a = covariance_a.to(torch.float64)
+        covariance_b = covariance_b.to(torch.float64)
         sqrt_a = cls._psd_sqrt(covariance_a)
         middle = cls._psd_sqrt(sqrt_a @ covariance_b @ sqrt_a)
-        mean_term = (mean_a - mean_b).square().sum()
+        mean_term = (mean_a - mean_b).to(torch.float64).square().sum()
         covariance_term = torch.trace(covariance_a + covariance_b - 2 * middle)
-        return mean_term + covariance_term.clamp_min(0)
+        return (mean_term + covariance_term.clamp_min(0)).to(dtype)
 
     def joint_distribution_discrepancy(
         self, x: torch.Tensor, forecast: torch.Tensor, target: torch.Tensor

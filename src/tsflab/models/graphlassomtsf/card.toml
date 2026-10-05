@@ -30,11 +30,11 @@ enc_in = { from = "channels", rule = "number of series; each is one graph node o
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "a529541b"
 device = "cpu"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = ""
 
 [[issues]]
 kind = "license"
@@ -106,7 +106,7 @@ resolution = "kept in the training objective."
 kind = "paper-code-mismatch"
 where = "Sec. IV-A (\"standard interior-point methods\") vs `scripts/generate_adj_lasso.py`"
 what = "Eq. (1) is solved with `gglasso` ADMM after correlation scaling."
-resolution = "same objective and scaling, solved with scikit-learn coordinate descent."
+resolution = "same objective and scaling, solved with a local rewrite of the `gglasso` path the script uses (`block_SGL` screening, `ADMM_SGL` with `tol = rtol = 1e-10`, 1000 iterations at most)."
 
 [[issues]]
 kind = "unreleased"

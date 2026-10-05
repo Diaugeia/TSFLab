@@ -57,6 +57,10 @@ def batch_size(channels: int, spatial: bool) -> int:
 EXCLUDE = {
     ("CALF", "wike2000"): "CALF caps enc_in at 1024 (calf/spec.py); wike2000 has 2000 channels",
 }
+# DRAGON refuses graphs above 32,768 nodes in training_setup (after construction, so --validate cannot see it).
+for _d in ("traffic", "electricity", "solar", "covid19", "nn5", "wike2000"):
+    EXCLUDE[("DRAGON", _d)] = ("DRAGON's dense personalized-PageRank graph exceeds 32,768 nodes on this dataset "
+                               "(dragon/model.py raises before epoch 1)")
 
 # Coverage first: each model gets one primary category from its card tags (first
 # match wins). Tier 1 = the well-known representatives below; a category with

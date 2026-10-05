@@ -25,16 +25,90 @@ import torch.nn.functional as F
 from tsflab.models._components.graph_conv_gru import GraphConvGRUCell
 
 
-def estimate_precision(series: np.ndarray, lasso_lambda: float, cov_eps: float) -> np.ndarray:
+def _admm_single_graphical_lasso(
+    covariance: np.ndarray, lasso_lambda: float, max_iter: int, tol: float, rtol: float
+) -> np.ndarray:
+    """Scaled ADMM for ``min -log det Omega + tr(S Omega) + lambda ||Theta||_{1,od}``, ``Omega = Theta``.
+
+    Mirrors ``gglasso.solver.single_admm_solver.ADMM_SGL`` as the official
+    ``glasso_problem.solve`` calls it: start ``Omega = Theta = I``, ``X = 0``,
+    ``rho = 1`` with residual balancing (x2 / x0.5 at a 10x imbalance), the
+    Boyd et al. stopping rule, off-diagonal soft-thresholding, and the sparse
+    ``Theta`` as the estimate. The ``Omega`` step is the proximal map of
+    ``-log det`` through one eigendecomposition, so every iterate is positive
+    definite and the solver cannot fail on an ill-conditioned ``S``.
+    """
+    size = covariance.shape[0]
+    omega = np.eye(size)
+    theta = np.eye(size)
+    dual = np.zeros((size, size))
+    rho = 1.0
+    dim = (size**2 + size) / 2
+    diagonal = np.arange(size)
+    for _ in range(max_iter):
+        eigenvalues, eigenvectors = np.linalg.eigh(theta - dual - covariance / rho)
+        previous = omega
+        beta = 1.0 / rho
+        omega = (eigenvectors * (0.5 * (np.sqrt(eigenvalues**2 + 4 * beta) + eigenvalues))) @ eigenvectors.T
+        target = omega + dual
+        theta = np.sign(target) * np.maximum(np.abs(target) - lasso_lambda / rho, 0.0)
+        theta[diagonal, diagonal] = target[diagonal, diagonal]
+        dual = dual + omega - theta
+        primal_residual = np.linalg.norm(omega - theta)
+        dual_residual = rho * np.linalg.norm(omega - previous)
+        primal_bound = dim * tol + rtol * max(np.linalg.norm(omega), np.linalg.norm(theta))
+        dual_bound = dim * tol + rtol * rho * np.linalg.norm(dual)
+        if primal_residual >= 10 * dual_residual:
+            new_rho = 2 * rho
+        elif dual_residual >= 10 * primal_residual:
+            new_rho = 0.5 * rho
+        else:
+            new_rho = rho
+        dual = (rho / new_rho) * dual
+        rho = new_rho
+        if primal_residual <= primal_bound and dual_residual <= dual_bound:
+            break
+    return theta
+
+
+def graphical_lasso(
+    covariance: np.ndarray, lasso_lambda: float, max_iter: int = 1000, tol: float = 1e-10
+) -> np.ndarray:
+    """Sparse precision of ``covariance`` as ``gglasso.solver.single_admm_solver.block_SGL``.
+
+    Witten-Friedman-Simon screening: nodes are split into the connected
+    components of ``|S_ij| > lambda``; a single node gets ``1 / S_ii`` and every
+    larger block is solved by ADMM, so cost is ``O(max_iter * block^3)`` per block.
+    ``tol`` is used for both the absolute and relative tolerance, as the official
+    ``P.solve(tol=1e-10, rtol=1e-10)`` passes it to ``block_SGL``.
+    """
+    from scipy.sparse.csgraph import connected_components
+
+    adjacency = np.abs(covariance) > lasso_lambda
+    np.fill_diagonal(adjacency, True)
+    count, labels = connected_components(adjacency, directed=False)
+    precision = np.zeros_like(covariance)
+    for component in range(count):
+        block = np.flatnonzero(labels == component)
+        if block.size == 1:
+            precision[block[0], block[0]] = 1.0 / covariance[block[0], block[0]]
+            continue
+        index = np.ix_(block, block)
+        precision[index] = _admm_single_graphical_lasso(covariance[index], lasso_lambda, max_iter, tol, tol)
+    return precision
+
+
+def estimate_precision(
+    series: np.ndarray, lasso_lambda: float, cov_eps: float, max_iter: int = 1000
+) -> np.ndarray:
     """Phase 1 (Eq. 1): sparse precision matrix of the standardized ``[T, N]`` series.
 
     Each column is z-scored, the sample covariance gets ``cov_eps`` on its
     diagonal, the graphical lasso (off-diagonal l1 penalty ``lasso_lambda``) is
-    solved on the matching correlation matrix, and the estimate is rescaled to
-    the covariance scale, ``Theta_ij = Theta^corr_ij / sqrt(S_ii S_jj)``.
+    solved on the matching correlation matrix with the official ADMM
+    (:func:`graphical_lasso`), and the estimate is rescaled to the covariance
+    scale, ``Theta_ij = Theta^corr_ij / sqrt(S_ii S_jj)`` (``do_scaling=True``).
     """
-    from sklearn.covariance import graphical_lasso
-
     values = np.asarray(series, dtype=np.float64)
     if values.ndim != 2 or values.shape[0] < 2:
         raise ValueError("series must be [time >= 2, nodes]")
@@ -45,10 +119,7 @@ def estimate_precision(series: np.ndarray, lasso_lambda: float, cov_eps: float) 
     covariance = np.atleast_2d(np.cov(standardized.T)) + cov_eps * np.eye(nodes)
     scale = np.sqrt(np.diag(covariance))
     correlation = covariance / np.outer(scale, scale)
-    if nodes == 1:
-        precision = np.linalg.inv(correlation)
-    else:
-        _, precision = graphical_lasso(correlation, alpha=lasso_lambda, max_iter=500)
+    precision = graphical_lasso(correlation, lasso_lambda, max_iter=max_iter)
     return precision / np.outer(scale, scale)
 
 
