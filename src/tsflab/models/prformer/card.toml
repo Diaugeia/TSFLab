@@ -27,15 +27,11 @@ loss = "loss:mae"
 
 [data_params]
 enc_in = { from = "channels", rule = "must equal the number of input channels" }
-conv_windows = { from = "period", rule = "strictly increasing period lengths in steps, each fitting in seq_len; consecutive ratios set the convolution strides" }
+conv_windows = { from = "period", rule = "strictly increasing period lengths in steps; consecutive ratios set the convolution strides; periods longer than seq_len are dropped, at least one must fit" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
-reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+status = "pending"
+note = "re-verify: conv windows longer than seq_len are dropped (preset windows exceeded seq_len 96 and 36)"
 
 [[issues]]
 kind = "code-bug"
