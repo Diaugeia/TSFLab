@@ -566,3 +566,131 @@ def test_series_array_feeds_dataset_inspection(tmp_path: Path) -> None:
             series = _extract_series(ds)
             assert series.shape == (rows[1] - rows[0], 3)
             assert np.allclose(series, ds.values[rows[0]:rows[1]])
+
+
+# ---------------------------------------------------------------------------
+# Hub mirror: realtime/<track>/ of TSFLab-Datasets, push guard, pull layout
+# ---------------------------------------------------------------------------
+
+
+def test_push_guard_follows_the_track_cards() -> None:
+    from tsflab.realtime import publish
+
+    assert publish.DEFAULT_DATASET_REPO.endswith("/TSFLab-Datasets")
+    assert publish.repo_folder("grid_ercot") == "realtime/grid_ercot"
+    classes = {track.id: publish.track_redistribution(track.id) for track in list_tracks()}
+    assert {t for t, k in classes.items() if k != "hosted"} == {"stock_hs300", "stock_nasdaq100", "stock_sp500"}
+    assert sum(k == "hosted" for k in classes.values()) == 8
+    assert publish.push_refusal("grid_ercot") is None
+    assert "redistribution=script" in publish.push_refusal("stock_hs300")
+    assert "redistribution=unknown" in publish.push_refusal("no_such_track")
+
+
+def test_push_release_refuses_script_tracks_and_uploads_hosted_ones(tmp_path: Path, monkeypatch) -> None:
+    from tsflab.realtime import publish
+
+    uploads = []
+
+    class FakeApi:
+        def create_repo(self, *args, **kwargs) -> None:
+            pass
+
+        def upload_folder(self, **kwargs):
+            uploads.append(kwargs)
+            return type("Commit", (), {"oid": "rev1"})()
+
+    monkeypatch.setattr(publish, "_api", FakeApi)
+    stock = PanelStore("stock_hs300", tmp_path)
+    stock.append(_panel("2026-01-01", 48))
+    with pytest.raises(PermissionError, match="stock_hs300: not redistributed"):
+        publish.push_release(stock, "o/TSFLab-Datasets")
+    assert uploads == []
+    hosted = PanelStore("grid_ercot", tmp_path)
+    hosted.append(_panel("2026-01-01", 48))
+    assert publish.push_release(hosted, "o/TSFLab-Datasets", create=True) == "rev1"
+    assert uploads[0]["path_in_repo"] == "realtime/grid_ercot"
+    assert uploads[0]["folder_path"] == str(hosted.directory)
+
+
+def _script_track_store(tmp_path: Path, monkeypatch) -> PanelStore:
+    """A stock_hs300 store under a custom TSFLAB_REALTIME_ROOT, with Hub access forbidden."""
+    from tsflab.realtime import publish
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("TSFLAB_REALTIME_ROOT", str(tmp_path / "custom-root"))
+    store = PanelStore("stock_hs300")
+    index = pd.bdate_range("2026-01-05", periods=30)
+    store.append(pd.DataFrame({"a": np.linspace(0, 1, 30), "b": 0.5}, index=index))
+
+    def never(*args, **kwargs):
+        raise AssertionError("a script track must never reach the Hub")
+
+    monkeypatch.setattr(publish, "_api", never)
+    monkeypatch.setattr(publish, "pull_track", never)
+    return store
+
+
+def test_weekly_push_skips_script_tracks_and_still_opens_the_round(tmp_path: Path, monkeypatch, capsys) -> None:
+    from types import SimpleNamespace
+
+    from tsflab.realtime import cli, sources
+    import tsflab.realtime.baselines as baselines
+
+    store = _script_track_store(tmp_path, monkeypatch)
+    last = pd.Timestamp(store.manifest()["last_timestamp"])
+    new_index = pd.bdate_range(last + pd.Timedelta(days=1), periods=3)
+    monkeypatch.setattr(sources, "fetch", lambda track, start, end, channels: pd.DataFrame(
+        {"a": 1.0, "b": 0.5}, index=new_index))
+    opened = []
+    monkeypatch.setattr(R, "open_round", lambda track, store, hf_revision=None: opened.append(hf_revision)
+                        or SimpleNamespace(round_id="r1"))
+    monkeypatch.setattr(baselines, "run_baselines", lambda spec, store, track: [])
+    assert cli.main(["weekly", "--track", "stock_hs300", "--pull", "--push"]) == 0
+    out = capsys.readouterr().out
+    assert "skip push: stock_hs300: not redistributed" in out
+    assert "tsf realtime update --bootstrap --track stock_hs300" in out
+    assert opened == [None] and "opened r1 with baselines" in out
+    assert (tmp_path / cli.SUMMARY_DIR / "stock_hs300.json").is_file()
+
+
+def test_update_push_skips_and_no_fetch_push_refuses_script_tracks(tmp_path: Path, monkeypatch, capsys) -> None:
+    from tsflab.realtime import cli, sources
+
+    _script_track_store(tmp_path, monkeypatch)
+    monkeypatch.setattr(sources, "fetch", lambda *args: pd.DataFrame())
+    assert cli.main(["update", "--track", "stock_hs300", "--push"]) == 0
+    assert cli.main(["update", "--track", "stock_hs300", "--no-fetch", "--push"]) == 2
+    err = capsys.readouterr().err
+    assert "stock_hs300: not redistributed (card [source] redistribution=script)" in err
+
+
+def test_pull_moves_the_track_folder_into_a_custom_store_root(tmp_path: Path, monkeypatch) -> None:
+    import shutil
+
+    import huggingface_hub
+
+    from tsflab.realtime.publish import pull_track
+
+    source = PanelStore("grid_ercot", tmp_path / "published")
+    source.append(_panel("2026-01-01", 48))
+    calls = []
+
+    def fake_snapshot(*, repo_id, repo_type, revision, allow_patterns, local_dir):
+        calls.append((repo_id, repo_type, revision, allow_patterns))
+        shutil.copytree(source.directory, Path(local_dir) / "realtime" / "grid_ercot")
+        (Path(local_dir) / ".cache").mkdir()
+        return local_dir
+
+    monkeypatch.setattr(huggingface_hub, "snapshot_download", fake_snapshot)
+    root = tmp_path / "anywhere"  # no .../realtime/<track> layout
+    store = PanelStore("grid_ercot", root)
+    assert pull_track(store, "o/TSFLab-Datasets", "abc123") is True
+    assert calls == [("o/TSFLab-Datasets", "dataset", "abc123",
+                      ["realtime/grid_ercot/*", "realtime/grid_ercot/**/*"])]
+    assert store.directory == root / "grid_ercot" and store.exists
+    assert store.manifest() == source.manifest() and len(store.read()) == 48
+    assert sorted(p.name for p in root.iterdir()) == ["grid_ercot"]  # temp dir cleaned up
+
+    monkeypatch.setattr(huggingface_hub, "snapshot_download", lambda **kwargs: kwargs["local_dir"])
+    missing = PanelStore("air_airnow_us", root)
+    assert pull_track(missing, "o/TSFLab-Datasets") is False and not missing.directory.exists()

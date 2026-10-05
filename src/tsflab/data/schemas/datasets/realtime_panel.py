@@ -22,7 +22,8 @@ class DatasetParameterConfig(DatasetParameters):
         Hugging Face dataset revision (commit) to pull the track from instead of
         a local store; cached under ``<dataset.path>/../_hub/<revision>``.
     repo_id : str | None
-        Hub dataset repository (default ``Diaugeia/TSFLab-RealTime``).
+        Hub dataset repository (default ``Diaugeia/TSFLab-Datasets``; the track
+        is read from its ``realtime/<track>/`` folder).
     start, end : str | None
         Optional inclusive time bounds applied before the split.
     split_ratio : tuple[float, float, float]
