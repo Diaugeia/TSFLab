@@ -53,8 +53,9 @@ def main() -> None:
                    "seq_len": config.task.seq_len, "pred_len": config.task.pred_len,
                    "batch_size": config.training.batch_size}
             try:
-                torch.cuda.empty_cache()
-                torch.cuda.reset_peak_memory_stats()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                    torch.cuda.reset_peak_memory_stats()
                 device = run_one._build_device(config.experiment.runtime)
                 train_set, _, _, _, _, test_loader, adj_norm = run_one._build_loaders(config)
                 model, _ = run_one._build_model(config, train_set, adj_norm, device)
