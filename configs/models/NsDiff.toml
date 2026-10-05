@@ -9,7 +9,7 @@ e_layers = 2
 d_layers = 1
 d_ff = 1024
 dropout = 0.05
-rolling_length = 96
+rolling_length = 24   # official ETTm1/ETTm2/ExchangeRate value; valid for every benchmark lookback (>= 36)
 diffusion_steps = 20
 beta_start = 0.0001
 beta_end = 0.01

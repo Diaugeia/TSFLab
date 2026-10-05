@@ -27,15 +27,11 @@ loss = "local:nsdiff-kl-plus-prior-regression"
 
 [data_params]
 enc_in = { from = "channels", rule = "equal to the dataset's channel count; the diffusion is multivariate over all channels" }
-rolling_length = { from = "seq_len", rule = "0 < rolling_length < seq_len; window of the sliding variance (official 96, 24 for ExchangeRate)" }
+rolling_length = { from = "seq_len", rule = "0 < rolling_length < seq_len; window of the sliding variance (official 96 or 24 at seq_len 168); preset 24, valid for seq_len >= 25" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
-reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+status = "pending"
+note = "re-verify: preset rolling_length 24 (official ETTm/ExchangeRate value) so it is valid at seq_len 96 and 36"
 
 [[issues]]
 kind = "paper-code-mismatch"

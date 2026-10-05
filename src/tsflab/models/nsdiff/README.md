@@ -22,7 +22,7 @@ description: "Diffusion model whose forward chain ends at a learned N(mean, vari
 ## Configure
 
 - `enc_in`: number of input channels; must equal the dataset's channel count (the diffusion runs over all channels; the runner selects the `MS` target).
-- `rolling_length`: sliding-variance window; follows `seq_len` and must satisfy `0 < rolling_length < seq_len` (official 96, 24 for ExchangeRate).
+- `rolling_length`: sliding-variance window; follows `seq_len` and must satisfy `0 < rolling_length < seq_len`. Official scripts use `seq_len = 168` with 96 (ETTh1, ETTh2, the default) or 24 (ETTm1, ETTm2, ExchangeRate); the preset uses 24, the only official value below the benchmark lookbacks 36 and 96.
 
 Other hyperparameters: preset defaults in `configs/models/NsDiff.toml`; tune generically.
 
