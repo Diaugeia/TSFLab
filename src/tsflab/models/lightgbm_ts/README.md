@@ -21,6 +21,7 @@ description: "Differentiable boosting baseline: additive soft trees of varying d
 ## Configure
 
 - `enc_in`: must equal the channel count; the input is flattened to `seq_len * enc_in` features.
+- `max_dense_parameters` (default 2,000,000,000): cap on the dense `(seq_len*enc_in) x (pred_len*enc_in)` weights (8 GB float32 on the host, about 32 GB on the device with gradients and Adam). A larger cell raises `ValueError` before any allocation; at the default, traffic, electricity, solar, covid19, wike2000 and pems07 are refused.
 
 Other hyperparameters: preset defaults in `configs/models/LightGBMTS.toml`; tune generically.
 

@@ -21,6 +21,7 @@ description: "Differentiable CatBoost-style baseline: a linear forecast refined 
 ## Configure
 
 - `enc_in`: the dataset's channel count; the model checks inputs are exactly `[B, seq_len, enc_in]`.
+- `max_dense_parameters` (default 2,000,000,000): cap on the dense `(seq_len*enc_in) x (pred_len*enc_in)` weights (8 GB float32 on the host, about 32 GB on the device with gradients and Adam). A larger cell raises `ValueError` before any allocation; at the default, traffic, electricity, solar, covid19 and wike2000 are refused.
 
 Other hyperparameters: preset defaults in `configs/models/CatBoostTS.toml`; tune generically.
 

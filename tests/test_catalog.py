@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import subprocess
 import sys
 import tempfile
@@ -830,3 +831,45 @@ def test_contract_supplies_a_graph_only_to_requires_graph_specs() -> None:
     assert built["adj_mx"].shape == (5, 5)
     assert np.allclose(built["adj_mx"], built["adj_mx"].T) and np.all(np.diag(built["adj_mx"]) == 1)
     assert "adj_mx" not in model_contracts._build_model(spec(False), None, {"enc_in": 5})
+
+
+# ---------------------------------------------------------------------------
+# Dense-weight cap of the flattened-window boosting baselines (arithmetic only)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("slug", "maps"),
+    [("catboost_ts", lambda n: 1 + n), ("gradient_boosting_ts", lambda n: n),
+     ("lightgbm_ts", lambda n: n), ("xgboost_ts", lambda n: n)],
+)
+def test_dense_weight_cap_refuses_wide_cells_and_admits_narrow_ones(slug, maps) -> None:
+    module = importlib.import_module(f"tsflab.models.{slug}.model")
+    count, cap = module.dense_parameter_count, module.MAX_DENSE_PARAMETERS
+    # one (seq_len*enc_in) x (pred_len*enc_in) map per base, context or backcast layer
+    assert count(4, 3, 2, 5) == maps(5) * (4 * 2) * (3 * 2)
+    # traffic (862 channels, 96 -> 720) and wike2000 (2000 channels, 36 -> 60) are refused
+    assert count(96, 720, 862, 16) > cap and count(36, 60, 2000, 12) > cap
+    # few-channel cells stay far below the cap (ETTh1 96 -> 720, ILI 36 -> 60)
+    assert count(96, 720, 7, 20) < cap / 20 and count(36, 60, 7, 20) < cap / 500
+
+
+@pytest.mark.model  # builds DeepAR and runs forward/backward
+@pytest.mark.parametrize("dropout", [0.0, 0.3])
+def test_deepar_checkpointed_rollout_matches_plain_rollout(dropout) -> None:
+    from tsflab.models.deepar.model import Model
+
+    def loss_and_grads(checkpoint_steps):
+        torch.manual_seed(0)
+        model = Model(seq_len=8, pred_len=7, enc_in=3, dropout=dropout,
+                      checkpoint_steps=checkpoint_steps).train()
+        x = torch.randn(2, 8, 3)
+        torch.manual_seed(1)
+        loss = model(x).square().mean()
+        loss.backward()
+        return loss.detach(), [p.grad.clone() for p in model.parameters()]
+
+    plain_loss, plain_grads = loss_and_grads(0)
+    loss, grads = loss_and_grads(3)  # segments of 3, 3 and 1 steps
+    assert torch.allclose(loss, plain_loss)
+    assert all(torch.allclose(a, b, atol=1e-6) for a, b in zip(grads, plain_grads, strict=True))

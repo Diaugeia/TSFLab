@@ -21,6 +21,7 @@ description: "Differentiable boosting baseline: a linear forecast plus additive 
 ## Configure
 
 - `enc_in`: the dataset's channel count (all layers map `seq_len * enc_in` inputs to `pred_len * enc_in` outputs).
+- `max_dense_parameters` (default 2,000,000,000): cap on the dense `(seq_len*enc_in) x (pred_len*enc_in)` weights (8 GB float32 on the host, about 32 GB on the device with gradients and Adam). A larger cell raises `ValueError` before any allocation; at the default, traffic, electricity, solar, covid19 and wike2000 are refused.
 
 Other hyperparameters: preset defaults in `configs/models/GradientBoostingTS.toml`; tune generically.
 

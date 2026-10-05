@@ -25,8 +25,8 @@ enc_in = { from = "channels", rule = "number of input channels; base, trees and 
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "aecc6bf2"
 device = "cpu"
 reference = "none"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = ""

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from tsflab.catalog.registry.models import ModelSpec
-from tsflab.models.xgboost_ts.model import Model
+from tsflab.models.xgboost_ts.model import MAX_DENSE_PARAMETERS, Model
 
 from pydantic import BaseModel, Field
 
@@ -19,6 +19,7 @@ class ModelParameterConfig(BaseModel):
     temperature: float = Field(default=1.0, gt=0)
     random_seed: int = 1741
     use_revin: bool = True
+    max_dense_parameters: int = Field(default=MAX_DENSE_PARAMETERS, gt=0)
 
 
 def build_model(cfg, params):
@@ -32,7 +33,8 @@ def build_model(cfg, params):
                  l2_penalty=params.get('l2_penalty', 0.0001),
                  temperature=params.get('temperature', 1.0),
                  random_seed=params.get('random_seed', 1741),
-                 use_revin=bool(params.get('use_revin', True)))
+                 use_revin=bool(params.get('use_revin', True)),
+                 max_dense_parameters=params.get('max_dense_parameters', MAX_DENSE_PARAMETERS))
 
 
 SPEC = ModelSpec(
