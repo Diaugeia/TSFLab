@@ -4,7 +4,7 @@
 # memory_per_run_mb and run_timeout_minutes are set from the pilot measurements.
 
 [budget]
-max_parallel_jobs = 8       # overridden by --jobs
+max_parallel_jobs = 24      # overridden by --jobs
 run_timeout_minutes = 720
 max_retries = 1             # same config; an out-of-memory cell is re-run later with a halved batch, flagged
 
@@ -12,10 +12,10 @@ max_retries = 1             # same config; an out-of-memory cell is re-run later
 gpus = ["0", "1", "2", "3", "4", "5", "6", "7"]
 gpus_per_run = 1
 sharing = true
-max_processes_per_gpu = 1   # heavy datasets: one run per GPU
-memory_per_run_mb = 40000
+max_processes_per_gpu = 3   # heavy datasets: packed only while 15 GB stay free (3 x 15 GB fits 47 GB)
+memory_per_run_mb = 15000
 min_free_memory_mb = 4000
-threads_per_run = 16
+threads_per_run = 8
 wait_timeout_minutes = 1440
 min_free_disk_gb = 100
 
