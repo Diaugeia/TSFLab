@@ -43,6 +43,7 @@ def main() -> None:
                     help="policy for heavy-dataset run files (default: policy-<phase>-heavy.toml if present)")
     ap.add_argument("--weight", choices=["light", "heavy", "all"], default="all",
                     help="enqueue only light or heavy run files (heavy ones need fewer runs per GPU)")
+    ap.add_argument("--tier", choices=["t1", "t2", "all"], default="all", help="enqueue only one model tier")
     args = ap.parse_args()
     phase_dir = HERE.parent / "runs" / args.phase
     policy = args.policy or next(p for p in (HERE / f"policy-{args.phase}.toml", HERE / "policy-main.toml")
@@ -53,7 +54,8 @@ def main() -> None:
     ledger_path = phase_dir / "queued.json"
     ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {}
     for item in plan["files"]:
-        if item["file"] in ledger or args.weight not in ("all", item.get("weight")):
+        if (item["file"] in ledger or args.weight not in ("all", item.get("weight"))
+                or args.tier not in ("all", item.get("tier"))):
             continue
         chosen = heavy_policy if item.get("weight") == "heavy" else policy
         prepared = tsf("run", str(phase_dir / item["file"]), "--policy", str(chosen),

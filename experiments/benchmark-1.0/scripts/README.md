@@ -9,7 +9,7 @@ Every catalog model on the 27 static datasets under each dataset card's
 | `watchdog.py` | Kills this user's largest run when the server's available memory drops below a floor (shared-server safety) |
 | `report.py` | Per-run status, diagnosis, last error, train time and profile metrics of a phase (`--csv`) |
 | `enqueue.py` | Prepares every run file of a phase and adds it to one queue with its priority (`queued.json` records the sweeps) |
-| `policy-<phase>.toml`, `policy-<phase>-heavy.toml` | Execution policies for one 8-GPU server; heavy datasets run one per GPU (`enqueue.py --weight light\|heavy`) |
+| `policy-<phase>.toml`, `policy-<phase>-heavy.toml` | Execution policies for one 8-GPU server; heavy datasets run one per GPU (`enqueue.py --weight light\|heavy --tier t1\|t2`) |
 
 What the generator sets, because the sweep loader does not: per-dataset
 lookbacks and horizons from the card; `enc_in` / `dec_in` / `c_out` /
