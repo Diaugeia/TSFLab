@@ -15,7 +15,7 @@ year = 2026
 url = "https://github.com/andone-07/Dynamic-TMoE"
 revision = "3e4123530d40c8463cb9487992da49cd967fd9d7"
 license = "NOASSERTION"
-reference_sources = ["https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/models/Dynamic_TMoE/model.py", "https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/models/Dynamic_TMoE/memory_router.py", "https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/models/Dynamic_TMoE/cyclic_relation.py"]
+reference_sources = ["https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/models/Dynamic_TMoE/model.py", "https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/models/Dynamic_TMoE/memory_router.py", "https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/models/Dynamic_TMoE/cyclic_relation.py", "https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/data_provider/data_loader.py", "https://github.com/andone-07/Dynamic-TMoE/blob/3e4123530d40c8463cb9487992da49cd967fd9d7/utils/timefeatures.py"]
 
 [composition]
 normalization = "component:revin"
@@ -27,7 +27,7 @@ loss = "loss:mse"
 
 [data_params]
 enc_in = { from = "channels", rule = "equals the number of channels" }
-relation_period = { from = "period", rule = "cycle length in steps for the channel-relation prototypes (24 for an hourly daily cycle)" }
+relation_period = { from = "period", rule = "cycle length in steps for the channel-relation prototypes (24 for an hourly daily cycle); the prototype is chosen by the first input step's phase from the raw marks" }
 
 [admission]
 status = "passed"
@@ -42,3 +42,9 @@ kind = "license"
 where = "repository root"
 what = "no license file at the pinned revision."
 resolution = "independent rewrite with `models/Dynamic_TMoE/model.py`, `memory_router.py`, and `cyclic_relation.py` used as reference only; license recorded as `NOASSERTION`."
+
+[[issues]]
+kind = "code-bug"
+where = "`models/Dynamic_TMoE/model.py` `forecast` (L94-96)"
+what = "the cycle index is `x_mark_enc[:, 0, 0] % cycle_length`. With the default `--embed timeF` that column is a time feature in [-0.5, 0.5] (`HourOfDay`, `hour / 23 - 0.5`, for hourly data; `utils/timefeatures.py` L34-38), so after `% cycle_length` and `.long()` the index is only 0 or cycle_length - 1; with `timeenc = 0` the column is the month (`data_provider/data_loader.py` L72-77), not the hour. Paper Eq. (10) indexes the prototype by the cycle position t (CycleNet-style)."
+resolution = "the index is the phase of the window's first step: its absolute step count from the raw marks modulo `relation_period` (the hour of day for hourly data and 24)."
