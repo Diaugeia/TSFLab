@@ -1,6 +1,6 @@
 ---
 name: "MICN"
-description: "Multi-scale isometric convolution network: multi-kernel seasonal-trend decomposition, a linear trend regression, and MIC layers with per-scale downsampling and full-length isometric convolutions over the zero-padded seasonal sequence. Use for long-term forecasting with trend plus local fluctuations at modest compute; not for calendar-driven targets (time marks are ignored)."
+description: "Multi-scale isometric convolution network: multi-kernel decomposition, linear trend regression, and per-scale downsampling plus full-length isometric convolution over the zero-padded seasonal part. Use for long-term forecasting with trend and local fluctuations at modest compute; not for calendar-driven targets."
 ---
 
 # MICN

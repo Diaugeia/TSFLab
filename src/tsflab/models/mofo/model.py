@@ -179,7 +179,7 @@ class Model(nn.Module):
         """Phase-identity embedding per patch: index ``(phase_last - i) mod P`` for patch ``i``."""
         if x_mark_enc is None or x_mark_enc.ndim != 3 or x_mark_enc.shape[-1] != 6:
             raise ValueError("MoFo with cias = 1 needs raw marks [batch, seq_len, 6]")
-        phase = last_step_phase(x_mark_enc, self.period)
+        phase = last_step_phase(x_mark_enc, self.period).to(self.phase_embedding.device)
         patches = torch.arange(self.period, device=phase.device)
         index = (phase[:, None] - patches[None, :]).remainder(self.period)
         return self.phase_embedding[index].view(batch, 1, self.period, -1)

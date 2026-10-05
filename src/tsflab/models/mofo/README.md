@@ -1,6 +1,6 @@
 ---
 name: "MoFo"
-description: "Period-structured patches (one token per phase of a known period) with Transformer attention modulated by a learnable relaxation of the circular period distance, plus a flatten-linear head. Use for long-term forecasting of strongly periodic series with a known period; not for aperiodic data, cross-channel interaction, or probabilistic output."
+description: "One token per phase of a known period (period-structured patches), attention modulated by a learnable relaxation of circular phase distance, flatten-linear head. Use for long-term forecasting of strongly periodic series; not for aperiodic data, cross-channel interaction, or probabilistic output."
 ---
 
 # MoFo
