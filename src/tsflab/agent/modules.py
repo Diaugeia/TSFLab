@@ -51,7 +51,7 @@ MODULES: dict[str, dict[str, object]] = {
         "extras": ["hub", "realtime"],
         "purpose": "submit results, forecast real-time rounds, publish weights",
         "commands": ["tsf result submit", "tsf result hub", "tsf realtime forecast"],
-        "context": "leaderboard `apps/web/data/leaderboard.json`, real-time scores, pinned `hf://` weights URIs",
+        "context": "leaderboard `board/leaderboard.json` of `TSFLab-Checkpoints`, real-time scores, pinned `hf://` checkpoint URIs",
     },
     "autoresearch": {
         "skills": ["run-autoresearch"],

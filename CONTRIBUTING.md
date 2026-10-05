@@ -82,8 +82,10 @@ Run `uv run tsf repo check --scope changed` before opening a pull request.
 ## Submitting results and real-time forecasts
 
 - **Benchmark results:** add a `submission.json` under `apps/web/submissions/`
-  as described in [`apps/web/SUBMITTING.md`](apps/web/SUBMITTING.md). CI
-  validates it against the TSF-Core contract.
+  (a staging folder) as described in [`apps/web/SUBMITTING.md`](apps/web/SUBMITTING.md).
+  CI validates it against the TSF-Core contract; after review a maintainer moves
+  it to `results/` of the Hugging Face repository `Diaugeia/TSFLab-Checkpoints`,
+  which the leaderboard is built from.
 - **Real-time rounds:** add `forecasts/<YourModel>.json` to an open round under
   `apps/web/submissions/realtime/<track>/rounds/<round_id>/` before its
   deadline; CI rejects pull requests last updated after the deadline. See

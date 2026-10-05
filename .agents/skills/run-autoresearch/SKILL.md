@@ -26,7 +26,7 @@ current Agent (no second Agent needed). Read each reference only at its step.
 | Data | dataset card `characteristics`, train-only profile | `tsf catalog show`, `tsf data analyze` |
 | Models | card `fits`, compositions, `data_params`, component interfaces | `tsf catalog match`, `tsf catalog search`, `tsf catalog show` |
 | Experiments | result board (aggregates, ranks) | `tsf result board --dataset <d>`, `tsf result aggregate` |
-| Release | leaderboard, real-time summaries (`apps/web/data/`) | read-only reference bar |
+| Release | leaderboard (`board/` of `TSFLab-Checkpoints`), real-time summaries (`apps/web/data/realtime/`) | read-only reference bar |
 | AutoResearch | round ledger `work_dirs/_research/<id>/` | `tsf research show <id>` |
 
 ## Steps

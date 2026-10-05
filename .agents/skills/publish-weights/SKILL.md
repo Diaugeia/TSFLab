@@ -1,54 +1,64 @@
 ---
 name: publish-weights
-description: "Package a completed TSFLab run's best checkpoint as a checksummed safetensors bundle and publish or load it through pinned hf:// URIs on the Hugging Face Hub. Use for sharing or reloading trained weights; not for leaderboard result submissions or pretrained foundation checkpoints."
+description: "Package the best checkpoints of top-ranked TSFLab runs as checksummed safetensors bundles and publish or load them through pinned hf:// URIs in Diaugeia/TSFLab-Checkpoints. Use for sharing or reloading trained weights; not for leaderboard result submissions or pretrained foundation checkpoints."
 ---
 
 # Publish weights
 
-Release module: turn a finished run into a reproducible weights bundle at
-`<dataset>/<model>/<run_id>/` (manifest, `model.safetensors`, run record, card),
-addressed by a URI pinned to an immutable revision.
+Release module: turn finished runs into reproducible weights bundles at
+`checkpoints/<track>/<dataset>/<model>/<run_id>/` (manifest, `model.safetensors`,
+run record, card) in `Diaugeia/TSFLab-Checkpoints`, addressed by a URI pinned to an
+immutable revision. Only top-ranked runs are uploaded, never every run of a sweep.
 
 ## Inputs
 
-- A completed run id (or its record `work_dirs/<dataset>/<model>/records/<run_id>.json`)
-  with a checkpoint under `work_dirs/<dataset>/<model>/checkpoints/<run_id>/`; the
-  checkpoint is produced on the training machine and must be copied back with the record.
-- A target model repository (default `Diaugeia/TSFLab-Weights`) and write
-  credentials (`HF_TOKEN` or a local Hub login), plus explicit authorization to
+- Completed runs: records at `work_dirs/<dataset>/<model>/records/<run_id>.json` and
+  checkpoints from the managed runner at `work_dirs/_runs/<run_id>/checkpoints/`
+  (`result.json` names the best one). The older
+  `work_dirs/<dataset>/<model>/checkpoints/<run_id>/` layout also works. Checkpoints
+  are produced on the training machine and must be copied back with the records.
+- Write credentials (`HF_TOKEN` or a local Hub login) and explicit authorization to
   publish. Requires the `hub` extra.
 
 ## Steps
 
-1. Build the bundle locally and inspect it:
+1. Show the selection; nothing is uploaded:
+
+   ```bash
+   uv run tsf result hub push-top --dataset <dataset> --horizon <H> --top <K> --dry-run
+   ```
+
+   Rows are ranked with `tsf result board` (seed averages); each selected entry is
+   the best single run of a top row. Check the model, horizon, metric, path, and
+   that every entry says `ready` (a missing checkpoint is skipped).
+2. To inspect one bundle first, build it locally and read `manifest.json` (model,
+   dataset, horizon, seed, metrics, framework version, commit, SHA-256 of every file):
 
    ```bash
    uv run tsf result hub pack <run_id>            # -> work_dirs/_bundles/<run_id>/
    ```
 
-   Check `manifest.json`: model, dataset, horizon, seed, metrics, framework
-   version, commit, and the SHA-256 of every file.
-2. Publish only that run; repositories are created private unless `--public`:
+3. Publish the selection in one commit; bundles already present are skipped:
 
    ```bash
-   uv run tsf result hub push <run_id> --repo <owner>/<repo> [--create] [--public]
+   uv run tsf result hub push-top --dataset <dataset> --horizon <H> --top <K>
    ```
 
-   Record the printed `hf://<owner>/<repo>@<revision>/<path>` URI; the revision is
-   the new commit, so the URI always resolves to the same bytes.
-3. Reference the URI where the weights matter, for example a real-time forecast's
+   For one specific run use `uv run tsf result hub push <run_id>`, which prints the
+   pinned `hf://Diaugeia/TSFLab-Checkpoints@<revision>/checkpoints/...` URI.
+4. Reference the URI where the weights matter, for example a real-time forecast's
    `weights_uri`, and verify it round-trips:
 
    ```bash
-   uv run tsf result hub list --repo <owner>/<repo> --dataset <dataset>
-   uv run tsf result hub pull hf://<owner>/<repo>@<revision>/<dataset>/<model>/<run_id>
+   uv run tsf result hub list --dataset <dataset>
+   uv run tsf result hub pull hf://Diaugeia/TSFLab-Checkpoints@<revision>/checkpoints/<track>/<dataset>/<model>/<run_id>
    ```
 
 ## Chain
 
 - Module: Release.
-- Reads: the run record and its checkpoint.
-- Produces: a pinned `hf://<owner>/<repo>@<revision>/...` URI with a checksummed manifest.
+- Reads: run records, their checkpoints, the result board ranking.
+- Produces: pinned `hf://Diaugeia/TSFLab-Checkpoints@<revision>/checkpoints/...` URIs with checksummed manifests.
 - Hands off to: `forecast-realtime-round` (`weights_uri`), `run-experiment` (reload), `submit-results`.
 
 ## Success
@@ -58,6 +68,6 @@ addressed by a URI pinned to an immutable revision.
 ## Stop and hand off
 
 - Never publish without explicit authorization or push runs that were not
-  requested; stop on checksum mismatch.
+  requested or not top-ranked; stop on checksum mismatch.
 - Result bundles for the leaderboard belong to `submit-results`; released
   pretrained runtimes to `integrate-foundation-model`.

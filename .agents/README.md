@@ -60,13 +60,13 @@ Context produced: run records `work_dirs/<dataset>/<model>/records/<run_id>.json
 Submit results, forecast real-time rounds, publish weights (chain).
 
 Skills:
-- [`submit-results`](skills/submit-results/SKILL.md): Package a completed TSFLab run and its research evidence as a TSFLab Leaderboard submission bundle.
+- [`submit-results`](skills/submit-results/SKILL.md): Package completed TSFLab runs and their research evidence as TSFLab Leaderboard submission bundles and publish them to results/ of Diaugeia/TSFLab-Checkpoints.
 - [`forecast-realtime-round`](skills/forecast-realtime-round/SKILL.md): Produce, validate, and submit a forecast for an open TSFLab real-time round (stocks, PeMS traffic, air quality, weather, solar, grid load), then read its score once the truth arrives.
-- [`publish-weights`](skills/publish-weights/SKILL.md): Package a completed TSFLab run's best checkpoint as a checksummed safetensors bundle and publish or load it through pinned hf:// URIs on the Hugging Face Hub.
+- [`publish-weights`](skills/publish-weights/SKILL.md): Package the best checkpoints of top-ranked TSFLab runs as checksummed safetensors bundles and publish or load them through pinned hf:// URIs in Diaugeia/TSFLab-Checkpoints.
 
 Entry commands: `tsf result submit`, `tsf result hub`, `tsf realtime forecast`.
 
-Context produced: leaderboard `apps/web/data/leaderboard.json`, real-time scores, pinned `hf://` weights URIs.
+Context produced: leaderboard `board/leaderboard.json` of `TSFLab-Checkpoints`, real-time scores, pinned `hf://` checkpoint URIs.
 
 ## AutoResearch
 

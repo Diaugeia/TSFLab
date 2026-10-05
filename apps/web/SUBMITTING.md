@@ -1,26 +1,37 @@
 # Submitting data to the TSFLab Leaderboard
 
 The leaderboard at **[the TSFLab Space](https://huggingface.co/spaces/Diaugeia/TSFLab)** is an open board
-you can check: every row is rebuilt from the submission evidence under
-[`submissions/`](submissions/) in this repo — the single source of truth. To add or
-update results you commit submission files and push — CI validates, aggregates, and
-deploys automatically, so the board is always a function of the committed evidence.
+you can check: every row is rebuilt from the submission evidence in `results/` of the
+Hugging Face model repository
+[`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints) —
+the single source of truth for results. The generated board is `board/leaderboard.json`
+in the same repository; the site downloads it at build time
+(`pipeline/fetch_board.py`). GitHub keeps code only.
 
 ## TL;DR
 
-1. Write one `submission.json` per run under
-   `submissions/<track>/<dataset>/<model>/<run_id>/submission.json`.
-2. `python pipeline/build_leaderboard.py --no-write` to preview locally.
-3. Commit + push to `main`. CI runs `pipeline/validate.py` → `pipeline/build_leaderboard.py`
-   → deploys to Cloudflare (and the HF Space mirror).
+1. Build one bundle per run with `tsf result submit` (or write one `submission.json`).
+2. Open a pull request that adds it under
+   `submissions/<track>/<dataset>/<model>/<run_id>/` (a staging folder). CI validates
+   it with `pipeline/validate.py` (`tsf repo check`, step `web-submissions`).
+3. After review, a maintainer uploads it with `tsf result hub results push`, which
+   regenerates `board/`, and removes it from the staging folder. The next site build
+   shows it.
+
+Maintainers with a Hub token skip the pull request:
+`uv run tsf result hub results push work_dirs/_submissions`.
 
 ## Directory layout
 
 ```
-submissions/
-  time_series/<dataset>/<model>/<run_id>/submission.json   # ETTh1, ETTh2, electricity, solar, traffic, weather, …
-  realtime/stock_hs300/<model>/<run_id>/submission.json    # → shown as the "Stock" track
+results/                                                    # in Diaugeia/TSFLab-Checkpoints
+  time_series/<dataset>/<model>/<run_id>/submission.json    # ETTh1, ETTh2, electricity, solar, traffic, weather, …
+  realtime/<track>/<model>/<run_id>/submission.json         # realtime/stock_hs300 → shown as the "Stock" track
 ```
+
+The staging folder `submissions/` in this repository uses the same layout. The
+TSEval-era CSI-300 bundles are archived under `legacy/` of that repository and are
+not ranked.
 
 `run_id` is any unique folder name; the convention is
 `<model>_<dataset>_sl<seqlen>_pl<predlen>_seed<seed>_<timestamp>`.
@@ -33,7 +44,7 @@ submissions:
 ```jsonc
 {
   "schema_version": "1.0.0",
-  "model": "PatchTST",          // must match a TSFLab model name (see data/model-meta.json)
+  "model": "PatchTST",          // must match a TSFLab model name (see `tsf catalog search`)
   "dataset_id": "ETTh1",        // ETTh1 … weather, or stock_hs300
   "track": "time_series",       // "time_series" or "realtime"
   "seed": 2021,                 // one seed per file (see "Multiple runs" below)
@@ -75,12 +86,12 @@ metrics. (Example today: `weather` MoFo/Kronos are already `n_runs: 2`.)
 
 | Block | Source |
 |---|---|
-| `time_series/*` (all 8 datasets) | aggregated from `submissions/time_series/` |
-| Stock **regression** (mse/mae/corr) | aggregated from `submissions/realtime/stock_hs300/` |
-| Stock **quant** (returns/Sharpe/…) | **curated** — no raw quant submissions yet |
-| **Air quality** (`Air-CHNCities`) | **curated** — raw inputs not uploaded |
+| `time_series/*` (all 8 datasets) | aggregated from `results/time_series/` |
+| Stock **regression** (mse/mae/corr) | aggregated from `results/realtime/stock_hs300/` (the TSEval-era rows are in `legacy/`, not ranked) |
+| Stock **quant** (returns/Sharpe/…) | archived in `legacy/board/` — no raw quant submissions yet |
+| **Air quality** (`Air-CHNCities`) | **curated** — `board/curated.json`, raw inputs not uploaded |
 
-Curated blocks are preserved on every rebuild (see `overlay_curated` in
+Curated blocks are applied on every rebuild (see `overlay_curated` in
 `pipeline/build_leaderboard.py`). To make them submission-driven, add the
 corresponding `submission.json` files and they'll replace the curated rows.
 
@@ -120,14 +131,16 @@ cutoff. The site shows the mean rank over scored rounds and rank stability
 ## Build & validate locally
 
 ```bash
-python pipeline/build_leaderboard.py --no-validate --no-write   # preview summary
-python pipeline/build_leaderboard.py                            # validate + aggregate + write data/leaderboard.json
-bun run build                                                   # confirm the site builds
+python pipeline/validate.py                                     # contract check of submissions/
+python pipeline/build_leaderboard.py --no-write                 # preview the staged bundles
+python pipeline/build_leaderboard.py --source DIR --out FILE    # a board from any bundle folder
+bun run build                                                   # fetch board/ from the Hub, then next build
+python pipeline/fetch_board.py --from DIR                       # offline: use local board files instead
 ```
 
 Ranking is per `(track, dataset, horizon)` by **MSE** (lower is better). Weights are
 **not** part of a submission and are never required to get on the board — a row earns
-its place with its result, trajectory, and report. If you *want* bit-level
-reproducibility, you may optionally archive your trained weights in the public
-[`Diaugeia/TSFLab-Weights`](https://huggingface.co/Diaugeia/TSFLab-Weights)
-dataset, but that is an invitation, not a gate.
+its place with its result, trajectory, and report. Maintainers archive the
+checkpoints of top-ranked runs in `checkpoints/` of
+[`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints)
+(`tsf result hub push-top`) for bit-level reproducibility.

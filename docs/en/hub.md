@@ -57,7 +57,7 @@ endpoint, so private repositories work; `HF_ENDPOINT` overrides the endpoint.
 | Repository | Type | Contents |
 | --- | --- | --- |
 | `Diaugeia/TSFLab-Datasets` | dataset | `static/`: files behind the dataset presets, laid out as `dataset/`; `realtime/<track>/`: append-only panels of the hosted real-time tracks, one commit per release |
-| `Diaugeia/TSFLab-Weights` | model | trained weights bundles |
+| `Diaugeia/TSFLab-Checkpoints` | model | run results, top-ranked checkpoints, the generated board, the TSEval archive (`legacy/`) |
 | `Diaugeia/TSFLab` | space | the static leaderboard site |
 
 A fork or personal mirror sets `TSFLAB_HUB_OWNER` to publish under another
@@ -95,11 +95,51 @@ party's repository, and `tsf data prepare --from gift-eval` fetches GIFT-Eval) o
 `script` presets (users fetch them from the original source with the command in
 the card).
 
-## Weights bundles
+## Results and checkpoints
 
-A finished run is published as one bundle directory at
-`<dataset>/<model>/<run_id>/` in a model repository (default
-`Diaugeia/TSFLab-Weights`):
+GitHub keeps code only. Run results, the generated leaderboard, and selected
+checkpoints live in one model repository, `Diaugeia/TSFLab-Checkpoints`:
+
+```
+results/<track>/<dataset>/<model>/<submission_id>/   submission.json, trajectory.jsonl, report.md
+checkpoints/<track>/<dataset>/<model>/<run_id>/      weights bundle (top-ranked runs only)
+board/leaderboard.json, board/model-meta.json        generated from results/; the site reads them
+board/curated.json                                   curated overlay (blocks with no raw submissions)
+legacy/                                              TSEval-era weights and submissions, not ranked
+```
+
+### Results
+
+`tsf result submit` packages run records into submission bundles under
+`work_dirs/_submissions/`; `--all` packages every record of a sweep in one call.
+`results push` validates the bundles, uploads the ones not yet present (one commit
+per `--batch` bundles), and regenerates `board/` from the whole `results/` tree:
+
+```bash
+uv run tsf result submit --all [--dataset ETTh1] [--model DLinear] --skip-existing
+uv run tsf result hub results push work_dirs/_submissions --dry-run
+uv run tsf result hub results push work_dirs/_submissions
+uv run tsf result hub results pull --dataset ETTh1          # mirror under work_dirs/_hub/
+uv run tsf result hub results board [--local DIR] [--no-upload --out DIR]
+```
+
+The board uses the site pipeline (`apps/web/pipeline/build_leaderboard.py`) and
+the TSF-Core validation and ranking in `tsflab.core.leaderboard`, so a local
+`tsf result leaderboard` ranks the same way. `tsf result board` reads the
+published board when no local copy exists.
+
+### Checkpoints
+
+Only top-ranked runs are uploaded. `push-top` ranks the local runs with
+`tsf result board`, takes the best run (lowest metric) of each of the top `K`
+rows, and uploads their bundles in one commit:
+
+```bash
+uv run tsf result hub push-top --dataset ETTh1 --horizon 96 --top 3 --dry-run
+uv run tsf result hub push-top --dataset ETTh1 --horizon 96 --top 3
+```
+
+A bundle directory holds:
 
 | File | Contents |
 | --- | --- |
@@ -108,21 +148,26 @@ A finished run is published as one bundle directory at
 | `record.json` | the run's TSF-Core `RunRecord` |
 | `README.md` | model card rendered from the manifest |
 
+The checkpoint is found from the run record: first `checkpoint_path` in
+`work_dirs/_runs/<run_id>/result.json` (or the same file name in that run's
+`checkpoints/`), then `work_dirs/_runs/<run_id>/checkpoints/{best_checkpoint,latest}.pth`,
+then the older `work_dirs/<dataset>/<model>/checkpoints/<run_id>/`.
+
 ```bash
 uv run tsf result hub pack <run_id>                      # local bundle under work_dirs/_bundles/
-uv run tsf result hub push <run_id> --repo <owner>/<repo> [--create] [--public]
-uv run tsf result hub list --repo <owner>/<repo> --dataset weather
-uv run tsf result hub pull hf://<owner>/<repo>@<revision>/weather/DLinear/<run_id>
+uv run tsf result hub push <run_id> [--repo <owner>/<repo>] [--create] [--public]
+uv run tsf result hub list --dataset weather
+uv run tsf result hub pull hf://Diaugeia/TSFLab-Checkpoints@<revision>/checkpoints/time_series/weather/DLinear/<run_id>
 ```
 
 `push` uploads only the run it is given, creates private repositories unless
 `--public` is passed, and prints the bundle URI pinned to the new commit.
 
 ```python
-from tsflab import hub
+from tsflab.release import hub
 
 state_dict, manifest = hub.load_state_dict(
-    "hf://Diaugeia/TSFLab-Weights@<revision>/weather/DLinear/<run_id>"
+    "hf://Diaugeia/TSFLab-Checkpoints@<revision>/checkpoints/time_series/weather/DLinear/<run_id>"
 )
 ```
 

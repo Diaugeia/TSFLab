@@ -35,7 +35,7 @@ TSFLab Leaderboard 是 [TSFLab](https://github.com/Diaugeia/TSFLab) 的公开记
 
 ## ✨ 特性
 
-- 🏆 **提交驱动** —— 每次 push 都从 `submissions/` 重建榜单,没有任何手工编辑。
+- 🏆 **提交驱动** —— 每次上传都从 Hub 上的 `results/` 重建榜单,没有任何手工编辑。
 - 🔬 **可复现可审计** —— 每份提交含指标 + 轨迹 + 运行元数据;多 seed 自动取均值并记录 `n_runs` 与标准差。
 - 📈 **方法演进图** —— 100+ 方法的「发表年份 vs MSE」,带历年最优(SOTA)前沿线(ECharts,支持缩放/悬停/对数轴)。
 - 💹 **不止回归** —— 股票赛道同时给出预测指标 *和* 量化回测视图(盈亏、夏普、回撤),另有空气质量赛道。
@@ -48,7 +48,7 @@ TSFLab Leaderboard 是 [TSFLab](https://github.com/Diaugeia/TSFLab) 的公开记
 
 - 🌐 **网站:** [Hugging Face Space](https://huggingface.co/spaces/Diaugeia/TSFLab)(每次推送到 `main` 自动部署)
 - 📦 **数据集**(在 Hugging Face):[`Diaugeia/TSFLab-Datasets`](https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets) —— `static/` 基准数据集(ETT、electricity、solar、traffic、weather…)与 `realtime/` 实时赛道面板
-- 🧠 **权重(可选):** [`Diaugeia/TSFLab-Weights`](https://huggingface.co/Diaugeia/TSFLab-Weights) —— 一个公开、*可选*的可复现归档(训练好的 checkpoint)。提交本身不含权重,上榜从不需要 `.pth`。
+- 🧠 **结果与 checkpoint:** [`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints) —— `results/`(全部提交)、`board/`(生成的榜单)、`checkpoints/`(仅排名靠前的 run 的权重)、`legacy/`(TSEval 归档,不参与排名)。提交本身不含权重,上榜从不需要 `.pth`。
 
 ---
 
@@ -68,11 +68,11 @@ TSFLab Leaderboard 是 [TSFLab](https://github.com/Diaugeia/TSFLab) 的公开记
 
 > 完整格式 + 多 seed 取均值规则见 **[SUBMITTING.md](SUBMITTING.md)**。
 
-每个 run 写一份 `submission.json`,然后 push:
+每个 run 一份 bundle,用 PR 放到 `submissions/`(暂存目录,CI 校验);维护者审核后上传到 Hub 并从这里删除:
 
 ```bash
-python3 pipeline/build_leaderboard.py --no-write   # 本地预览
-git add submissions/…/submission.json && git push  # CI:校验 → 聚合 → 部署
+python3 pipeline/build_leaderboard.py --no-write             # 本地预览暂存的 bundle
+uv run tsf result hub results push apps/web/submissions      # 维护者:上传并重建 board/
 ```
 
 ```jsonc
@@ -94,16 +94,16 @@ git add submissions/…/submission.json && git push  # CI:校验 → 聚合 → 
 ```
 push main
   └─ .github/workflows/ci.yml (web + deploy)
-       ├ python3 pipeline/build_leaderboard.py   校验 → 聚合 submissions/ → data/leaderboard.json
-       ├ bun run build                           Next 静态导出 → out/
+       ├ python3 pipeline/fetch_board.py         下载 TSFLab-Checkpoints 的 board/*.json → data/
+       ├ next build                              Next 静态导出 → out/
        └ out/ 部署到:
             └─► Hugging Face Space (static) →  Diaugeia/TSFLab
                 (原 TSEval:旧 Space Diaugeia/TSEval 与旧域名 tseval.diaugeia.ai 为遗留入口,均跳转到这里)
 ```
 
 - `pipeline/validate.py` —— TSF-Core 合约 schema + TSFLab 绑定校验。
-- `pipeline/build_leaderboard.py` —— 聚合提交(均值 / 标准差 / `n_runs`),按 MSE 排名;尚无原始提交的区块(空气质量、股票量化)用 curated 兜底。
-- `pipeline/build_model_meta.py` —— 从 TSFLab 检出重新生成 `data/model-meta.json`(发表年份)。
+- `pipeline/build_leaderboard.py` —— 聚合提交(均值 / 标准差 / `n_runs`),按 MSE 排名;尚无原始提交的区块(空气质量)用 `board/curated.json` 兜底。
+- `pipeline/build_model_meta.py` —— 从 TSFLab 检出生成 `model-meta.json`(发表年份)。
 
 ---
 
@@ -127,9 +127,9 @@ app/, src/, lib/, components/   自包含 Next 应用(UI + 中英文文案 + 设
   src/evolution-chart.tsx       方法演进图(ECharts)
   src/quant-visualization.tsx   股票盈亏 + 预测准度图
   src/lib/, src/ui/             指标、模型类型、数据集顺序、共享 UI
-data/                           leaderboard.json + model-meta.json + visualization_data.json
-submissions/                    社区提交(小 JSON,不含权重)
-pipeline/                       合约 schema + validate + build_leaderboard + build_model_meta
+data/                           构建时下载(不在 Git 中);data/realtime/ 由 weekly workflow 写入
+submissions/                    PR 暂存目录 + 实时轮次(见 submissions/README.md)
+pipeline/                       validate + build_leaderboard + fetch_board + build_model_meta
 .github/workflows/              validate(PR)+ deploy(构建一次 → 两端)
 ```
 
