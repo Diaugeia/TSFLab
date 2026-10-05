@@ -42,7 +42,11 @@ def run_processes() -> dict[int, tuple[int, str, int]]:
             status = dict(line.split(":", 1) for line in (entry / "status").read_text().splitlines() if ":" in line)
             rss = int(status.get("VmRSS", "0 kB").split()[0])
             ppid = int(status.get("PPid", "0").strip())
+            if b"--payload" not in cmd:  # only real run processes, not shells quoting the marker
+                continue
             payload = next((c.decode() for c in cmd if c.startswith(b"/") and b"_runs/" in c), "")
+            if not payload:
+                continue
             found[int(entry.name)] = (rss, payload, ppid)
         except (OSError, ValueError):
             continue
