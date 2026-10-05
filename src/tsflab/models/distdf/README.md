@@ -25,6 +25,8 @@ Other hyperparameters: preset defaults in `configs/models/DistDF.toml`; tune gen
 
 ## Differences
 
-- Clean-room implementation of Algorithm 1 and Eqs. (5)-(6); the official artifact was not inspected or copied.
+- Clean-room implementation of Algorithm 1 and Eqs. (5)-(6); `utils/fft_ot.py` of the pinned official code was read for the square root, nothing was copied.
+- The released scripts train with a per-channel trace upper bound of the Bures term; this entry keeps the paper's exact term (see the card issues).
+- Square roots run in float64 (official `sqrtm_svd_stable`); an `eigh` that does not converge is retried with a small trace-scaled diagonal jitter, then replaced by the SVD.
 - The paper applies DistDF to several external backbones; this entry supplies a compact shared linear carrier.
 - Batch-channel pairs form the empirical samples, and positive jitter stabilizes small covariances.
