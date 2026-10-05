@@ -6,7 +6,8 @@
 Joins each succeeded run (``report.py`` rows of the given phases) with its
 ``profile.csv`` row (parameters, MACs, inference peak VRAM, latency) and writes:
 
-- ``efficiency.csv``: one row per (model, dataset, horizon), the first succeeded run;
+- ``efficiency.csv``: one row per (model, dataset, horizon), the first succeeded run of a
+  point-forecast model (``--probabilistic`` adds quantile / distribution models);
 - ``pareto.csv``: for each (dataset, horizon), the models on the front of
   (fewer parameters, lower MSE): no other model has both;
 - ``efficiency_<horizon>.pdf`` / ``.png``: one panel per dataset, MSE gap to the best
@@ -44,7 +45,10 @@ def number(text: str | None) -> float | None:
     return float(match.group(1)) if match else None
 
 
-def collect(phases: list[str]) -> list[dict]:
+POINT_LOSSES = {"mse", "masked_mae"}  # quantile / distribution models form their own protocol cohort
+
+
+def collect(phases: list[str], probabilistic: bool = False) -> list[dict]:
     rows, seen = [], set()
     for phase in phases:
         ledger = HERE.parent / "runs" / phase / "queued.json"
@@ -52,6 +56,8 @@ def collect(phases: list[str]) -> list[dict]:
             continue
         for row in report.rows_of(phase):
             if row["status"] != "succeeded" or row["mse"] is None:
+                continue
+            if not probabilistic and row.get("loss") not in POINT_LOSSES:
                 continue
             key = (row["model"], row["dataset"], int(row["pred_len"]))
             if key in seen:  # one record per cell (re-runs may duplicate a cell)
@@ -125,15 +131,17 @@ def main() -> None:
     ap.add_argument("--out-dir", type=Path, default=HERE.parent / "efficiency")
     ap.add_argument("--horizon", type=int, default=192)
     ap.add_argument("--datasets", nargs="+", default=CORE)
+    ap.add_argument("--probabilistic", action="store_true",
+                    help="also include quantile / distribution models (their own protocol cohort)")
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    rows = collect(args.phases)
+    rows = collect(args.phases, args.probabilistic)
     for r in rows:
         r["pred_len"] = int(r["pred_len"])
         for key in ("total_params", "peak_vram_mb", "latency_avg_ms"):
             r[key] = number(r.get(key))
         r["total_macs_m"] = number(r.get("total_macs_m"))
-    fields = ["model", "dataset", "seq_len", "pred_len", "mse", "mae", "total_params", "total_macs_m",
+    fields = ["model", "dataset", "seq_len", "pred_len", "loss", "mse", "mae", "total_params", "total_macs_m",
               "peak_vram_mb", "latency_avg_ms", "train_time_sec", "run_id"]
     with (args.out_dir / "efficiency.csv").open("w", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields, extrasaction="ignore")

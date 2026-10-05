@@ -42,6 +42,7 @@ def cell(run_dir: Path) -> dict:
         "seq_len": cfg.get("task", {}).get("seq_len"),
         "pred_len": cfg.get("task", {}).get("pred_len"),
         "batch_size": cfg.get("training", {}).get("batch_size"),
+        "loss": cfg.get("training", {}).get("loss"),
         "status": last.get("status", "pending"),
         "attempts": len(attempts),
         "diagnosis": last.get("diagnosis", ""),
