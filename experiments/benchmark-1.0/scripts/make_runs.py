@@ -228,8 +228,10 @@ def root_doc(phase: str, tag: str, c: str, spatial: bool, seq: int) -> dict:
     }
     if phase == "smoke":
         doc["training"].update({"epochs": 1, "patience": 1})
+    evaluation = {"enable_profile": phase != "pilot"}  # params, MACs, inference VRAM and latency
     if CLASS[c]["metrics"]:
-        doc["evaluation"] = {"metrics": CLASS[c]["metrics"]}
+        evaluation["metrics"] = CLASS[c]["metrics"]
+    doc["evaluation"] = evaluation
     return doc
 
 
