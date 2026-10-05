@@ -6,7 +6,8 @@ Every catalog model on the 27 static datasets under each dataset card's
 | File | Purpose |
 | --- | --- |
 | `make_runs.py` | Writes the run files and dataset overlays to `../runs/<phase>/` plus `plan.json` (cells, priorities, tier-1 models, excluded cells with reasons) |
-| `policy-pilot.toml`, `policy-main.toml` | Execution policies for one 8-GPU server |
+| `enqueue.py` | Prepares every run file of a phase and adds it to one queue with its priority (`queued.json` records the sweeps) |
+| `policy-pilot.toml`, `policy-main.toml` | Execution policies for one 8-GPU server (the smoke phase uses the pilot policy) |
 
 What the generator sets, because the sweep loader does not: per-dataset
 lookbacks and horizons from the card; `enc_in` / `dec_in` / `c_out` /
@@ -17,12 +18,16 @@ batch size per dataset, shared by every model; the loss per output type
 loads every (model, dataset) cell with the TSFLab loader and excludes the ones a
 model's parameter schema rejects.
 
+Phases: `pilot` (every model on ETTh1 96->96 and PEMS08 12->12), `smoke` (one epoch at the
+longest horizon on traffic, nasdaq, ili, wike2000, pems07), `main` (first lookback, every horizon),
+`lookback` (the other lookbacks).
+
 Order: tier 1 (well-known representatives, at least one per architecture
 category) before tier 2, and light datasets before heavy ones; `plan.json`
 gives each run file a queue priority.
 
 ```bash
-uv run python experiments/benchmark-1.0/scripts/make_runs.py --phase pilot --validate
+uv run python experiments/benchmark-1.0/scripts/make_runs.py --phase pilot --validate   # also: smoke, main, lookback
 uv run tsf run experiments/benchmark-1.0/runs/pilot/<file>.toml \
     --policy experiments/benchmark-1.0/scripts/policy-pilot.toml --gpus 0,1,2,3,4,5,6,7 --jobs 24
 uv run python experiments/benchmark-1.0/scripts/make_runs.py --phase main --validate
