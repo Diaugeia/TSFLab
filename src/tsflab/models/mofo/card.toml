@@ -4,7 +4,6 @@ name = "MoFo"
 tags = ["transformer", "periodicity", "attention-variant", "channel-independent", "normalization"]
 fits = ["strong-seasonality", "long-horizon", "efficiency"]
 fidelity = "reference-checked"
-issues_checked = "the card records a paper-driven implementation of period-structured sampling, phase-restricted query attention and the regulated relaxation bias (checked at its boundary values); the official repository is reference-only and no paper or official-code problem is documented."
 
 [paper]
 title = "MoFo: Empowering Long-term Time Series Forecasting with Periodic Pattern Modeling"
@@ -16,19 +15,19 @@ year = 2025
 url = "https://github.com/PoorOtterBob/MoFo"
 revision = "2d14b47ea839c3809952b412340d72393f2521dc"
 license = "MIT"
-reference_sources = []
+reference_sources = ["https://github.com/PoorOtterBob/MoFo/blob/2d14b47ea839c3809952b412340d72393f2521dc/ts_benchmark/baselines/time_series_library/patchs/MoFo.py", "https://github.com/PoorOtterBob/MoFo/blob/2d14b47ea839c3809952b412340d72393f2521dc/ts_benchmark/baselines/time_series_library/adapters_for_MoFo.py"]
 
 [composition]
 normalization = "component:revin"
 decomposition = "none"
-temporal = "local:period-modulated-attention"
+temporal = "local:period-structured-patches+local:regulated-relaxation-attention"
 channel = "local:channel-independent-shared-weights"
-head = "local:per-step-future-query-projection"
+head = "local:flatten-linear-head"
 loss = "loss:mse"
 
 [data_params]
 enc_in = { from = "channels", rule = "equal to the dataset's channel count" }
-periodic = { from = "period", rule = "the dominant seasonal period in steps (24 for hourly daily cycles); keep seq_len a multiple of it so phases align" }
+periodic = { from = "period", rule = "the dominant seasonal period in steps (24 for hourly daily cycles); seq_len must be >= periodic, any remainder is padded per paper Eq. (1)" }
 
 [admission]
 status = "passed"
@@ -37,3 +36,27 @@ commit = "ec1ae839"
 device = "cpu"
 reference = "official"
 note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "`patchs/MoFo.py` `MoFo.__init__` (L154-157, `nn.Unflatten(-1, (periodic, periodic_num))`)"
+what = "the unflatten fills each of the P rows with ceil(T/P) consecutive steps (a continuous patch), while paper Eq. (2) puts the period-aligned steps x_i, x_{i+P}, ... in row i; the paper's '+ Cpatch' ablation reports the continuous variant as worse."
+resolution = "follow the paper: rows hold period-aligned steps of the Eq. (1)-padded window."
+
+[[issues]]
+kind = "code-bug"
+where = "`patchs/MoFo.py` `MoFo_Attention` (L45-48, L69-72)"
+what = "alpha = sigmoid(a_1 @ a_2) and beta = P * sigmoid(b_1 @ b_2) use products of zero-initialized vectors, so both factors get zero gradient and alpha, beta stay at 0.5 and P/2, while the paper (Sec. 3.2.2) makes them learnable."
+resolution = "scalar logits with the same ranges and initial values (alpha = sigmoid(a), beta = P * sigmoid(b), a = b = 0), so alpha and beta train."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "`patchs/MoFo.py` `MoFo_Backbone.forward` (L18-21); paper Appendix C Eq. (28)"
+what = "Eq. (28) applies the feed-forward block before the attention block; the code applies attention first."
+resolution = "follow the code: attention block, then SwiGLU block, both pre-norm with residuals."
+
+[[issues]]
+kind = "code-bug"
+where = "`patchs/MoFo.py` `MoFo.forward` (L231-246) and `_ias` (L196-201)"
+what = "the phase of the last input step is decoded from timeF marks only for periodic in {24, 96, 144, 288}; any other period sets it to None and the phase-identity embedding (cias = 1) fails. For 96, 144 and 288 it reads timeF columns 2 and 1 as hour and minute, but the minute-frequency timeF layout (`utils/timefeatures.py` L107-113) is [minute, hour, weekday, ...], so those phases are wrong; only periodic = 24 with hourly marks decodes the hour of day."
+resolution = "the phase is the absolute step count of the last raw mark modulo `periodic` (the hour of day for hourly data and periodic = 24, the time-of-day slot for 96/144/288 at 15/10/5-minute sampling), so every period works."
