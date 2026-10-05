@@ -16,7 +16,7 @@ year = 2024
 url = "https://github.com/Kongwy5689/STPGNN"
 revision = "df199624259776515a2d287c32b5db459a629f5d"
 license = "MIT"
-reference_sources = []
+reference_sources = ["https://github.com/Kongwy5689/STPGNN/blob/df199624259776515a2d287c32b5db459a629f5d/model.py", "https://github.com/Kongwy5689/STPGNN/blob/df199624259776515a2d287c32b5db459a629f5d/util.py"]
 
 [composition]
 normalization = "none"
@@ -32,9 +32,5 @@ adj_mx = { from = "graph", rule = "dataset adjacency [N, N], injected by the run
 topk = { from = "nodes", rule = "pivotal set size, clamped to num_nodes" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
-reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+status = "pending"
+note = "re-verify: input calendar features accept spatiotemporal node covariates [B, T, N, F] (PEMS08 pilot expand error)"

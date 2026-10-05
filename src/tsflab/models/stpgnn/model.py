@@ -97,16 +97,30 @@ class Model(nn.Module):
         )
         self.readout = nn.Sequential(nn.Linear(seq_len * residual_channels, end_channels), nn.ReLU(), nn.Linear(end_channels, pred_len))
 
-    @staticmethod
-    def _mark_features(x, marks):
+    def _mark_features(self, x, marks):
+        """Four calendar features per node and step, shape ``[B, T, N, 4]``.
+
+        Raw six-column stamps ``[B, T, 6]`` give (month, day, weekday, hour)
+        fractions shared by every node. Spatiotemporal node covariates
+        ``[B, T, N, F]`` (``[time_in_day, day_in_week]`` for traffic data) are
+        used per node; fewer than four are zero-padded.
+        """
+        batch, length = x.shape[:2]
         if marks is None:
-            return x.new_zeros(x.shape[0], x.shape[1], 4)
+            return x.new_zeros(batch, length, self.num_nodes, 4)
         if marks.shape[:2] != x.shape[:2]:
             raise ValueError("encoder marks must match batch and sequence")
+        if marks.ndim == 4:
+            if marks.shape[2] != self.num_nodes:
+                raise ValueError("node covariates must match num_nodes")
+            take = marks[..., :4]
+            return F.pad(take, (0, 4 - take.shape[-1]))
         if marks.shape[-1] >= 6:
-            return torch.stack((marks[..., 1] / 12, marks[..., 2] / 31, marks[..., 3] / 7, marks[..., 4] / 24), -1)
-        take = marks[..., :4]
-        return F.pad(take, (0, 4 - take.shape[-1]))
+            shared = torch.stack((marks[..., 1] / 12, marks[..., 2] / 31, marks[..., 3] / 7, marks[..., 4] / 24), -1)
+        else:
+            take = marks[..., :4]
+            shared = F.pad(take, (0, 4 - take.shape[-1]))
+        return shared.unsqueeze(2).expand(-1, -1, self.num_nodes, -1)
 
     def forward(
         self,
@@ -118,7 +132,7 @@ class Model(nn.Module):
         if x_enc.shape[1:] != (self.seq_len, self.num_nodes):
             raise ValueError(f"expected (*,{self.seq_len},{self.num_nodes})")
         marks = self._mark_features(x_enc, x_mark_enc)
-        features = torch.cat((x_enc.unsqueeze(-1), marks.unsqueeze(2).expand(-1, -1, self.num_nodes, -1)), -1)
+        features = torch.cat((x_enc.unsqueeze(-1), marks), -1)
         hidden = self.input_projection(features)
         adaptive, pivotal = self.identifier()
         graph = _row_normalize(self.physical_graph + adaptive)
