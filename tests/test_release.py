@@ -23,7 +23,7 @@ from tsflab.release.hub import datasets as hd
 # ---------------------------------------------------------------------------
 
 
-REPO = "Diaugeia/TSFLab-Weights"
+REPO = "Diaugeia/TSFLab-Checkpoints"
 
 
 REV = "0123abcd"
@@ -127,7 +127,7 @@ def test_pack_then_load_state_dict_round_trips(tmp_path: Path, monkeypatch) -> N
     record, checkpoint = hub.find_run(run_id, tmp_path)
     bundle = tmp_path / "bundle"
     manifest = hub.pack(record, checkpoint, bundle)
-    assert manifest["path"] == f"weather/DLinear/{run_id}"
+    assert manifest["path"] == f"checkpoints/time_series/weather/DLinear/{run_id}"
     assert manifest["metrics"] == {"mse": 0.5}
     assert (bundle / "README.md").read_text().startswith("---\nlibrary_name: tsflab")
 
@@ -371,3 +371,234 @@ def test_hf_token_falls_back_to_the_login_file(tmp_path, monkeypatch) -> None:
     assert hf_token() == "hf_abc"
     monkeypatch.setenv("HF_TOKEN", "hf_env")
     assert hf_token() == "hf_env"
+
+
+# ---------------------------------------------------------------------------
+# Runner checkpoint layout, results on the Hub, top-K checkpoints, bulk submit
+# ---------------------------------------------------------------------------
+
+
+def _record_doc(model: str, dataset: str, run_id: str, mse: float, seed: int = 0, horizon: int = 12) -> dict:
+    return {
+        "record_id": f"{model}__{dataset}__seed{seed}__pl{horizon}", "model": model, "dataset_id": dataset,
+        "track": "time_series", "mode": "time_series", "seed": seed,
+        "results": [{"horizon": horizon, "run_id": run_id, "metrics": {"mse": mse, "mae": mse / 2}}],
+        "config": {"mode": "time_series", "seq_len": 96, "label_len": 0, "pred_len": horizon, "features": "M"},
+        "env": {"git_sha": "abc"},
+    }
+
+
+def _runner_run(work_dirs: Path, model: str, dataset: str, run_id: str, mse: float, seed: int = 0,
+                *, checkpoint: bool = True, recorded_path: str | None = None) -> Path:
+    """Lay out one run as the managed runner writes it (records + _runs/<run_id>/)."""
+    records = work_dirs / dataset / model / "records"
+    records.mkdir(parents=True, exist_ok=True)
+    record = records / f"{run_id}.json"
+    record.write_text(json.dumps(_record_doc(model, dataset, run_id, mse, seed)))
+    run_dir = work_dirs / "_runs" / run_id
+    (run_dir / "checkpoints").mkdir(parents=True)
+    best = run_dir / "checkpoints" / "best_checkpoint.pth"
+    if checkpoint:
+        torch.manual_seed(seed)
+        torch.save(nn.Linear(96, 12).state_dict(), best)
+    (run_dir / "result.json").write_text(json.dumps({
+        "metrics": {"mse": mse}, "train_time_sec": 1.0, "test_time_sec": 0.1,
+        "checkpoint_path": recorded_path or str(best), "run_id": run_id}))
+    return record
+
+
+def test_find_run_supports_the_managed_runner_layout(tmp_path: Path) -> None:
+    work = tmp_path / "work_dirs"
+    _runner_run(work, "DLinear", "weather", "DLinear-1-aa", 0.5)
+    record, checkpoint = hub.find_run("DLinear-1-aa", tmp_path)
+    assert record == work / "weather" / "DLinear" / "records" / "DLinear-1-aa.json"
+    assert checkpoint == work / "_runs" / "DLinear-1-aa" / "checkpoints" / "best_checkpoint.pth"
+    # A run copied back from another machine keeps a foreign absolute checkpoint_path.
+    _runner_run(work, "DLinear", "weather", "DLinear-2-bb", 0.4,
+                recorded_path="/gpu-node/work_dirs/_runs/DLinear-2-bb/checkpoints/best_checkpoint.pth")
+    expected = work / "_runs" / "DLinear-2-bb" / "checkpoints" / "best_checkpoint.pth"
+    assert hub.find_run("DLinear-2-bb", tmp_path)[1] == expected
+    _runner_run(work, "DLinear", "weather", "DLinear-3-cc", 0.3, checkpoint=False)
+    with pytest.raises(FileNotFoundError, match="no checkpoint"):
+        hub.find_run("DLinear-3-cc", tmp_path)
+
+
+def test_find_run_keeps_the_older_per_model_layout(tmp_path: Path) -> None:
+    run_id = _fake_run(tmp_path)
+    record, checkpoint = hub.find_run(run_id, tmp_path)
+    model_dir = tmp_path / "work_dirs" / "weather" / "DLinear"
+    assert checkpoint == model_dir / "checkpoints" / run_id / "best_checkpoint.pth"
+    assert hub.find_run(record, tmp_path) == (record, checkpoint)
+
+
+class _FakeApi:
+    """Records Hub writes; ``files`` is the repository listing."""
+
+    def __init__(self, files=()):
+        self.files, self.commits, self.folders = list(files), [], []
+
+    def list_repo_files(self, repo_id, repo_type="model", revision="main"):
+        return list(self.files)
+
+    def create_commit(self, repo_id, repo_type, operations, commit_message):
+        self.commits.append((commit_message, [op.path_in_repo for op in operations]))
+        return type("Commit", (), {"oid": f"c{len(self.commits)}"})()
+
+    def upload_folder(self, repo_id, repo_type, folder_path, commit_message, **_):
+        self.folders.append(sorted(p.relative_to(folder_path).as_posix()
+                                   for p in Path(folder_path).rglob("*") if p.is_file()))
+        return type("Commit", (), {"oid": "f1"})()
+
+
+def _bulk_submit(tmp_path: Path, monkeypatch) -> Path:
+    from tsflab.cli.commands import submit
+
+    work = tmp_path / "work_dirs"
+    _runner_run(work, "DLinear", "ETTh1", "DLinear-1-aa", 0.5)
+    _runner_run(work, "PatchTST", "ETTh1", "PatchTST-1-bb", 0.4)
+    _runner_run(work, "DLinear", "weather", "DLinear-2-cc", 0.3)
+    monkeypatch.setattr(submit, "trajectory_index", lambda: {})
+    out = tmp_path / "subs"
+    argv = ["--all", "--work-dir", str(work), "--out-dir", str(out), "--submitter", "Me"]
+    assert submit.main(argv) == 0
+    assert submit.main(argv + ["--skip-existing", "--dataset", "ETTh1"]) == 0
+    return out
+
+
+def test_bulk_submit_packages_every_record_once(tmp_path: Path, monkeypatch, capsys) -> None:
+    from tsflab.core.leaderboard import load_submissions
+
+    out = _bulk_submit(tmp_path, monkeypatch)
+    assert sorted(p.name for p in out.iterdir()) == ["me__DLinear-1-aa", "me__DLinear-2-cc", "me__PatchTST-1-bb"]
+    valid, rejected = load_submissions(out)
+    assert len(valid) == 3 and rejected == {}
+    text = capsys.readouterr().out
+    assert "3 built, 0 kept, 0 failed" in text and "0 built, 2 kept, 0 failed" in text
+
+
+def test_results_push_maps_bundles_and_skips_present_ones(tmp_path: Path, monkeypatch) -> None:
+    pytest.importorskip("huggingface_hub")
+    from tsflab.release.hub import results
+
+    out = _bulk_submit(tmp_path, monkeypatch)
+    planned = results.push_results([out], dry_run=True)
+    assert planned["paths"] == [
+        "results/time_series/ETTh1/DLinear/me__DLinear-1-aa",
+        "results/time_series/ETTh1/PatchTST/me__PatchTST-1-bb",
+        "results/time_series/weather/DLinear/me__DLinear-2-cc",
+    ]
+    api = _FakeApi(["results/time_series/ETTh1/DLinear/me__DLinear-1-aa/submission.json"])
+    summary = results.push_results([out], "o/r", batch=1, api=api)
+    assert summary["skipped"] == 1 and summary["uploaded"] == 2 and summary["commits"] == ["c1", "c2"]
+    assert api.commits[0][1] == [f"results/time_series/ETTh1/PatchTST/me__PatchTST-1-bb/{name}"
+                                 for name in ("submission.json", "trajectory.jsonl", "report.md")]
+    (out / "broken").mkdir()
+    (out / "broken" / "submission.json").write_text("{}")
+    with pytest.raises(ValueError, match="1 invalid submission"):
+        results.push_results([out], dry_run=True)
+    assert results.push_results([out], dry_run=True, skip_invalid=True)["rejected"] == 1
+
+
+def test_board_is_built_from_results_with_the_site_pipeline(tmp_path: Path, monkeypatch) -> None:
+    pytest.importorskip("huggingface_hub")
+    from tsflab.release.hub import results
+
+    out = _bulk_submit(tmp_path, monkeypatch)
+    curated = tmp_path / "curated.json"
+    curated.write_text(json.dumps({"tracks": {"air_quality": {"datasets": {"Air": {"horizons": {"pm2_5": []}}}}}}))
+    api = _FakeApi()
+    summary = results.publish_board("o/r", local=out, curated=curated, out_dir=tmp_path / "board", api=api)
+    assert summary["n_submissions"] == 3 and summary["commit"] == "c1"
+    assert api.commits[0][1] == ["board/leaderboard.json", "board/model-meta.json"]
+    board = json.loads((tmp_path / "board" / "leaderboard.json").read_text())
+    rows = board["tracks"]["time_series"]["datasets"]["ETTh1"]["horizons"]["12"]
+    assert [r["model"] for r in rows] == ["PatchTST", "DLinear"]
+    assert "Air" in board["tracks"]["air_quality"]["datasets"] and "realtime" not in board
+    assert "DLinear" in json.loads((tmp_path / "board" / "model-meta.json").read_text())
+    assert results.results_pattern(dataset="ETTh1", metadata_only=True) == "results/*/ETTh1/*submission.json"
+
+
+def test_push_top_selects_the_best_run_of_each_top_row(tmp_path: Path) -> None:
+    from tsflab.release.hub import results
+
+    work = tmp_path / "work_dirs"
+    _runner_run(work, "A", "toy", "A-1", 0.30, seed=0)
+    _runner_run(work, "A", "toy", "A-2", 0.20, seed=1)   # A mean 0.25, best run A-2
+    _runner_run(work, "B", "toy", "B-1", 0.22, seed=0)   # B mean 0.22 -> rank 1
+    _runner_run(work, "C", "toy", "C-1", 0.90, seed=0, checkpoint=False)
+    picked = results.select_top_runs("toy", horizon="12", top=2, metric="mse", records=[work])
+    assert [(e["rank"], e["model"], e["run_id"]) for e in picked] == [(1, "B", "B-1"), (2, "A", "A-2")]
+    assert picked[1]["row_metric"] == 0.25 and picked[1]["n_runs"] == 2
+
+    summary = results.push_top("toy", horizon="12", top=3, records=[work], dry_run=True)
+    paths = {e["model"]: e["path_in_repo"] for e in summary["selected"]}
+    assert paths["B"] == "checkpoints/time_series/toy/B/B-1"
+    assert [e["model"] for e in summary["selected"] if not e.get("checkpoint")] == ["C"]
+
+    pytest.importorskip("safetensors", reason="needs the `hub` extra")
+    api = _FakeApi(["checkpoints/time_series/toy/B/B-1/manifest.json"])
+    summary = results.push_top("toy", horizon="12", top=2, records=[work], repo_id="o/r", api=api)
+    assert summary["skipped"] == ["checkpoints/time_series/toy/B/B-1"]
+    assert summary["uploaded"] == ["checkpoints/time_series/toy/A/A-2"]
+    assert "checkpoints/time_series/toy/A/A-2/model.safetensors" in api.folders[0]
+
+
+def _load_script(path: Path, name: str):
+    import importlib.util
+    import sys
+
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module  # dataclasses resolve annotations through sys.modules
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_legacy_migration_plans_archive_and_results_paths(tmp_path: Path) -> None:
+    migrate = _load_script(ROOT / "scripts" / "migrate_legacy_to_hf.py", "migrate_legacy_to_hf")
+    subs, data = tmp_path / "submissions", tmp_path / "data"
+    legacy = subs / "realtime" / "stock_hs300" / "OLinear" / "OLinear_x"
+    legacy.mkdir(parents=True)
+    (legacy / "submission.json").write_text("{}")  # TSEval bundle: copied verbatim, never validated
+    rounds = subs / "realtime" / "stock_hs300" / "rounds" / "r1"
+    rounds.mkdir(parents=True)
+    (rounds / "round.json").write_text("{}")
+    current = subs / "time_series" / "ETTh1" / "SCINet" / "SCINet_run"
+    current.mkdir(parents=True)
+    (current / "submission.json").write_text(json.dumps(_record_doc("SCINet", "ETTh1", "SCINet_run", 0.4)))
+    data.mkdir()
+    (data / "leaderboard.json").write_text(json.dumps({"schema_version": "1.2", "tracks": {
+        "air_quality": {"datasets": {"Air": {}}}, "stock": {"datasets": {"Stock-HS300": {"quant": {}}}}}}))
+    (data / "visualization_data.json").write_text("{}")
+    weights = ["realtime/stock_hs300/DLinear/a.pth", "_index.json", ".gitattributes"]
+    present = {"legacy/tseval-weights/_index.json"}
+    pending, done = migrate.plan(list(migrate.STEPS), subs, data, weights, present)
+    assert sorted(t.dest for t in pending) == [
+        "board/curated.json",
+        "legacy/board/leaderboard-tseval.json",
+        "legacy/board/visualization_data.json",
+        "legacy/submissions/realtime/stock_hs300/OLinear/OLinear_x/submission.json",
+        "legacy/tseval-weights/realtime/stock_hs300/DLinear/a.pth",
+        "results/time_series/ETTh1/SCINet/SCINet_run/submission.json",
+    ]
+    assert [t.dest for t in done] == ["legacy/tseval-weights/_index.json"]
+    curated = json.loads(next(t for t in pending if t.dest == "board/curated.json").data)
+    assert list(curated["tracks"]) == ["air_quality"]  # the stock quant view stays in legacy/
+    # The default is a dry run; without the weights step it makes no network call.
+    assert migrate.main(["--steps", "legacy", "current", "curated",
+                         "--submissions", str(subs), "--data", str(data)]) == 0
+
+
+def test_site_fetch_installs_board_files_and_attaches_realtime(tmp_path: Path, monkeypatch) -> None:
+    fetch_board = _load_script(ROOT / "apps" / "web" / "pipeline" / "fetch_board.py", "fetch_board")
+    for name, target in (("BOARD", "data/leaderboard.json"), ("MODEL_META", "data/model-meta.json"),
+                         ("VISUALIZATION", "public/visualization_data.json")):
+        monkeypatch.setattr(fetch_board, name, tmp_path / "site" / target)
+    source = tmp_path / "board"
+    source.mkdir()
+    (source / "leaderboard.json").write_text(json.dumps({"n_submissions": 2, "tracks": {}}))
+    fetch_board.install(source)
+    board = json.loads((tmp_path / "site" / "data" / "leaderboard.json").read_text())
+    assert board["n_submissions"] == 2 and board["realtime_tracks"]  # from configs/realtime/*.toml
+    assert "DLinear" in json.loads((tmp_path / "site" / "data" / "model-meta.json").read_text())
+    assert not (tmp_path / "site" / "public" / "visualization_data.json").exists()
