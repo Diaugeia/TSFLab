@@ -1202,3 +1202,26 @@ def test_streaming_metrics_zero_variance_and_empty():
     assert np.isnan(got["mase"]) and np.isnan(expected["mase"])
     with pytest.raises(ValueError):
         MetricAccumulator().result()
+
+
+def test_profile_runs_every_forward_without_autograd(tmp_path):
+    """An iterative sampler under autograd keeps all steps alive (NsDiff OOM in the smoke)."""
+    from tsflab.experiments.evaluation.profile import profile_model
+
+    class Recorder(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.proj = nn.Linear(3, 3)
+            self.grad_modes = []
+
+        def forward(self, x, x_mark=None, x_dec=None, x_mark_dec=None):
+            self.grad_modes.append(torch.is_grad_enabled())
+            return self.proj(x)[:, -2:]
+
+    loader = DataLoader(TensorDataset(torch.randn(4, 5, 3), torch.randn(4, 4, 3),
+                                      torch.zeros(4, 5, 4), torch.zeros(4, 4, 4)), batch_size=2)
+    model = Recorder()
+    profile_model(model, loader, torch.device("cpu"), label_len=2, pred_len=2,
+                  save_path=str(tmp_path / "profile.txt"))
+    assert model.grad_modes and not any(model.grad_modes)
+    assert "Total MACs" in (tmp_path / "profile.txt").read_text()

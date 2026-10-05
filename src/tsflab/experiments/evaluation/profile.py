@@ -53,9 +53,12 @@ def _try_flops(model, input_data):
     try:
         from fvcore.nn import FlopCountAnalysis
 
+        # ``FlopCountAnalysis`` traces lazily, on the first statistic request, so the
+        # request must also run without autograd.
         with torch.no_grad():
             flops = FlopCountAnalysis(model, input_data)
-        return f"Total MACs: {flops.total() / 1e6:.4f} M"
+            total = flops.total()
+        return f"Total MACs: {total / 1e6:.4f} M"
     except Exception as exc:
         return f"FLOPs unavailable: {exc}"
 
@@ -169,7 +172,10 @@ def profile_model(
 
         dec_inp = make_decoder_input(batch_y, label_len, pred_len, device)
         input_data = (batch_x, batch_x_mark, dec_inp, batch_y_mark)
-        call_forecaster(model, *input_data)
+        # Inference only: with autograd on, an iterative sampler (diffusion steps,
+        # autoregressive decoding) keeps every intermediate of every step alive.
+        with torch.no_grad():
+            call_forecaster(model, *input_data)
 
         report = [
             "[Architecture & Parameters]",
