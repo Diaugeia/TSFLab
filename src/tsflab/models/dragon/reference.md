@@ -53,3 +53,18 @@
 ## Citation
 
 Cakiroglu, M. O., Altun, I. B., Dalkilic, M., Buxton, E., Kurban, H. "Multivariate de Bruijn Graphs: A Symbolic Graph Framework for Time Series Forecasting." ICML 2025 Workshop on Foundation Models for Structured Data.
+
+## Memory
+
+`GraphEncoder_Attn_new.forward` (`dBG/GraphEncoder.py`) loops over the batch
+and, for every window, samples node inputs and runs every GAT layer over the
+whole graph; `DragonEncoder` does the same. Stored activations per window and
+layer are about `E x heads x width` (gathered source features) plus several
+`E x heads` attention tensors, with `E = gdc_topk x N` edges. On the scaled
+ETTh1 training split the preset graphs have about 4.1k, 6.0k and 8.1k nodes
+(alphabets 20, 25, 30), so about 1.2 GB per window for the three encoders:
+about 40 GB at the official batch 32 and about 160 GB at batch 128. Training
+therefore checkpoints each window (`torch.utils.checkpoint`, RNG state
+preserved): only the pooled `[seq_len, d_graph]` output is kept and the window
+is recomputed in backward. Values and gradients are unchanged; the cost is one
+extra graph forward per step.

@@ -35,4 +35,5 @@ Independent rewrite of Section 2 and Appendices A-C after reading `KurbanIntelli
 - Diffusion inverse in float64; top-k ties go to the lower node index.
 - Node tuples are sampled with the code's padded-slot distribution without materializing the padded table.
 - The graph branch is zero until `training_setup` runs.
+- Each window's graph encoding is activation-checkpointed in training (same values and gradients, about one extra graph forward per step): as upstream, every window runs the GAT over the whole MdBG, about 1.2 GB of stored activations per ETTh1 window, which exceeds a 48 GB GPU at batch 128.
 - `--reverse` / `--undirected` graph options and non-TimesNet downstream models are not implemented. Details in `reference.md`.
