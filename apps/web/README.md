@@ -34,8 +34,10 @@ board. The evidence itself — every `submission.json` — lives on the Hugging 
 `results/` of [`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints),
 next to the generated `board/leaderboard.json` that the site downloads at build time.
 
-The TSEval-era CSI-300 results (135 models in a near-noise dead heat) are archived
-under `legacy/` of that repository and are not ranked on the current board.
+The board ranks TSFLab 1.0 results only. All TSEval-era results (the former static
+board, the CSI-300 stock bundles, the curated air-quality and quant blocks) are archived
+under `legacy/` of that repository and are not shown. Until the 1.0 benchmark results
+are published the site shows a "results coming" message.
 
 ---
 
@@ -52,7 +54,7 @@ under `legacy/` of that repository and are not ranked on the current board.
 
 ## 🔗 Live & data
 
-- 🌐 **Site:** [Hugging Face Space](https://huggingface.co/spaces/Diaugeia/TSFLab) (auto-deployed on every push to `main`)
+- 🌐 **Site:** [Hugging Face Space](https://huggingface.co/spaces/Diaugeia/TSFLab) (deployed manually: `bun run build`, then upload `out/`)
 - 📦 **Datasets** (on Hugging Face): [`Diaugeia/TSFLab-Datasets`](https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets) — `static/` benchmark sets (ETT, electricity, solar, traffic, weather, …) and `realtime/` track panels
 - 🧠 **Results + checkpoints:** [`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints) — `results/` (every submission), `board/` (the generated leaderboard), `checkpoints/` (weights of top-ranked runs only), `legacy/` (TSEval archive). A submission carries no weights and never needs a `.pth` to rank.
 
@@ -63,8 +65,8 @@ under `legacy/` of that repository and are not ranked on the current board.
 | Category | Track | Datasets | Source |
 |---|---|---|---|
 | Common / static | `time_series` | ETTh1, ETTm1, ETTh2, ETTm2, electricity, solar, traffic, weather | submission-driven |
-| Real-time | `stock` | Stock-HS300 (CSI-300) — regression | from submissions (TSEval-era rows and quant view archived in `legacy/`) |
-| Real-time | `air_quality` | Air-CHNCities (6 pollutants) | curated |
+| Real-time | `stock` | Stock-HS300 (CSI-300) — regression | from submissions |
+| Real-time | rolling rounds | 11 weekly tracks (`configs/realtime/`) | weekly workflow, kept in the repository |
 
 Each block is ranked per `(track, dataset, horizon)` by **MSE** (lower is better).
 
@@ -110,7 +112,7 @@ deploy out/ to the Hugging Face Space (static) → Diaugeia/TSFLab
 ```
 
 - `pipeline/validate.py` — TSF-Core contract schema + TSFLab-binding check (of the staging folder).
-- `pipeline/build_leaderboard.py` — aggregates submissions (mean / std / `n_runs`), ranks by MSE; curated overlay (`board/curated.json`) for blocks without raw submissions yet (air quality).
+- `pipeline/build_leaderboard.py` — aggregates submissions (mean / std / `n_runs`), ranks by MSE; optional curated overlay (`--curated`); none on the 1.0 board.
 - `pipeline/fetch_board.py` — downloads the board before `next build`; `--from DIR` uses local files.
 - `pipeline/build_model_meta.py` — builds `model-meta.json` (publication years) from a TSFLab checkout.
 

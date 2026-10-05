@@ -104,8 +104,7 @@ checkpoints live in one model repository, `Diaugeia/TSFLab-Checkpoints`:
 results/<track>/<dataset>/<model>/<submission_id>/   submission.json, trajectory.jsonl, report.md
 checkpoints/<track>/<dataset>/<model>/<run_id>/      weights bundle (top-ranked runs only)
 board/leaderboard.json, board/model-meta.json        generated from results/; the site reads them
-board/curated.json                                   curated overlay (blocks with no raw submissions)
-legacy/                                              TSEval-era weights and submissions, not ranked
+legacy/                                              every TSEval-era result and weight, not ranked
 ```
 
 ### Results

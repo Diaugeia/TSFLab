@@ -57,8 +57,10 @@ TSFLab Leaderboard 是 [TSFLab](https://github.com/Diaugeia/TSFLab) 的公开记
 | 类别 | 赛道 | 数据集 | 来源 |
 |---|---|---|---|
 | 通用 / 静态 | `time_series` | ETTh1、ETTm1、ETTh2、ETTm2、electricity、solar、traffic、weather | 提交驱动 |
-| 实时 | `stock` | Stock-HS300(沪深 300)—— 回归 + 量化回测 | 回归来自提交;量化为 curated |
-| 实时 | `air_quality` | Air-CHNCities(6 种污染物) | curated |
+| 实时 | `stock` | Stock-HS300(沪深 300)—— 回归 | 来自提交 |
+| 实时 | 滚动轮次 | 11 条每周赛道(`configs/realtime/`) | weekly workflow,保存在仓库中 |
+
+榜单只排 TSFLab 1.0 的结果。TSEval 时期的全部结果(原静态榜、沪深 300 提交、curated 的空气质量与量化区块)归档在 `legacy/`,不再展示;1.0 结果发布前,网站显示“结果即将发布”。
 
 每个区块按 `(赛道, 数据集, 步长)` 以 **MSE** 排名(越低越好)。
 
@@ -102,7 +104,7 @@ push main
 ```
 
 - `pipeline/validate.py` —— TSF-Core 合约 schema + TSFLab 绑定校验。
-- `pipeline/build_leaderboard.py` —— 聚合提交(均值 / 标准差 / `n_runs`),按 MSE 排名;尚无原始提交的区块(空气质量)用 `board/curated.json` 兜底。
+- `pipeline/build_leaderboard.py` —— 聚合提交(均值 / 标准差 / `n_runs`),按 MSE 排名;可选 curated 叠加(`--curated`),1.0 榜单不使用。
 - `pipeline/build_model_meta.py` —— 从 TSFLab 检出生成 `model-meta.json`(发表年份)。
 
 ---

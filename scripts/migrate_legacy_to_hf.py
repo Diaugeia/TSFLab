@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""One-off move of the Git-hosted results and TSEval artifacts into TSFLab-Checkpoints.
+"""One-off move of the TSEval-era results and weights into ``legacy/`` of TSFLab-Checkpoints.
+
+Every result that was kept in Git, and the TSEval weights, predate TSFLab 1.0.
+They are archived under ``legacy/`` and never ranked. The main board holds only
+TSFLab 1.0 results (pushed later with ``tsf result hub results push``), so it is
+empty right after the migration and the site shows its "results coming" state.
 
 Dry run by default: it prints the plan and writes nothing. ``--apply`` uploads.
 Re-running is safe: files already present in the target repository are skipped.
@@ -7,31 +12,30 @@ Re-running is safe: files already present in the target repository are skipped.
 Steps (``--steps``, default all, in this order):
 
   weights      dataset repo ``Diaugeia/TSEval-Weights`` (``realtime/stock_hs300/<Model>/*.pth``,
-               ``_index.json``)                         -> ``legacy/tseval-weights/<path>``
-  legacy       ``apps/web/submissions/realtime/stock_hs300/**`` (135 TSEval 0.3.2 bundles)
-                                                        -> ``legacy/submissions/realtime/stock_hs300/**``
-  current      every other bundle under ``apps/web/submissions/`` (the time_series board)
-                                                        -> ``results/<track>/<dataset>/<model>/<id>/``
-  curated      ``apps/web/data/leaderboard.json``: the air-quality block -> ``board/curated.json``;
-               the whole file and ``visualization_data.json``        -> ``legacy/board/``
-  board        regenerate ``board/leaderboard.json`` + ``board/model-meta.json`` from ``results/``
+               ``_index.json``)                        -> ``legacy/tseval-weights/<path>``
+  submissions  every bundle under ``apps/web/submissions/<track>/`` (864 time_series,
+               135 realtime/stock_hs300)               -> ``legacy/submissions/<track>/...``
+  site         ``apps/web/data/{leaderboard,model-meta,visualization_data}.json``
+               (with the curated air-quality and stock quant blocks) -> ``legacy/board/``
+  board        regenerate ``board/leaderboard.json`` + ``board/model-meta.json`` from
+               ``results/`` (empty until TSFLab 1.0 results are pushed)
 
-``legacy/`` is never read by the board, so TSEval artifacts are archived but not
-ranked. The Git sources were removed from the working tree when results moved to
-the Hub, so they are read from ``--git-ref`` (default: the last commit that has
-them) unless ``--submissions``/``--data`` point at local copies.
+Real-time rounds (``apps/web/submissions/realtime/<track>/rounds/``) stay in the
+repository and are not copied. The sources were removed from the working tree
+when results moved to the Hub, so they are read from ``--git-ref`` (default: a
+commit that still has them) unless ``--submissions`` and ``--data`` point at
+local copies.
 
 Usage:
-  python scripts/migrate_legacy_to_hf.py                       # plan only
-  python scripts/migrate_legacy_to_hf.py --apply               # upload (needs HF_TOKEN with write access)
-  python scripts/migrate_legacy_to_hf.py --steps current board --apply
+  python scripts/migrate_legacy_to_hf.py                   # plan only
+  python scripts/migrate_legacy_to_hf.py --create --apply  # upload (HF_TOKEN with write access)
+  python scripts/migrate_legacy_to_hf.py --steps board --apply
 """
 
 from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-import json
 from pathlib import Path
 import subprocess
 import sys
@@ -42,17 +46,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from tsflab.release.hub.publish import DEFAULT_CHECKPOINTS_REPO  # noqa: E402
-from tsflab.release.hub.results import LEGACY_PREFIX, collect  # noqa: E402
+from tsflab.release.hub.results import LEGACY_PREFIX  # noqa: E402
 from tsflab.release.hub.uri import default_repo  # noqa: E402
 
 TSEVAL_WEIGHTS = default_repo("TSEval-Weights")
-# dev at the commit that moved results to the Hub; it still holds the Git copies.
+# dev before results moved to the Hub; it still holds the in-repository copies.
 DEFAULT_GIT_REF = "1361a2da"
 SUBMISSIONS = "apps/web/submissions"
 DATA = "apps/web/data"
-LEGACY_SUBMISSIONS = Path("realtime") / "stock_hs300"
-CURATED_TRACKS = ("air_quality",)
-STEPS = ("weights", "legacy", "current", "curated", "board")
+SITE_FILES = ("leaderboard.json", "model-meta.json", "visualization_data.json")
+STEPS = ("weights", "submissions", "site", "board")
 SKIP_NAMES = {".gitattributes"}
 COMMIT_FILES = 1000
 
@@ -63,11 +66,8 @@ class Transfer:
     dest: str
     source: Path | None = None   # local file
     remote: str | None = None    # path in the TSEval-Weights dataset repo
-    data: bytes | None = None    # generated content
 
     def size(self) -> int | None:
-        if self.data is not None:
-            return len(self.data)
         return self.source.stat().st_size if self.source is not None else None
 
 
@@ -76,79 +76,50 @@ def plan_weights(files: list[str]) -> list[Transfer]:
             for name in sorted(files) if Path(name).name not in SKIP_NAMES]
 
 
-def plan_legacy(submissions: Path) -> list[Transfer]:
-    root = submissions / LEGACY_SUBMISSIONS
-    files = sorted(p for p in root.rglob("*") if p.is_file() and "rounds" not in p.relative_to(root).parts) \
-        if root.is_dir() else []
-    return [Transfer("legacy", f"{LEGACY_PREFIX}/submissions/{p.relative_to(submissions).as_posix()}", source=p)
-            for p in files]
-
-
-def plan_current(submissions: Path) -> list[Transfer]:
-    """Every valid bundle outside the legacy tree and the real-time rounds, at its results/ path."""
+def plan_submissions(submissions: Path) -> list[Transfer]:
+    """Every file below a track folder, verbatim; real-time rounds are left out."""
     if not submissions.is_dir():
         return []
-    root = submissions.resolve()
-    legacy = (submissions / LEGACY_SUBMISSIONS).resolve()
-
-    def skipped(path: Path) -> bool:
-        path = path.resolve()
-        return path.is_relative_to(legacy) or "rounds" in path.relative_to(root).parts
-
-    bundles, rejected = collect([submissions])
-    rejected = {path: errors for path, errors in rejected.items() if not skipped(path)}
-    if rejected:
-        raise ValueError(f"{len(rejected)} invalid bundle(s) under {submissions}: {sorted(rejected)[:3]}")
-    out = []
-    for bundle in bundles:
-        if not skipped(bundle.directory):
-            out += [Transfer("current", f"{bundle.path_in_repo}/{f.name}", source=f) for f in bundle.files()]
-    return out
+    files = []
+    for path in sorted(submissions.rglob("*")):
+        parts = path.relative_to(submissions).parts
+        if path.is_file() and len(parts) > 1 and "rounds" not in parts and path.name not in SKIP_NAMES:
+            files.append(path)
+    return [Transfer("submissions", f"{LEGACY_PREFIX}/submissions/{p.relative_to(submissions).as_posix()}",
+                     source=p) for p in files]
 
 
-def plan_curated(data: Path) -> list[Transfer]:
-    board_file = data / "leaderboard.json"
-    if not board_file.is_file():
-        return []
-    board = json.loads(board_file.read_text(encoding="utf-8"))
-    curated = {"schema_version": board.get("schema_version"),
-               "note": "Curated blocks with no raw submissions; overlaid by the board builder.",
-               "tracks": {t: board["tracks"][t] for t in CURATED_TRACKS if t in board.get("tracks", {})}}
-    out = [Transfer("curated", "board/curated.json",
-                    data=(json.dumps(curated, ensure_ascii=False, indent=1) + "\n").encode("utf-8")),
-           Transfer("curated", f"{LEGACY_PREFIX}/board/leaderboard-tseval.json", source=board_file)]
-    visualization = data / "visualization_data.json"
-    if visualization.is_file():
-        out.append(Transfer("curated", f"{LEGACY_PREFIX}/board/visualization_data.json", source=visualization))
-    return out
+def plan_site(data: Path) -> list[Transfer]:
+    return [Transfer("site", f"{LEGACY_PREFIX}/board/{name}", source=data / name)
+            for name in SITE_FILES if (data / name).is_file()]
 
 
 def plan(steps: list[str], submissions: Path, data: Path, weight_files: list[str],
          existing: set[str] = frozenset()) -> tuple[list[Transfer], list[Transfer]]:
-    """Return ``(pending, present)`` transfers for ``steps``."""
+    """Return ``(pending, present)`` transfers for ``steps``; every one lands below ``legacy/``."""
     transfers: list[Transfer] = []
     if "weights" in steps:
         transfers += plan_weights(weight_files)
-    if "legacy" in steps:
-        transfers += plan_legacy(submissions)
-    if "current" in steps:
-        transfers += plan_current(submissions)
-    if "curated" in steps:
-        transfers += plan_curated(data)
+    if "submissions" in steps:
+        transfers += plan_submissions(submissions)
+    if "site" in steps:
+        transfers += plan_site(data)
     dests = [t.dest for t in transfers]
     if len(dests) != len(set(dests)):
         raise ValueError("two sources map to the same destination")
-    # board/curated.json is regenerated content: always rewrite it.
-    pending = [t for t in transfers if t.dest not in existing or t.dest == "board/curated.json"]
-    present = [t for t in transfers if t not in pending]
+    if any(not dest.startswith(LEGACY_PREFIX + "/") for dest in dests):
+        raise ValueError("the migration writes only below legacy/")
+    pending = [t for t in transfers if t.dest not in existing]
+    present = [t for t in transfers if t.dest in existing]
     return pending, present
 
 
 def extract_git(ref: str, into: Path) -> tuple[Path, Path]:
     """Extract the submissions and data folders of ``ref`` into ``into``."""
+    into.mkdir(parents=True, exist_ok=True)
     archive = subprocess.run(["git", "archive", "--format=tar", ref, SUBMISSIONS, DATA],
                              cwd=REPO_ROOT, capture_output=True, check=True).stdout
-    tar_path = into / "git.tar"
+    tar_path = into / "sources.tar"
     tar_path.write_bytes(archive)
     with tarfile.open(tar_path) as tar:
         tar.extractall(into, filter="data")
@@ -180,14 +151,13 @@ def apply(pending: list[Transfer], repo_id: str, api, staging: Path) -> list[str
             operations = []
             for t in chunk:
                 if t.remote is not None:
-                    local = hf_hub_download(TSEVAL_WEIGHTS, t.remote, repo_type="dataset",
-                                            local_dir=str(staging / "tseval-weights"))
-                    content = local
+                    content = hf_hub_download(TSEVAL_WEIGHTS, t.remote, repo_type="dataset",
+                                              local_dir=str(staging / "tseval-weights"))
                 else:
-                    content = t.data if t.data is not None else str(t.source)
+                    content = str(t.source)
                 operations.append(CommitOperationAdd(path_in_repo=t.dest, path_or_fileobj=content))
             commit = api.create_commit(repo_id=repo_id, repo_type="model", operations=operations,
-                                       commit_message=f"migrate {step}: {len(chunk)} file(s)")
+                                       commit_message=f"legacy {step}: {len(chunk)} file(s)")
             commits.append(commit.oid)
             print(f"  {step}: committed {len(chunk)} file(s) as {commit.oid}")
     return commits
@@ -202,21 +172,22 @@ def main(argv: list[str] | None = None) -> int:
                         help=f"commit that holds {SUBMISSIONS} and {DATA} (default {DEFAULT_GIT_REF})")
     parser.add_argument("--submissions", type=Path, default=None, help="local submissions folder instead of --git-ref")
     parser.add_argument("--data", type=Path, default=None, help="local site data folder instead of --git-ref")
-    parser.add_argument("--create", action="store_true", help="create the target repository if missing")
+    parser.add_argument("--create", action="store_true", help="create the target repository if missing (public)")
     parser.add_argument("--private", action="store_true", help="with --create: create it private")
     args = parser.parse_args(argv)
 
     with tempfile.TemporaryDirectory(prefix="tsflab-migrate-") as tmp:
         tmp = Path(tmp)
         submissions, data = args.submissions, args.data
-        if submissions is None or data is None:
-            git_submissions, git_data = extract_git(args.git_ref, tmp / "git")
-            submissions = submissions or git_submissions
-            data = data or git_data
+        needs_sources = {"submissions", "site"} & set(args.steps)
+        if needs_sources and (submissions is None or data is None):
+            extracted_submissions, extracted_data = extract_git(args.git_ref, tmp / "sources")
+            submissions = submissions or extracted_submissions
+            data = data or extracted_data
         api = _api() if (args.apply or "weights" in args.steps) else None
         weight_files = (_list(api, TSEVAL_WEIGHTS, "dataset") or []) if "weights" in args.steps else []
         existing = set(_list(api, args.repo, "model") or []) if api is not None else set()
-        pending, present = plan(args.steps, submissions, data, weight_files, existing)
+        pending, present = plan(args.steps, submissions or tmp, data or tmp, weight_files, existing)
 
         print(f"target {args.repo} ({'apply' if args.apply else 'dry run'})")
         for step in STEPS:

@@ -29,9 +29,11 @@ results/                                                    # in Diaugeia/TSFLab
   realtime/<track>/<model>/<run_id>/submission.json         # realtime/stock_hs300 → shown as the "Stock" track
 ```
 
-The staging folder `submissions/` in this repository uses the same layout. The
-TSEval-era CSI-300 bundles are archived under `legacy/` of that repository and are
-not ranked.
+The staging folder `submissions/` in this repository uses the same layout.
+Only TSFLab 1.0 results are ranked. All TSEval-era results (the former time_series board,
+the CSI-300 bundles, the curated air-quality and stock quant blocks) and the TSEval
+weights are archived under `legacy/` of that repository and are not shown.
+Until the 1.0 results are published the board is empty and the site says so.
 
 `run_id` is any unique folder name; the convention is
 `<model>_<dataset>_sl<seqlen>_pl<predlen>_seed<seed>_<timestamp>`.
@@ -84,16 +86,17 @@ metrics. (Example today: `weather` MoFo/Kronos are already `n_runs: 2`.)
 
 ## What is and isn't submission-driven
 
-| Block | Source |
-|---|---|
-| `time_series/*` (all 8 datasets) | aggregated from `results/time_series/` |
-| Stock **regression** (mse/mae/corr) | aggregated from `results/realtime/stock_hs300/` (the TSEval-era rows are in `legacy/`, not ranked) |
-| Stock **quant** (returns/Sharpe/…) | archived in `legacy/board/` — no raw quant submissions yet |
-| **Air quality** (`Air-CHNCities`) | **curated** — `board/curated.json`, raw inputs not uploaded |
+Every ranked row comes from a `submission.json` in `results/`. There are no
+curated blocks on the 1.0 board. The TSEval-era blocks are archived:
 
-Curated blocks are applied on every rebuild (see `overlay_curated` in
-`pipeline/build_leaderboard.py`). To make them submission-driven, add the
-corresponding `submission.json` files and they'll replace the curated rows.
+| TSEval-era block | Archive |
+|---|---|
+| `time_series/*` (8 datasets, 108 models) | `legacy/submissions/time_series/` |
+| Stock regression (CSI-300, 135 models) | `legacy/submissions/realtime/stock_hs300/` |
+| Stock quant, Air quality (curated) | `legacy/board/leaderboard.json`, `legacy/board/visualization_data.json` |
+
+`pipeline/build_leaderboard.py --curated FILE` (and an optional `board/curated.json`
+on the Hub) can still overlay a hand-maintained block; none is published now.
 
 ## Real-time rounds
 

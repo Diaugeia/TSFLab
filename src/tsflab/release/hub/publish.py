@@ -146,7 +146,7 @@ Run results and top-ranked trained checkpoints of [TSFLab]({_SOURCE}):
 | `results/<track>/<dataset>/<model>/<submission_id>/` | validated submission bundles (`submission.json`, `trajectory.jsonl`, `report.md`) |
 | `checkpoints/<track>/<dataset>/<model>/<run_id>/` | checksummed safetensors bundles of top-ranked runs |
 | `board/` | `leaderboard.json` and `model-meta.json`, generated from `results/`; the leaderboard Space reads them |
-| `legacy/` | TSEval-era weights and submissions, archived and not ranked |
+| `legacy/` | every TSEval-era result and weight, archived and not ranked |
 
 Publish with `tsf result hub results push` and `tsf result hub push-top`; load a
 checkpoint with `tsf result hub pull hf://{owner}/TSFLab-Checkpoints@<revision>/checkpoints/...`.""")},
@@ -156,8 +156,8 @@ checkpoint with `tsf result hub pull hf://{owner}/TSFLab-Checkpoints@<revision>/
             f"""
 # TSFLab Leaderboard
 
-Static leaderboard auto-deployed by the `ci` workflow of
-[TSFLab]({_SOURCE}).""")},
+Static leaderboard built from `apps/web` of [TSFLab]({_SOURCE}) and the board in
+`TSFLab-Checkpoints`.""")},
     ]
 
 

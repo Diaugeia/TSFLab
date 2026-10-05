@@ -5,8 +5,8 @@ One model repository (default ``Diaugeia/TSFLab-Checkpoints``) holds::
     results/<track>/<dataset>/<model>/<submission_id>/   submission bundles
     checkpoints/<track>/<dataset>/<model>/<run_id>/      weights bundles (see bundle.py)
     board/leaderboard.json, board/model-meta.json        generated; the site reads them
-    board/curated.json                                   optional curated overlay (input)
-    legacy/                                              TSEval-era archive, never ranked
+    board/curated.json                                   optional curated overlay (input; none for 1.0)
+    legacy/                                              every TSEval-era artifact, never ranked
 
 Validation and ranking reuse ``tsflab.core.leaderboard`` and the site pipeline
 (``apps/web/pipeline``); ranking for checkpoint selection reuses
