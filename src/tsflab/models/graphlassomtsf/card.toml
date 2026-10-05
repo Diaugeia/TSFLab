@@ -29,12 +29,12 @@ loss = "loss:mae"
 enc_in = { from = "channels", rule = "number of series; each is one graph node of the learned precision matrix" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
+status = "pending"
+date = "2026-10-05"
+commit = ""
+device = ""
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = "re-verify: Phase 1 now uses the official gglasso algorithm (block screening + ADMM) instead of scikit-learn coordinate descent, which raised 'Non SPD result' on traffic and wike2000; same objective, so the precision changes only by solver tolerance"
 
 [[issues]]
 kind = "license"
@@ -106,7 +106,7 @@ resolution = "kept in the training objective."
 kind = "paper-code-mismatch"
 where = "Sec. IV-A (\"standard interior-point methods\") vs `scripts/generate_adj_lasso.py`"
 what = "Eq. (1) is solved with `gglasso` ADMM after correlation scaling."
-resolution = "same objective and scaling, solved with scikit-learn coordinate descent."
+resolution = "same objective and scaling, solved with a local rewrite of the `gglasso` path the script uses (`block_SGL` screening, `ADMM_SGL` with `tol = rtol = 1e-10`, 1000 iterations at most)."
 
 [[issues]]
 kind = "unreleased"
