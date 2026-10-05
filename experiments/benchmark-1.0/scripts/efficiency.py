@@ -109,7 +109,9 @@ def figure(rows: list[dict], horizon: int, datasets: list[str], path: Path) -> N
                         fontsize=5.2, color=INK)
         ax.set_xscale("log")
         top = sorted(gap(p[2]) for p in pts)
-        ax.set_ylim(-1, max(5.0, top[int(0.8 * (len(top) - 1))] * 1.15))  # clip the long tail
+        front_top = max(gap(p[2]) for p in front)
+        # clip the long tail of the cloud, never the front
+        ax.set_ylim(-1, max(5.0, top[int(0.8 * (len(top) - 1))], front_top) * 1.15)
         ax.set_title(f"{d}  (n={len(pts)})", fontsize=7, color=INK, loc="left")
         ax.grid(True, color=GRID, lw=0.5, zorder=0)
         ax.tick_params(colors=MUTED, labelsize=5.5, length=2)
