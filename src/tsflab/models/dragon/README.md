@@ -17,7 +17,7 @@ description: "Multivariate de Bruijn graphs of discretized training-set tuples, 
 
 - Aimed at series whose discretized values recur as symbolic patterns, and at joint patterns across variables (hyper-tuple edges); the TimesNet backbone targets periodic structure.
 - The graph is fitted once on the training split; regimes absent from training map to nearest nodes only.
-- Node count grows with variables and alphabet sizes; heavy for many-channel data.
+- Node count grows with variables, series length and alphabet sizes. Above 32768 nodes per graph (dense PPR inverse) or an edge x head x width budget of 2^30 per attention layer, `training_setup` raises a ValueError: wide or long datasets such as traffic, electricity, solar, covid19, NN5, wike2000 and PEMS are not applicable; ETT, weather, ILI and NASDAQ fit.
 - Official experiments use a very short lookback (`seq_len = 12`).
 
 ## Configure
@@ -35,5 +35,6 @@ Independent rewrite of Section 2 and Appendices A-C after reading `KurbanIntelli
 - Diffusion inverse in float64; top-k ties go to the lower node index.
 - Node tuples are sampled with the code's padded-slot distribution without materializing the padded table.
 - The graph branch is zero until `training_setup` runs.
+- Hyper-tuple edges are deduplicated in bounded chunks and the PPR matrices are built in place (same graph, bounded host memory); the scale limits above are TSFLab's, since the official code has none.
 - Each window's graph encoding is activation-checkpointed in training (same values and gradients, about one extra graph forward per step): as upstream, every window runs the GAT over the whole MdBG, about 1.2 GB of stored activations per ETTh1 window, which exceeds a 48 GB GPU at batch 128.
 - `--reverse` / `--undirected` graph options and non-TimesNet downstream models are not implemented. Details in `reference.md`.

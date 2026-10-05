@@ -29,12 +29,12 @@ loss = "loss:mse"
 enc_in = { from = "channels", rule = "equals the number of variables; the training series must be [T, enc_in]" }
 
 [admission]
-status = "passed"
+status = "pending"
 date = "2026-10-05"
-commit = "b5401b2c"
-device = "cpu"
+commit = ""
+device = ""
 reference = "none"
-note = ""
+note = "re-verify: graph construction deduplicates hyper-tuple edges in bounded chunks, the PPR diffusion is built in place, and fit raises a ValueError above 32768 nodes or the edge-activation budget (wike2000 smoke: 768 GB host RAM); graphs are identical below the limits"
 
 [[issues]]
 kind = "paper-code-mismatch"
@@ -83,3 +83,9 @@ kind = "code-bug"
 where = "`dBG/MultiDeBruijnGraph.py` `MultivariateDeBruijnGraph.insert`"
 what = "the clean-up meant to drop the node feature lists before `from_networkx` pops a non-existent `'feat'` key (the attribute is `'features'`); it has no effect on results."
 resolution = "not applicable."
+
+[[issues]]
+kind = "underspecified"
+where = "Section 2.1 and Appendix C (ETT experiments, 7 variables) vs `dBG/MultiDeBruijnGraph.py` `__add_hyper_edges` and `dBG/GraphEncoder.py` `GraphEncoder_Attn_new` (`T.GDC(..., exact=True)`, `GATConv(d_data, d_data, heads)`)"
+what = "the paper does not address many variables. The code joins all D variables of every step by a clique (D (D - 1) edges per step), computes the exact PPR diffusion as a dense N x N inverse, and runs graph attention of width `heads x D` over the whole graph for every window. Node counts on the training splits with alphabet 20 / 30: ETTh1 4141 / 8104, weather 11951 / 21025, covid19 75769 / 105124, wike2000 244996 / 362018, traffic 459199 / 782595, pems07 606290 / 1297182; a dense float64 matrix for 245k nodes takes 480 GB."
+resolution = "construction is unchanged where it fits; `DragonEncoder.fit` (in `training_setup`, before the first epoch) raises a ValueError when a graph has more than 32768 nodes or one attention layer would hold more than 2^30 edge x head x width values, so such datasets are recorded as not applicable."
