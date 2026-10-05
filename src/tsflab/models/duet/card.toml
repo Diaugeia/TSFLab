@@ -15,13 +15,7 @@ year = 2025
 url = "https://github.com/decisionintelligence/DUET"
 revision = "dcc6e6780a9138731b64b9b5398a94a1d97033f0"
 license = "MIT"
-reference_sources = [
-  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/models/duet_model.py",
-  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/utils/masked_attention.py",
-  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/linear_extractor_cluster.py",
-  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/distributional_router_encoder.py",
-  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/linear_pattern_extractor.py",
-]
+reference_sources = ["https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/models/duet_model.py", "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/utils/masked_attention.py", "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/linear_extractor_cluster.py", "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/distributional_router_encoder.py", "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/linear_pattern_extractor.py"]
 
 [composition]
 normalization = "component:revin"
@@ -35,9 +29,12 @@ loss = "loss:mse"
 enc_in = { from = "channels", rule = "equals the number of channels" }
 
 [admission]
-status = "pending"
+status = "passed"
+date = "2026-10-05"
+commit = "a73be734"
+device = "cpu"
 reference = "official"
-note = "channel mask moved to the frequency-domain learnable Mahalanobis metric and the router to raw per-channel input (new parameters); re-run tsf model verify DUET"
+note = ""
 
 [[issues]]
 kind = "paper-code-mismatch"

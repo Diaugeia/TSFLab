@@ -31,9 +31,12 @@ cov_dim = { from = "covariates", rule = "covariate features per station (2 for c
 adj_mx = { from = "graph", rule = "dartboard projection [enc_in, regions, enc_in] from station geography, or a plain [enc_in, enc_in] adjacency (one region); required, construction fails without it" }
 
 [admission]
-status = "pending"
+status = "passed"
+date = "2026-10-05"
+commit = "a73be734"
+device = "cpu"
 reference = "official"
-note = "graph now required (topological dartboard fallback and its spatial_regions parameter removed); re-run tsf model verify AirFormer"
+note = ""
 
 [[issues]]
 kind = "license"

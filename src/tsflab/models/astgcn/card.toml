@@ -31,9 +31,12 @@ cov_dim = { from = "covariates", rule = "covariate features per node; inputs are
 adj_mx = { from = "graph", rule = "[enc_in, enc_in] road-network adjacency, converted to Chebyshev supports; required, construction fails without it" }
 
 [admission]
-status = "pending"
+status = "passed"
+date = "2026-10-05"
+commit = "a73be734"
+device = "cpu"
 reference = "official"
-note = "adj_mx now required (the all-ones fallback was removed); re-run tsf model verify ASTGCN"
+note = ""
 
 [[issues]]
 kind = "license"

@@ -32,9 +32,12 @@ adj_mx = { from = "graph", rule = "[enc_in, enc_in] distance adjacency for diffu
 flow_mx = { from = "graph", rule = "[enc_in, enc_in] directed wind/flow adjacency for advection; no TSFLab data path supplies it, so a directed ring placeholder is used with a warning" }
 
 [admission]
-status = "pending"
+status = "passed"
+date = "2026-10-05"
+commit = "a73be734"
+device = "cpu"
 reference = "official"
-note = "adj_mx now required (ring fallback removed); missing flow_mx warns; re-run tsf model verify AirDualODE"
+note = ""
 
 [[issues]]
 kind = "license"

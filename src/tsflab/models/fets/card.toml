@@ -30,9 +30,12 @@ enc_in = { from = "channels", rule = "equals the number of channels" }
 stride = { from = "seq_len", rule = "at most patch_len; the input is end-padded by replication, so any seq_len is covered" }
 
 [admission]
-status = "pending"
+status = "passed"
+date = "2026-10-05"
+commit = "a73be734"
+device = "cpu"
 reference = "official"
-note = "patching changed to end replication padding (head input size changes); re-run tsf model verify FeTS"
+note = ""
 
 [[issues]]
 kind = "underspecified"

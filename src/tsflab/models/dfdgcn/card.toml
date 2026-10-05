@@ -31,9 +31,12 @@ adj_mx = { from = "graph", rule = "dataset adjacency [N, N] for the forward/reve
 steps_per_day = { from = "frequency", rule = "steps per day (288 for 5-minute data); sizes the time-of-day embedding of the frequency graph" }
 
 [admission]
-status = "pending"
+status = "passed"
+date = "2026-10-05"
+commit = "a73be734"
+device = "cpu"
 reference = "official"
-note = "frequency graph rebuilt after the official code (a, subgraph, time embeddings), BatchNorm added, _apply renamed (crashed .to(device)), adj_mx required; re-run tsf model verify DFDGCN"
+note = ""
 
 [[issues]]
 kind = "paper-code-mismatch"
