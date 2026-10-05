@@ -98,7 +98,7 @@ def main() -> None:
 
     # (b) rank percentile per architecture category
     cats = sorted(ranks, key=lambda c: st.median(ranks[c]))
-    box = ax_b.boxplot([ranks[c] for c in cats], vert=False, widths=0.55, patch_artist=True,
+    box = ax_b.boxplot([ranks[c] for c in cats], orientation="horizontal", widths=0.55, patch_artist=True,
                        showfliers=False, medianprops={"color": SURFACE, "lw": 1.4},
                        whiskerprops={"color": MUTED, "lw": 0.8}, capprops={"color": MUTED, "lw": 0.8})
     for patch in box["boxes"]:
