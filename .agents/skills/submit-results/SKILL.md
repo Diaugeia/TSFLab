@@ -1,17 +1,19 @@
 ---
 name: submit-results
-description: "Package a completed TSFLab run and its research evidence as a TSFLab Leaderboard submission bundle. Use for local submission bundles or leaderboard contribution; opening a pull request requires explicit authorization. Not for live real-time forecasts (forecast-realtime-round) or weights (publish-weights)."
+description: "Package completed TSFLab runs and their research evidence as TSFLab Leaderboard submission bundles and publish them to results/ of Diaugeia/TSFLab-Checkpoints. Use for local submission bundles, bulk packaging of a sweep, or leaderboard contribution; uploads and pull requests require explicit authorization. Not for live real-time forecasts (forecast-realtime-round) or weights (publish-weights)."
 ---
 
 # Submit results
 
-Release module: turn a finished run into a validated submission bundle that the leaderboard can
-recompute from.
+Release module: turn finished runs into validated submission bundles that the
+leaderboard recomputes from. Results live on the Hugging Face Hub in
+`results/<track>/<dataset>/<model>/<submission_id>/` of `Diaugeia/TSFLab-Checkpoints`;
+the site reads the generated `board/leaderboard.json` there. GitHub keeps code only.
 
 ## Inputs
 
-- A completed run (`work_dirs/<dataset>/<model>/records/<run_id>.json`), ideally
-  executed inside a research round so its trajectory is captured. Runs execute on a
+- Completed runs (`work_dirs/<dataset>/<model>/records/<run_id>.json`), ideally
+  executed inside a research round so their trajectory is captured. Runs execute on a
   GPU machine or CI (see `run-experiment`); packaging happens locally from the
   returned `work_dirs/` and does no training.
 
@@ -20,38 +22,51 @@ recompute from.
 1. Open a round before the run when possible (`tsf research start --task submission
    --goal <goal> --max-runs <count>`, then `tsf run <cfg> --round <id>` on the run
    machine, then `tsf research status <id> completed --message <conclusion>`). Without
-   one the bundle's trajectory is marked synthetic. Package the finished record:
+   one the bundle's trajectory is marked synthetic. Package the finished records:
 
    ```bash
    uv run tsf result submit --dataset <dataset> --model <model> [--run-id <run_id> | --latest]
+   uv run tsf result submit --all [--dataset <dataset>] [--model <model>] --skip-existing   # a whole sweep
    ```
-   The bundle lands in `work_dirs/_submissions/`; `--latest` takes the newest record.
+   Bundles land in `work_dirs/_submissions/`; `--all` reads the research rounds once
+   and reports built, kept, and failed counts.
 
-2. Inspect `submission.json`, `trajectory.jsonl`, and `report.md`. Confirm dataset
-   version, run identity, metrics, and whether the trajectory is synthetic.
-3. Place the bundle under `apps/web/submissions/<track>/<dataset>/<model>/<id>/`
-   and check it with the same contract the site uses:
+2. Inspect `submission.json`, `trajectory.jsonl`, and `report.md` of a sample.
+   Confirm dataset version, run identity, metrics, and whether the trajectory is
+   synthetic. Preview the board with the same contract the site uses:
 
    ```bash
-   uv run tsf result leaderboard --source apps/web/submissions --out work_dirs/_board/leaderboard.json
-   uv run tsf repo check --only web-submissions schema-export
+   uv run tsf result leaderboard --source work_dirs/_submissions --out work_dirs/_board/leaderboard.json
    ```
 
-4. Weights are never part of a submission; publish them separately with
-   `publish-weights` when reproducibility needs them.
+3. Publish (maintainers, with authorization and a write token). Plan first; the
+   upload skips bundles already present and regenerates `board/`:
+
+   ```bash
+   uv run tsf result hub results push work_dirs/_submissions --dry-run
+   uv run tsf result hub results push work_dirs/_submissions
+   ```
+
+   A contributor without Hub access instead opens a pull request that adds the
+   bundle under `apps/web/submissions/<track>/<dataset>/<model>/<id>/` (a staging
+   folder, checked by `uv run tsf repo check --only web-submissions schema-export`);
+   a maintainer moves accepted bundles to the Hub with the same `results push`.
+
+4. Weights are never part of a submission; publish the top-ranked checkpoints
+   separately with `publish-weights` when reproducibility needs them.
 
 ## Chain
 
 - Module: Release.
-- Reads: a completed record, its round trajectory, the result board.
-- Produces: a bundle under `apps/web/submissions/<track>/<dataset>/<model>/<id>/`; its rows rebuild the leaderboard.
+- Reads: completed records, their round trajectories, the result board.
+- Produces: bundles under `results/` of `Diaugeia/TSFLab-Checkpoints` and a regenerated `board/leaderboard.json`.
 - Hands off to: `run-autoresearch` reads the leaderboard as a reference bar; weights go to `publish-weights`.
 
 ## Success
 
-- A contract-valid bundle whose rows appear in the locally rebuilt board.
+- Contract-valid bundles whose rows appear in the regenerated board.
 
 ## Stop and hand off
 
-- A branch, issue, or pull request requires explicit approval.
+- An upload, branch, issue, or pull request requires explicit approval.
 - Forecasts for live rounds use `forecast-realtime-round`, not this skill.

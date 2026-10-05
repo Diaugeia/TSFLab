@@ -22,7 +22,7 @@ aggregation and protocol checks. The CLI helpers are optional.
    ```bash
    uv run tsf result aggregate --dataset <name> --collapse \
      --aggregate mean --null-threshold 0.3
-   uv run tsf result board --dataset <name> --json     # leaderboard plus local records
+   uv run tsf result board --dataset <name> --json     # published board (Hub) plus local records
    uv run tsf result rank --help
    uv run tsf result plot --help
    uv run tsf result predictions --help

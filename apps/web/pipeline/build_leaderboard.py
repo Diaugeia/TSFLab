@@ -1,25 +1,35 @@
 #!/usr/bin/env python3
-"""Build data/leaderboard.json from submissions/ (+ a curated overlay).
+"""Build a site leaderboard from a directory of submission bundles.
+
+The published board is ``board/leaderboard.json`` in the Hugging Face model
+repository ``Diaugeia/TSFLab-Checkpoints``. ``tsf result hub results board``
+builds it with :func:`build_tracks` from that repository's ``results/`` tree,
+and ``pipeline/fetch_board.py`` downloads it before ``next build``. This script
+builds the same board from a local directory, for example to preview the
+pull-request staging folder ``submissions/``.
 
 Validation and aggregation are the shared TSF-Core implementation
 (``tsflab.core.leaderboard``); this script only adds the site's
 presentation layer:
 
   1. map canonical (track, dataset_id) keys to the site's display keys;
-  2. overlay curated blocks that submissions do not cover yet (air quality and
-     the stock *quant* view);
+  2. overlay curated blocks that submissions do not cover yet (``--curated``;
+     on the Hub, ``board/curated.json``);
   3. attach the rolling real-time summaries from data/realtime/*.json and the
      metadata of every real-time track declared in configs/realtime/*.toml
-     (``realtime_tracks``), so tracks with no rounds yet still appear.
+     (``realtime_tracks``), so tracks with no rounds yet still appear. The
+     real-time rounds live in Git, so this step runs at site build time.
 
 Usage:
-  python pipeline/build_leaderboard.py             # validate + aggregate + write
-  python pipeline/build_leaderboard.py --no-write  # dry run: summary only
+  python pipeline/build_leaderboard.py                     # submissions/ -> data/leaderboard.json
+  python pipeline/build_leaderboard.py --source DIR [--curated FILE] [--out FILE]
+  python pipeline/build_leaderboard.py --no-write          # dry run: summary only
 """
 
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sys
@@ -29,6 +39,7 @@ sys.path.insert(0, str(ROOT.parent.parent / "src"))
 
 from tsflab.core.leaderboard import PRIMARY_METRIC, aggregate, load_submissions  # noqa: E402
 
+SUBMISSIONS = ROOT / "submissions"
 BOARD = ROOT / "data" / "leaderboard.json"
 REALTIME = ROOT / "data" / "realtime"
 REALTIME_CONFIGS = ROOT.parent.parent / "configs" / "realtime"
@@ -97,42 +108,69 @@ def overlay_curated(tracks: dict, curated: dict) -> dict:
     return out
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--no-write", action="store_true", help="dry run: summary only")
-    args = parser.parse_args()
+def build_tracks(source: Path, curated: dict | None = None) -> tuple[dict, dict]:
+    """Return ``(board, rejected)`` for every bundle under ``source``.
 
-    valid, rejected = load_submissions(ROOT / "submissions")
-    if rejected:
-        print(f"❌ {len(rejected)} invalid submission(s) — run pipeline/validate.py; board not updated.")
-        return 1
-    curated = json.loads(BOARD.read_text(encoding="utf-8")) if BOARD.is_file() else {}
-    tracks = overlay_curated(to_display(aggregate(doc for _, doc in valid)), curated)
-    realtime = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in sorted(REALTIME.glob("*.json"))}
+    ``board`` holds the ranked tracks of the valid bundles (display keys, curated
+    overlay applied) but no real-time block; see :func:`attach_realtime`.
+    """
+    source = Path(source)
+    valid, rejected = load_submissions(source) if source.is_dir() else ([], {})
+    tracks = overlay_curated(to_display(aggregate(doc for _, doc in valid)), curated or {})
     board = {
         "schema_version": "1.2",
-        "generated_at": curated.get("generated_at"),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "primary_metric": PRIMARY_METRIC,
         "n_submissions": len(valid),
-        "n_rejected": 0,
+        "n_rejected": len(rejected),
         "tracks": tracks,
-        "realtime": realtime,
-        "realtime_tracks": realtime_track_meta(),
     }
-    print(f"Aggregated {len(valid)} submission files:")
-    for track, block in tracks.items():
+    return board, rejected
+
+
+def attach_realtime(board: dict) -> dict:
+    """Return ``board`` with the Git-tracked real-time summaries and track metadata."""
+    out = dict(board)
+    out["realtime"] = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in sorted(REALTIME.glob("*.json"))}
+    out["realtime_tracks"] = realtime_track_meta()
+    return out
+
+
+def summarize(board: dict) -> None:
+    print(f"Aggregated {board['n_submissions']} submission files:")
+    for track, block in board["tracks"].items():
         for dataset, data in block["datasets"].items():
             for horizon, rows in data["horizons"].items():
                 multi = sum(1 for r in rows if r.get("n_runs", 1) > 1)
                 print(f"  {track}/{dataset}/h={horizon}: {len(rows)} models" + (f", {multi} multi-run" if multi else ""))
-    for track, summary in realtime.items():
+    for track, summary in board.get("realtime", {}).items():
         print(f"  realtime/{track}: {len(summary.get('scored_rounds', []))} scored round(s)")
-    print(f"  realtime tracks declared: {len(board['realtime_tracks'])}")
+    print(f"  realtime tracks declared: {len(board.get('realtime_tracks', []))}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", type=Path, default=SUBMISSIONS,
+                        help="directory searched for submission.json (default: submissions/)")
+    parser.add_argument("--curated", type=Path, default=None,
+                        help="curated overlay, a board-shaped JSON (default: none)")
+    parser.add_argument("--out", type=Path, default=BOARD, help="output path (default: data/leaderboard.json)")
+    parser.add_argument("--no-write", action="store_true", help="dry run: summary only")
+    args = parser.parse_args()
+
+    curated = json.loads(args.curated.read_text(encoding="utf-8")) if args.curated else None
+    board, rejected = build_tracks(args.source, curated)
+    if rejected:
+        print(f"❌ {len(rejected)} invalid submission(s) — run pipeline/validate.py; board not updated.")
+        return 1
+    board = attach_realtime(board)
+    summarize(board)
     if args.no_write:
         print("\n(dry run — not written)")
         return 0
-    BOARD.write_text(json.dumps(board, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(f"\n✅ wrote {BOARD.relative_to(ROOT)}")
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(board, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"\n✅ wrote {args.out}")
     return 0
 
 

@@ -29,19 +29,21 @@ committed **submission you can open** — the result, the agent's trajectory, an
 readable report — so the board stays comparable, auditable, and reproducible. It's a
 function of the evidence, not a table someone pasted in.
 
-This repository is the **single source of truth** — the website, every `submission.json`,
-and the pipeline that turns submissions into the ranked board. Push a submission → CI
-validates, aggregates, and redeploys.
+This folder holds the website and the pipeline that turns submissions into the ranked
+board. The evidence itself — every `submission.json` — lives on the Hugging Face Hub in
+`results/` of [`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints),
+next to the generated `board/leaderboard.json` that the site downloads at build time.
 
-The honest part: on the CSI-300 stock track, 135 models end in a near-noise dead heat —
-no model really wins. We publish that as the headline, because a board worth trusting is
-one that tells you when the problem is genuinely hard.
+The board ranks TSFLab 1.0 results only. All TSEval-era results (the former static
+board, the CSI-300 stock bundles, the curated air-quality and quant blocks) are archived
+under `legacy/` of that repository and are not shown. Until the 1.0 benchmark results
+are published the site shows a "results coming" message.
 
 ---
 
 ## ✨ Highlights
 
-- 🏆 **Submission-driven** — the board is rebuilt from `submissions/` on every push; nothing is hand-edited.
+- 🏆 **Submission-driven** — the board is rebuilt from `results/` on the Hub on every upload; nothing is hand-edited.
 - 🔬 **Reproducible & auditable** — each submission carries metrics + trajectory + run metadata; multi-seed runs are averaged with `n_runs` and std.
 - 📈 **Method Evolution chart** — publication year vs MSE for 100+ methods, with a best-so-far (SOTA) frontier (ECharts; pan/hover/log).
 - 💹 **More than regression** — a Stock track with both forecasting metrics *and* a quant backtest view (P&L, Sharpe, drawdown), plus an Air-Quality track.
@@ -52,9 +54,9 @@ one that tells you when the problem is genuinely hard.
 
 ## 🔗 Live & data
 
-- 🌐 **Site:** [Hugging Face Space](https://huggingface.co/spaces/Diaugeia/TSFLab) (auto-deployed on every push to `main`)
+- 🌐 **Site:** [Hugging Face Space](https://huggingface.co/spaces/Diaugeia/TSFLab) (deployed manually: `bun run build`, then upload `out/`)
 - 📦 **Datasets** (on Hugging Face): [`Diaugeia/TSFLab-Datasets`](https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets) — `static/` benchmark sets (ETT, electricity, solar, traffic, weather, …) and `realtime/` track panels
-- 🧠 **Weights (optional):** [`Diaugeia/TSFLab-Weights`](https://huggingface.co/Diaugeia/TSFLab-Weights) — a public, *optional* reproducibility archive of trained checkpoints. A submission carries no weights and never needs a `.pth` to rank.
+- 🧠 **Results + checkpoints:** [`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints) — `results/` (every submission), `board/` (the generated leaderboard), `checkpoints/` (weights of top-ranked runs only), `legacy/` (TSEval archive). A submission carries no weights and never needs a `.pth` to rank.
 
 ---
 
@@ -63,8 +65,8 @@ one that tells you when the problem is genuinely hard.
 | Category | Track | Datasets | Source |
 |---|---|---|---|
 | Common / static | `time_series` | ETTh1, ETTm1, ETTh2, ETTm2, electricity, solar, traffic, weather | submission-driven |
-| Real-time | `stock` | Stock-HS300 (CSI-300) — regression + quant backtest | regression from submissions; quant curated |
-| Real-time | `air_quality` | Air-CHNCities (6 pollutants) | curated |
+| Real-time | `stock` | Stock-HS300 (CSI-300) — regression | from submissions |
+| Real-time | rolling rounds | 11 weekly tracks (`configs/realtime/`) | weekly workflow, kept in the repository |
 
 Each block is ranked per `(track, dataset, horizon)` by **MSE** (lower is better).
 
@@ -74,11 +76,12 @@ Each block is ranked per `(track, dataset, horizon)` by **MSE** (lower is better
 
 > Full format + multi-seed averaging rules: **[SUBMITTING.md](SUBMITTING.md)**.
 
-Commit one `submission.json` per run, then push:
+Open a pull request with one bundle per run under `submissions/` (a staging folder; CI
+validates it). A maintainer uploads accepted bundles to the Hub and removes them here:
 
 ```bash
-python3 pipeline/build_leaderboard.py --no-write   # preview locally
-git add submissions/…/submission.json && git push  # CI: validate → aggregate → deploy
+python3 pipeline/build_leaderboard.py --no-write              # preview the staged bundles
+uv run tsf result hub results push apps/web/submissions       # maintainers: upload + regenerate board/
 ```
 
 ```jsonc
@@ -99,17 +102,19 @@ different `seed` — the row reports the **mean**, `n_runs`, and `<metric>_std`.
 ## ⚙️ How the board is built
 
 ```
-push main
-  └─ .github/workflows/ci.yml (web + deploy jobs)
-       ├ python3 pipeline/build_leaderboard.py   validate → aggregate submissions/ → data/leaderboard.json
-       ├ bun run build                           Next static export → out/
-       └ deploy out/ to the Hugging Face Space (static) → Diaugeia/TSFLab
-         (formerly TSEval: the legacy Space Diaugeia/TSEval and tseval.diaugeia.ai redirect to it)
+tsf result hub results push <bundles>          upload to results/ of Diaugeia/TSFLab-Checkpoints
+  └─ tsf result hub results board               results/ → board/leaderboard.json + board/model-meta.json
+bun run build
+  ├ python3 pipeline/fetch_board.py              board/*.json → data/ (+ real-time block from Git)
+  └ next build                                   Next static export → out/
+deploy out/ to the Hugging Face Space (static) → Diaugeia/TSFLab
+  (formerly TSEval: the legacy Space Diaugeia/TSEval and tseval.diaugeia.ai redirect to it)
 ```
 
-- `pipeline/validate.py` — TSF-Core contract schema + TSFLab-binding check.
-- `pipeline/build_leaderboard.py` — aggregates submissions (mean / std / `n_runs`), ranks by MSE; curated overlay for blocks without raw submissions yet (air-quality, stock quant).
-- `pipeline/build_model_meta.py` — regenerates `data/model-meta.json` (publication years) from a TSFLab checkout.
+- `pipeline/validate.py` — TSF-Core contract schema + TSFLab-binding check (of the staging folder).
+- `pipeline/build_leaderboard.py` — aggregates submissions (mean / std / `n_runs`), ranks by MSE; optional curated overlay (`--curated`); none on the 1.0 board.
+- `pipeline/fetch_board.py` — downloads the board before `next build`; `--from DIR` uses local files.
+- `pipeline/build_model_meta.py` — builds `model-meta.json` (publication years) from a TSFLab checkout.
 
 ---
 
@@ -133,10 +138,9 @@ app/, src/, lib/, components/   self-contained Next app (UI + EN/中文 copy + d
   src/evolution-chart.tsx       Method Evolution chart (ECharts)
   src/quant-visualization.tsx   stock P&L + prediction-accuracy charts
   src/lib/, src/ui/             metrics, model types, dataset order, shared UI
-data/                           leaderboard.json + model-meta.json + visualization_data.json
-submissions/                    community submission bundles (small JSON, no weights)
-pipeline/                       contract schema + validate + build_leaderboard + build_model_meta
-.github/workflows/              ci.yml: validate (PRs, via tsf repo check) + build once → deploy to 2 targets
+data/                           fetched at build time (not in Git); data/realtime/ from the weekly workflow
+submissions/                    PR staging folder + real-time rounds (see submissions/README.md)
+pipeline/                       validate + build_leaderboard + fetch_board + build_model_meta
 ```
 
 ---

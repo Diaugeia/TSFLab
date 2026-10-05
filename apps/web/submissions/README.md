@@ -1,51 +1,37 @@
----
-license: mit
-pretty_name: TSFLab Submissions
-tags: [time-series, forecasting, leaderboard, benchmark]
----
+# Submissions staging folder
 
-# TSFLab — Submissions
-
-Append-only evidence index of **leaderboard submissions** for the [Diaugeia.AI](https://diaugeia.ai) TSFLab benchmark,
-living inside the canonical [`github.com/Diaugeia/TSFLab`](https://github.com/Diaugeia/TSFLab) repo — one source of truth.
-This holds only the lightweight **evidence** of each run (result + trajectory + report) so it stays cheap to clone and to
-rebuild the leaderboard from. Weights are **not** part of a submission; they may *optionally* be archived in the public
-[`Diaugeia/TSFLab-Weights`](https://huggingface.co/Diaugeia/TSFLab-Weights) dataset for bit-level
-reproducibility, but are never required to get on the board.
-
-## Layout
+This folder is **not** where results are stored. Results live on the Hugging Face
+Hub, in the model repository
+[`Diaugeia/TSFLab-Checkpoints`](https://huggingface.co/Diaugeia/TSFLab-Checkpoints):
 
 ```
-<track>/<dataset>/<model>/<submission_id>/
-    submission.json     # tsf_core.SubmissionReport: manifest + DatasetSpec + RunRecord(s)
-    trajectory.jsonl    # the agent's experiment process (synthetic for bulk imports)
-    report.md           # human-readable per-submission summary (Markdown)
+results/<track>/<dataset>/<model>/<submission_id>/   submission.json, trajectory.jsonl, report.md
+checkpoints/<track>/<dataset>/<model>/<run_id>/      weights of top-ranked runs (optional)
+board/leaderboard.json, board/model-meta.json        generated; the site reads them
+legacy/                                              TSEval-era archive, not ranked
 ```
 
-A submission carries its **result + trajectory + report only** — there is no weight reference in the bundle.
-Trained weights MAY *optionally* be archived in the public [`Diaugeia/TSFLab-Weights`](https://huggingface.co/Diaugeia/TSFLab-Weights)
-dataset for bit-level reproducibility, but are never required.
+The folder has two uses:
 
-## Tracks
+1. **External submissions arrive here by pull request.** A contributor without
+   write access to the Hub adds one bundle at
+   `apps/web/submissions/<track>/<dataset>/<model>/<submission_id>/`. The PR check
+   (`tsf repo check`, step `web-submissions`) validates it against the TSF-Core
+   contract. After review, a maintainer moves it to the Hub and deletes it here:
 
-- `time_series/` — 8 static benchmark datasets (ETTh1, ETTh2, ETTm1, ETTm2, electricity, solar, traffic, weather), horizon 192, **108 models** (see `Diaugeia/TSFLab-Static`).
-- `realtime/` — live, periodically-refreshed datasets: `stock_hs300` → **Stock-HS300 (CSI-300)**, seq_len 20 → pred_len 5, **135 models** (regression + quant backtest).
-- `air_quality/` — **Air-CHNCities**, 6 pollutants (PM2.5, PM10, O₃, NO₂, SO₂, CO), **134 models** (curated).
+   ```bash
+   uv run tsf result hub results push apps/web/submissions --dry-run
+   uv run tsf result hub results push apps/web/submissions   # uploads + regenerates board/
+   git rm -r apps/web/submissions/<track>/<dataset>/<model>/<submission_id>
+   ```
 
-## How the leaderboard is built
+2. **Real-time rounds.** The `weekly` workflow writes
+   `realtime/<track>/rounds/<round_id>/` (round, forecasts, scores) here; see
+   `docs/en/realtime.md`. These stay in Git.
 
-```bash
-python pipeline/build_leaderboard.py            # validate → aggregate → write data/leaderboard.json
-python pipeline/build_leaderboard.py --no-write # dry-run summary
-```
+Why a Git staging folder: a pull request gives an external contributor a
+reviewable, CI-checked path that needs no Hub token, and keeps the Hub
+repository write-only for maintainers. The board is built only from the Hub, so
+a bundle shows on the site after a maintainer pushes it.
 
-Stdlib-only (no torch). Every `submission.json` is schema-validated (`pipeline/validate.py`),
-then rows are aggregated per `(track, dataset, horizon, model)` — metrics **averaged across
-runs/seeds** with `n_runs` + `<metric>_std` — and ranked by MSE. Blocks with no raw submissions
-yet (air-quality, the stock *quant* view) are preserved as a curated overlay.
-
-**See [`SUBMITTING.md`](../SUBMITTING.md) for the full submission format + multi-seed averaging rules.**
-
-## Current contents
-
-- `realtime/stock_hs300/` — **135 models** × CSI-300 (seq 20 → pred 5), 135 submissions.
+Format and averaging rules: [`../SUBMITTING.md`](../SUBMITTING.md).

@@ -18,10 +18,17 @@ from tsflab.release.hub.datasets import (
     fetch_preset,
     publish_presets,
 )
-from tsflab.release.hub.publish import DEFAULT_WEIGHTS_REPO, init_repositories, list_bundles, push
+from tsflab.release.hub.publish import (
+    DEFAULT_CHECKPOINTS_REPO,
+    DEFAULT_WEIGHTS_REPO,
+    init_repositories,
+    list_bundles,
+    push,
+)
 from tsflab.release.hub.uri import HubURI, is_hub_uri, parse
 
 __all__ = [
+    "DEFAULT_CHECKPOINTS_REPO",
     "DEFAULT_DATASETS_REPO",
     "DEFAULT_STATIC_REPO",
     "DEFAULT_WEIGHTS_REPO",

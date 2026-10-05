@@ -237,7 +237,7 @@ def result_command(args: list[str]) -> int:
     usage = (
         "usage: tsf result {aggregate,rank,plot,report,predictions,board,submit,leaderboard,hub} "
         "[args...]\n"
-        "       tsf result hub {pack,push,list,pull,init} [args...]"
+        "       tsf result hub {pack,push,push-top,list,pull,results,init} [args...]"
     )
     if not args or args[0] in {"-h", "--help", "help"}:
         print(usage)

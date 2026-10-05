@@ -1,7 +1,8 @@
 """Package a finished run into a self-describing weights bundle and load it back.
 
 A bundle is one directory, published unchanged under
-``<dataset>/<model>/<run_id>/`` in a Hugging Face model repository::
+``checkpoints/<track>/<dataset>/<model>/<run_id>/`` in the checkpoints model
+repository (``Diaugeia/TSFLab-Checkpoints``)::
 
     manifest.json       identity, shapes, provenance, per-file SHA-256
     model.safetensors   the best checkpoint's state_dict
@@ -36,25 +37,56 @@ def _require(module: str):
         ) from exc
 
 
-def find_run(run: str | Path, work_root: Path) -> tuple[Path, Path]:
-    """Return ``(record.json, checkpoint)`` for a run id or record path."""
+def _record_for(run: str | Path, work_root: Path) -> Path:
     candidate = Path(run)
     if candidate.suffix == ".json" and candidate.is_file():
-        record = candidate
-    else:
-        matches = sorted(work_root.glob(f"work_dirs/*/*/records/{run}.json"))
-        if len(matches) != 1:
-            raise FileNotFoundError(
-                f"expected exactly one record for run {run!r} under "
-                f"{work_root / 'work_dirs'}, found {len(matches)}"
-            )
-        record = matches[0]
+        return candidate
+    matches = sorted(work_root.glob(f"work_dirs/*/*/records/{run}.json"))
+    if len(matches) != 1:
+        raise FileNotFoundError(
+            f"expected exactly one record for run {run!r} under "
+            f"{work_root / 'work_dirs'}, found {len(matches)}"
+        )
+    return matches[0]
+
+
+def checkpoint_candidates(record: Path) -> list[Path]:
+    """Checkpoint locations for one record, most specific first.
+
+    The managed runner writes ``<work_dir>/_runs/<run_id>/result.json`` (with
+    ``checkpoint_path``) and ``<work_dir>/_runs/<run_id>/checkpoints/``, next to
+    the ``<work_dir>/<dataset>/<model>/records/<run_id>.json`` record. The older
+    layout kept ``<work_dir>/<dataset>/<model>/checkpoints/<run_id>/``.
+    """
     run_id = record.stem
-    run_dir = record.parent.parent / "checkpoints" / run_id
-    for name in CHECKPOINT_NAMES:
-        if (run_dir / name).is_file():
-            return record, run_dir / name
-    raise FileNotFoundError(f"no checkpoint for run {run_id!r} in {run_dir}")
+    # <work_dir>/<dataset>/<model>/records/<run_id>.json
+    work_dir = record.parents[3] if len(record.parents) > 3 else record.parent
+    run_dir = work_dir / "_runs" / run_id
+    candidates: list[Path] = []
+    result = run_dir / "result.json"
+    if result.is_file():
+        try:
+            recorded = json.loads(result.read_text(encoding="utf-8")).get("checkpoint_path")
+        except (OSError, json.JSONDecodeError):
+            recorded = None
+        if recorded:
+            # A run copied back from another machine keeps its absolute path;
+            # fall back to the same file name inside the local run directory.
+            candidates += [Path(recorded), run_dir / "checkpoints" / Path(recorded).name]
+    for base in (run_dir / "checkpoints", record.parent.parent / "checkpoints" / run_id):
+        candidates += [base / name for name in CHECKPOINT_NAMES]
+    return candidates
+
+
+def find_run(run: str | Path, work_root: Path) -> tuple[Path, Path]:
+    """Return ``(record.json, checkpoint)`` for a run id or record path."""
+    record = _record_for(run, work_root)
+    candidates = checkpoint_candidates(record)
+    for candidate in candidates:
+        if candidate.is_file():
+            return record, candidate
+    searched = ", ".join(dict.fromkeys(str(c.parent) for c in candidates))
+    raise FileNotFoundError(f"no checkpoint for run {record.stem!r}; looked in {searched}")
 
 
 def _state_dict(checkpoint: Path) -> dict:
@@ -130,7 +162,7 @@ def pack(record_path: Path, checkpoint: Path, out_dir: Path) -> dict:
         "framework_version": env.get("framework_version"),
         "git_sha": env.get("git_sha"),
         "source_checkpoint": checkpoint.name,
-        "path": bundle_path(record["dataset_id"], record["model"], run_id),
+        "path": bundle_path(record["dataset_id"], record["model"], run_id, record.get("track")),
     }
     manifest["files"] = {
         name: sha256_file(out_dir / name) for name in (WEIGHTS, RECORD)
@@ -142,9 +174,12 @@ def pack(record_path: Path, checkpoint: Path, out_dir: Path) -> dict:
     return manifest
 
 
-def bundle_path(dataset_id: str, model: str, run_id: str) -> str:
+CHECKPOINTS_PREFIX = "checkpoints"
+
+
+def bundle_path(dataset_id: str, model: str, run_id: str, track: str | None = None) -> str:
     """Return the canonical in-repository directory of one bundle."""
-    return f"{dataset_id}/{model}/{run_id}"
+    return f"{CHECKPOINTS_PREFIX}/{track or 'time_series'}/{dataset_id}/{model}/{run_id}"
 
 
 def load_manifest(uri: str | HubURI, cache_root: Path | None = None) -> dict:

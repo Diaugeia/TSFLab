@@ -10,8 +10,9 @@ license: mit
 
 # TSFLab — Time-Series Forecasting Leaderboard
 
-Built by [Diaugeia.AI](https://diaugeia.ai). Source + submissions:
-[github.com/Diaugeia/TSFLab](https://github.com/Diaugeia/TSFLab).
+Built by [Diaugeia.AI](https://diaugeia.ai). Source:
+[github.com/Diaugeia/TSFLab](https://github.com/Diaugeia/TSFLab). Results and the
+generated board: [Diaugeia/TSFLab-Checkpoints](https://huggingface.co/Diaugeia/TSFLab-Checkpoints).
 
-This Space is auto-deployed by the repository's `ci` workflow (deploy job) (static
-export) on every push to `main`. The primary site is this Space (`Diaugeia/TSFLab`); the former TSEval Space and the legacy `tseval.diaugeia.ai` domain redirect here.
+This Space is the static export of `apps/web`, built from `board/` of that
+repository. The primary site is this Space (`Diaugeia/TSFLab`); the former TSEval Space and the legacy `tseval.diaugeia.ai` domain redirect here.

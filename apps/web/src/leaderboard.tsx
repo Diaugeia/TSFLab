@@ -21,19 +21,29 @@ export function Leaderboard({ data, copy, locale = "en" }: { data: LeaderboardDa
   // Visualization data (stock trends) is fetched client-side from /public.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [visualizationData, setVisualizationData] = useState<any>(null);
+  const hasStock = !!data.tracks?.["stock"];
   useEffect(() => {
+    if (!hasStock) return; // the quant charts are the only reader
     fetch("/visualization_data.json")
       .then((res) => res.json())
       .then(setVisualizationData)
       .catch((err) => console.error("Failed to load visualization data:", err));
-  }, []);
+  }, [hasStock]);
+
+  // True when no track has a single ranked row (the board before the first results).
+  const boardEmpty = !Object.values(data.tracks ?? {}).some((block) =>
+    Object.values(block?.datasets ?? {}).some(
+      (ds) => Object.values(ds?.horizons ?? {}).some((rows) => rows.length > 0) ||
+        Object.values(ds?.quant ?? {}).some((rows) => rows.length > 0),
+    ),
+  );
 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const trackHasData = (t: string) =>
-    !!(data.tracks[t] && Object.keys(data.tracks[t]?.datasets ?? {}).length > 0);
+    !!(data.tracks?.[t] && Object.keys(data.tracks[t]?.datasets ?? {}).length > 0);
 
   // View state is restored from the URL query so it survives a language switch /
   // refresh and is deep-linkable (?cat=realtime&track=air_quality&view=quant).
@@ -152,7 +162,7 @@ export function Leaderboard({ data, copy, locale = "en" }: { data: LeaderboardDa
 
       {datasets.length === 0 ? (
         <p className="mt-10 rounded-2xl border border-border bg-surface px-6 py-16 text-center text-muted">
-          {copy.emptyTrack}
+          {boardEmpty && copy.emptyBoard ? copy.emptyBoard : copy.emptyTrack}
         </p>
       ) : track === "stock" ? (
         <div className="mt-6">

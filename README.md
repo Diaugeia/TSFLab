@@ -135,7 +135,8 @@ There are three ways to take part:
    pass, and merged by the `agent` workflow.
 2. **Submit results** — add a `submission.json` under `apps/web/submissions/`
    (see [SUBMITTING.md](apps/web/SUBMITTING.md)); CI validates it against the
-   contract before it can reach the leaderboard.
+   contract, and a maintainer moves it to the results repository on the Hugging
+   Face Hub (`Diaugeia/TSFLab-Checkpoints`) that the leaderboard is built from.
 3. **Forecast a real-time round** — add `forecasts/<YourModel>.json` to an open
    round before its deadline.
 
@@ -147,7 +148,7 @@ The literature is also scanned weekly by the `agent` workflow. See
 ## 📖 Documentation
 
 - [Workflow documentation](docs/en/README.md): catalog, models, data, AutoResearch, admission, experiments
-- [Projects and the Hub](docs/en/hub.md): `tsf init`, `hf://` assets, weights bundles
+- [Projects and the Hub](docs/en/hub.md): `tsf init`, `hf://` assets, results and checkpoints (`TSFLab-Checkpoints`)
 - [Real-time tracks](docs/en/realtime.md): rounds, forecasts, scoring, weekly automation
 
 Exact command options stay in `tsf <command> --help`.

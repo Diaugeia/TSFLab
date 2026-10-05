@@ -15,6 +15,8 @@ export interface LeaderboardDict {
   rankedBy: string;
   horizon: string;
   emptyTrack: string;
+  // Shown when the whole board has no rows yet (e.g. before the first release results).
+  emptyBoard?: string;
   categories?: {
     commonStatic: string;
     realtime: string;

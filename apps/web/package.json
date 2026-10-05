@@ -6,10 +6,10 @@
   "license": "MIT",
   "description": "TSFLab Leaderboard — standalone static site (UI + data + submission pipeline). Part of the TSFLab monorepo (apps/web).",
   "scripts": {
-    "sync:data": "mkdir -p public && cp data/visualization_data.json public/visualization_data.json",
+    "fetch:board": "python3 pipeline/fetch_board.py",
     "leaderboard": "python3 pipeline/build_leaderboard.py",
-    "dev": "bun run sync:data && next dev",
-    "build": "bun run sync:data && next build",
+    "dev": "bun run fetch:board && next dev",
+    "build": "bun run fetch:board && next build",
     "start": "next start",
     "lint": "next lint"
   },
