@@ -121,8 +121,13 @@ class AxisMamba(nn.Module):
         if axis not in ("time", "node") or layout not in ("axis", "official"):
             raise ValueError("axis must be 'time' or 'node' and layout 'axis' or 'official'")
         self.axis, self.layout = axis, layout
+        # The scan runs over every (step, node) token; storing its
+        # [tokens, d_inner, d_state] tensors needs about 7.6 GB per layer on
+        # PEMS08 at batch 64. The official mamba_ssm kernel never stores them,
+        # so the scan is recomputed in backward instead.
         self.mixer = MambaBlock(
-            width, expand * width, math.ceil(width / 16), d_conv, d_state, reference_dt_init=True
+            width, expand * width, math.ceil(width / 16), d_conv, d_state,
+            reference_dt_init=True, checkpoint_scan=True,
         )
         self.norm = nn.LayerNorm(width)
 

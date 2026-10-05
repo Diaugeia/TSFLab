@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import einsum, rearrange, repeat
+from torch.utils.checkpoint import checkpoint
 
 
 class RMSNorm(nn.Module):
@@ -33,8 +34,11 @@ class MambaBlock(nn.Module):
     Keyword-only options (defaults reproduce the original block exactly):
     ``use_conv=False`` drops the convolution and its SiLU (no ``conv1d`` keys),
     ``x_dropout > 0`` applies dropout to the step-size/B/C projection output
-    (the selective parameters), and ``reference_dt_init=True`` initialises
-    ``dt_proj`` as in the reference Mamba (uniform weight, log-uniform step bias).
+    (the selective parameters), ``reference_dt_init=True`` initialises
+    ``dt_proj`` as in the reference Mamba (uniform weight, log-uniform step bias),
+    and ``checkpoint_scan=True`` recomputes the scan in backward instead of
+    storing its ``[B, L, d_inner, d_state]`` tensors (same values and gradients;
+    the fused ``mamba_ssm`` kernel also never stores them).
     """
 
     def __init__(
@@ -48,8 +52,10 @@ class MambaBlock(nn.Module):
         use_conv: bool = True,
         x_dropout: float = 0.0,
         reference_dt_init: bool = False,
+        checkpoint_scan: bool = False,
     ) -> None:
         super().__init__()
+        self.checkpoint_scan = checkpoint_scan
         if not 0.0 <= x_dropout < 1.0:
             raise ValueError("x_dropout must be in [0, 1)")
         self.d_inner = d_inner
@@ -103,6 +109,8 @@ class MambaBlock(nn.Module):
             [self.dt_rank, state_size, state_size], dim=-1
         )
         delta = F.softplus(self.dt_proj(delta))
+        if self.checkpoint_scan and torch.is_grad_enabled():
+            return checkpoint(self.selective_scan, x, delta, a, b, c, d, use_reentrant=False)
         return self.selective_scan(x, delta, a, b, c, d)
 
     @staticmethod

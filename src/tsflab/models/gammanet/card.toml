@@ -31,12 +31,8 @@ adj_mx = { from = "graph", rule = "the dataset adjacency; every non-zero off-dia
 steps_per_day = { from = "frequency", rule = "samples per day (288 for 5-minute data); time-of-day index = round(time_in_day * steps_per_day)" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
-reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+status = "pending"
+note = "re-verify: Mamba scan recomputed in backward (checkpoint_scan) after PEMS08 batch-64 OOM"
 
 [[issues]]
 kind = "code-bug"
