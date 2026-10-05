@@ -87,13 +87,12 @@ def profiles(work_dirs: Path) -> dict[str, dict]:
     return out
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--phase", required=True)
-    ap.add_argument("--csv", type=Path, help="write one row per run")
-    args = ap.parse_args()
-    phase_dir = HERE.parent / "runs" / args.phase
-    ledger = json.loads((phase_dir / "queued.json").read_text())
+PROFILE_KEYS = ("total_params", "total_macs_m", "peak_vram_mb", "latency_avg_ms")
+
+
+def rows_of(phase: str) -> list[dict]:
+    """Every run of the sweeps ``enqueue.py`` added for ``phase``, with its profile metrics."""
+    ledger = json.loads((HERE.parent / "runs" / phase / "queued.json").read_text())
     rows = []
     for entry in ledger.values():
         sweep = json.loads((Path(entry["sweep"]) / "sweep.json").read_text())
@@ -105,8 +104,17 @@ def main() -> None:
     prof = profiles(work_dirs)
     for row in rows:
         p = prof.get(row["run_id"], {})
-        for key in ("total_params", "peak_vram_mb", "latency_avg_ms"):
+        for key in PROFILE_KEYS:
             row[key] = p.get(key)
+    return rows
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--phase", required=True)
+    ap.add_argument("--csv", type=Path, help="write one row per run")
+    args = ap.parse_args()
+    rows = rows_of(args.phase)
     counts = collections.Counter(r["status"] for r in rows)
     print(f"{len(rows)} runs: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
     cats = collections.Counter(r["category"] for r in rows)
