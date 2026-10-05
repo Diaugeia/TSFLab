@@ -30,8 +30,12 @@ enc_in = { from = "channels", rule = "equal to the dataset's channel count; the 
 rolling_length = { from = "seq_len", rule = "0 < rolling_length < seq_len; window of the sliding variance (official 96 or 24 at seq_len 168); preset 24, valid for seq_len >= 25" }
 
 [admission]
-status = "pending"
-note = "re-verify: preset rolling_length 24 (official ETTm/ExchangeRate value) so it is valid at seq_len 96 and 36"
+status = "passed"
+date = "2026-10-05"
+commit = "b5401b2c"
+device = "cpu"
+reference = "none"
+note = ""
 
 [[issues]]
 kind = "paper-code-mismatch"

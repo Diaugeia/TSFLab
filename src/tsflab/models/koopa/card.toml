@@ -31,5 +31,9 @@ head = "local:operator-rollout-decoder-summed-over-blocks"
 loss = "loss:mse"
 
 [admission]
-status = "pending"
-note = "re-verify: local operator now uses torch.linalg.lstsq with an identity fallback (official KPLayer) instead of a ridge solve that failed as singular on ETTh1"
+status = "passed"
+date = "2026-10-05"
+commit = "b5401b2c"
+device = "cpu"
+reference = "none"
+note = ""

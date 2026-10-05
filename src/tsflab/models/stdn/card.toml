@@ -31,5 +31,9 @@ head = "local:concat-linear-output"
 loss = "loss:mse"
 
 [admission]
-status = "pending"
-note = "re-verify: calendar indices now read spatiotemporal [time_in_day, day_in_week] node covariates (node 0, as the official runner); preset time_slice_size 5"
+status = "passed"
+date = "2026-10-05"
+commit = "b5401b2c"
+device = "cpu"
+reference = "none"
+note = ""

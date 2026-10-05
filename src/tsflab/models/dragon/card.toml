@@ -29,8 +29,12 @@ loss = "loss:mse"
 enc_in = { from = "channels", rule = "equals the number of variables; the training series must be [T, enc_in]" }
 
 [admission]
-status = "pending"
-note = "re-verify: per-window graph encoding is activation-checkpointed in training (ETTh1 batch 128 OOM at about 46 GB)"
+status = "passed"
+date = "2026-10-05"
+commit = "b5401b2c"
+device = "cpu"
+reference = "none"
+note = ""
 
 [[issues]]
 kind = "paper-code-mismatch"

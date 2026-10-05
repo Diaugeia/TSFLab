@@ -32,5 +32,9 @@ adj_mx = { from = "graph", rule = "dataset adjacency [N, N], injected by the run
 topk = { from = "nodes", rule = "pivotal set size, clamped to num_nodes" }
 
 [admission]
-status = "pending"
-note = "re-verify: input calendar features accept spatiotemporal node covariates [B, T, N, F] (PEMS08 pilot expand error)"
+status = "passed"
+date = "2026-10-05"
+commit = "b5401b2c"
+device = "cpu"
+reference = "none"
+note = ""

@@ -31,11 +31,11 @@ d_model = { from = "channels", rule = "official scripts use 4 * nearest_power_of
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "b5401b2c"
 device = "cpu"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = ""
 
 [[issues]]
 kind = "code-bug"

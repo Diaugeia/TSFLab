@@ -32,8 +32,12 @@ bottleneck = { from = "pred_len", rule = "pred_len must be >= bottleneck" }
 timestamp_origin_year = { from = "frequency", rule = "calendar origin of tau (with timestamp_span_years); choose so the dataset's time range maps to a small tau range" }
 
 [admission]
-status = "pending"
-note = "re-verify: the one-input timestamp-MLP layers are plain linear maps (weight-norm direction underflowed to NaN under weight decay)"
+status = "passed"
+date = "2026-10-05"
+commit = "b5401b2c"
+device = "cpu"
+reference = "none"
+note = ""
 
 [[issues]]
 kind = "paper-code-mismatch"
