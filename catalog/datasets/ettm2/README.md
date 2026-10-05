@@ -13,7 +13,7 @@ ETT-small (Electricity Transformer Temperature) records two years of data from t
 
 - **Truncation.** The loader reads only the first 57,600 rows (20 months), so the last 12,080 rows of the 69,680-row CSV are never used (measured). The 20 months split chronologically as 12/4/4 months, which the TSFLab 6:2:2 ratio `[0.6, 0.2, 0.2]` reproduces exactly (results under 7:1:2 are not comparable): train rows 0-34,559, validation to row 46,080, test to row 57,600.
 - **Window overlap.** Validation and test splits start `seq_len` rows early so the first target window has full context. This reuses earlier rows only as inputs; scaling statistics are fitted on the training rows alone (`scale = true`).
-- **`drop_last`.** The loaders keep the final partial batch (`drop_last=False`) for every split, so test metrics cover every window. Reference code that drops the last test batch reports slightly different numbers, more so at large batch sizes.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it (`drop_last=False`), so test metrics cover every window. Reference code that drops the last test batch reports slightly different numbers, more so at large batch sizes.
 - **Target.** `features = "S"` forecasts `OT`; `"MS"` forecasts the last column, which is also `OT` here; `"M"` forecasts all seven channels.
 - **Frequency naming.** `ETTm*` is 15-minute data, not one-minute data, although the upstream README text says "every minute" (the CSV is verified 15-minute).
 - **Distribution shift.** `OT` mean / std is 26.87 / 11.58 on the training rows and 14.40 / 7.13 on the test rows (measured, used rows), so the test period is much cooler and calmer than training; exact zeros are 9.7% of all values in the CSV (measured).

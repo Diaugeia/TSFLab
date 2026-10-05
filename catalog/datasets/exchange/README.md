@@ -15,5 +15,5 @@ Exchange-rate holds the daily exchange rates of eight countries' currencies, col
 - **Protocol.** Autoformer/TFB use 7:1:2, lookback 96, horizons 96/192/336/720 (LSTNet used 6:2:2 with horizons 3/6/12/24 days).
 - **No seasonality.** Series are close to random walks, so a repeat-last-value forecast is hard to beat at long horizons; compare against it before claiming progress, and expect model rankings to differ from seasonal sets.
 - **Distribution shift.** Levels drift across train and test, which z-scoring on the training split does not remove; instance normalization helps.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.
 - **Target column.** `features = "S"` forecasts `OT`; `"MS"` forecasts the last column.

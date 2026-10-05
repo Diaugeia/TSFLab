@@ -18,4 +18,4 @@ NASDAQ is one stock from the NASDAQ universe of Feng et al.'s Relational Stock R
 - **Date column.** The `date` column holds row numbers; parsed as datetimes they become nanosecond offsets from 1970-01-01, so calendar time features (weekday, month) are meaningless. Use models that do not rely on timestamp marks, or treat them as constant.
 - **Full-sample normalization.** Values are already divided by the maximum close over the whole series (a full-sample statistic chosen by the original authors); TSFLab's train-only z-scoring does not undo that.
 - **Target column.** The preset sets `target = "Volume"` (the last channel, the normalized close); set `Close` for the 30-day moving average.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

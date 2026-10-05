@@ -18,4 +18,4 @@ Wike2000 is TFB's (Qiu et al., 2024) web-traffic benchmark: daily page-view coun
 - **Heavy tails.** Page views span six orders of magnitude across pages and contain viral bursts; z-scoring per channel on the training split leaves extreme test values.
 - **Different benchmark.** GluonTS/GP-Copula results use the 912-day test split with 30-day horizons; TFB results on this 792-day file are not comparable to them.
 - **Target column.** `features = "S"` forecasts `OT`; `"MS"` forecasts the last column.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

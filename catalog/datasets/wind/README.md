@@ -17,4 +17,4 @@ Wind is a single wind farm's power output at 15-minute resolution over about 17 
 - **Forecast covariates.** The `pred_*` channels are, by their names, weather forecasts for each timestamp (the source does not document their issue time); in `"M"` mode they are forecast as if unknown, while in practice they would be known ahead, so this preset under-uses them. `pred_pressure` is unchanged between consecutive steps 91% of the time, so it is nearly trivial to forecast and lowers all-channel averages.
 - **Negative power.** `target` is slightly negative in 12% of steps; the source does not document why (auxiliary consumption at standstill is a common cause). Relative metrics such as MAPE are unstable near zero.
 - **Target column.** The preset sets `target = "target"` (power, the last channel), so `"S"` and `"MS"` forecast power.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

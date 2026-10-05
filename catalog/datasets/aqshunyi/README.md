@@ -16,4 +16,4 @@ AQShunyi is the hourly record of one of 12 stations in the UCI Beijing Multi-Sit
 - **Heavy tails.** PM2.5 and PM10 spike during haze episodes; z-scoring on the training split leaves outliers, and MSE is dominated by a few events.
 - **Target column.** The preset sets `target = "WSPM"` (wind speed, the last channel), not a pollutant, so `features = "S"` and `"MS"` forecast wind speed; set `target` to a pollutant such as `PM2.5` if that is the goal. TFB keeps the original UCI channel names, so there is no `OT` column (derived from the TFB reader, not a local copy); the loader raises if `target` is absent.
 - **Layout.** TFB ships a long `date,data,cols` layout; the `custom` loader needs a wide CSV (`date` plus one column per channel), so pivot first.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

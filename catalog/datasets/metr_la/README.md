@@ -17,4 +17,4 @@ METR-LA is a spatiotemporal traffic benchmark: 207 sensors recording traffic spe
 - **Window split.** `tsf data prepare --from traffic --splits` (default 0.7,0.1,0.2) splits window centres chronologically; the indices depend on the converter's `--seq-len` and `--pred-len` (default 12 each; rebuild the bundle to change either). The `mean`/`std` in `his.npz` are fitted on training rows only (before `train_end`), and `seq_len`, `pred_len`, `train_end` and window counts are recorded in `his.npz` and `split.json`, so `scale = true` uses no validation or test statistics. Rebuild bundles from older converters (96/96 defaults, whole-series statistics).
 - **Adjacency.** `adj_mx.npy` comes from the converter's `--adj` input; check how it was built before comparing graph models across papers.
 - **Metrics.** The repository evaluator has no masked-metric option; DCRNN-style papers mask zero (missing) targets, so unmasked numbers are not comparable.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

@@ -15,5 +15,5 @@ ILI (national_illness) is the weekly record of influenza-like-illness surveillan
 - **Short test set.** Metrics have high variance and depend on exact window handling, including `drop_last`; report seeds and window counts.
 - **Seasonality.** A strong annual flu-season peak means only a few seasons fall in the test split. If the file's dates are real, the test split (about late 2016 to mid-2020) includes the first COVID-19 weeks while the 2009 H1N1 outbreak sits in training; the date column is not verified.
 - **Date column.** The standard file's dates are nominal; do not use them as a calendar for external covariates without checking.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.
 - **Target column.** `features = "S"` forecasts `OT`; `"MS"` forecasts the last column.

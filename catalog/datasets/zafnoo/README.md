@@ -18,4 +18,4 @@ ZafNoo is one SAPFLUXNET site (ZAF_NOO) as packaged by TFB (Qiu et al., 2024): a
 - **Imputation.** The TFB file has no NaN although field sap-flow records normally have gaps; how gaps were filled is not documented, so some timestamps may be filled values.
 - **Covariates.** `ext_rad` is a deterministic function of time and location, and `precip` is almost always zero; both are easy to forecast and lower all-channel averages.
 - **Target column.** The preset sets `target = "ZAF_NOO_E3_IRR_Mdo_Jt_2"` (the sap-flow channel, the first column); `"MS"` moves it last and forecasts it from the ten drivers.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.
