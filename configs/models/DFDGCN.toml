@@ -15,4 +15,5 @@ a = 1.0
 fft_emb = 10
 identity_emb = 10
 hidden_emb = 30
-subgraph = 4
+subgraph = 20
+steps_per_day = 288
