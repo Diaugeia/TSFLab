@@ -29,12 +29,12 @@ loss = "loss:mse"
 enc_in = { from = "channels", rule = "equals the number of variables; the training series must be [T, enc_in]" }
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "a529541b"
+device = "cpu"
 reference = "none"
-note = "re-verify: graph construction deduplicates hyper-tuple edges in bounded chunks, the PPR diffusion is built in place, and fit raises a ValueError above 32768 nodes or the edge-activation budget (wike2000 smoke: 768 GB host RAM); graphs are identical below the limits"
+note = ""
 
 [[issues]]
 kind = "paper-code-mismatch"

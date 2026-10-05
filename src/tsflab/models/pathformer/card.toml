@@ -30,12 +30,12 @@ enc_in = { from = "channels", rule = "equal to the dataset's channel count" }
 patch_size_list = { from = "period", rule = "layer_nums * num_experts sizes matching the data's periods or sub-periods; ideally divisors of seq_len" }
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "a529541b"
+device = "cpu"
 reference = "official"
-note = "re-verify: the local (intra-patch) attention runs in chunks of 32768 sequences (fused SDPA batch limit 65535 with dropout; traffic and wike2000 smoke); one chunk below that, so results are unchanged where it ran before"
+note = ""
 
 [[issues]]
 kind = "license"

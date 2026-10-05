@@ -30,12 +30,12 @@ loss = "loss:mse+local:joint-bures-wasserstein-distribution-loss"
 enc_in = { from = "channels", rule = "must equal the dataset channel count" }
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "a529541b"
+device = "cpu"
 reference = "official"
-note = "re-verify: the Bures-Wasserstein square roots now run in float64 with jittered eigh retries and an SVD fallback (traffic smoke: linalg.eigh error 769)"
+note = ""
 
 [[issues]]
 kind = "paper-code-mismatch"

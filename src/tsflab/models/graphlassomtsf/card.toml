@@ -29,12 +29,12 @@ loss = "loss:mae"
 enc_in = { from = "channels", rule = "number of series; each is one graph node of the learned precision matrix" }
 
 [admission]
-status = "pending"
+status = "passed"
 date = "2026-10-05"
-commit = ""
-device = ""
+commit = "a529541b"
+device = "cpu"
 reference = "official"
-note = "re-verify: Phase 1 now uses the official gglasso algorithm (block screening + ADMM) instead of scikit-learn coordinate descent, which raised 'Non SPD result' on traffic and wike2000; same objective, so the precision changes only by solver tolerance"
+note = ""
 
 [[issues]]
 kind = "license"
