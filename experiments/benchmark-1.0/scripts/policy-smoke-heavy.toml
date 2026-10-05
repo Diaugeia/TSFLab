@@ -4,7 +4,7 @@
 # Measures per-model time and peak memory; nothing here changes a result.
 
 [budget]
-max_parallel_jobs = 8       # overridden by --jobs
+max_parallel_jobs = 24      # overridden by --jobs
 run_timeout_minutes = 120   # a smoke cell longer than this is reported as timed out
 max_retries = 0             # the pilot reports failures as they are
 
@@ -12,10 +12,10 @@ max_retries = 0             # the pilot reports failures as they are
 gpus = ["0", "1", "2", "3", "4", "5", "6", "7"]
 gpus_per_run = 1
 sharing = true              # cooperative packing; reservations, not memory isolation
-max_processes_per_gpu = 1   # heavy datasets: one run per GPU
-memory_per_run_mb = 40000
+max_processes_per_gpu = 3   # heavy datasets: packed only while 16 GB stay free
+memory_per_run_mb = 16000
 min_free_memory_mb = 4000
-threads_per_run = 16        # 8 runs x 16 threads
+threads_per_run = 8
 wait_timeout_minutes = 1440
 min_free_disk_gb = 100
 
