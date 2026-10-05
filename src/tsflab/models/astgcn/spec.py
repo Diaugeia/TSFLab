@@ -38,4 +38,5 @@ SPEC = ModelSpec(
     capabilities=frozenset(['spatiotemporal', 'covariate']),
     components=('graph_spectral', 'marks'),
     contract_task={'seq_len': 24, 'pred_len': 24, 'label_len': 0},
+    requires_graph=True,
 )

@@ -188,6 +188,11 @@ def _build_model(config, train_set, adj_norm, device: torch.device):
         if adj_norm is not None:
             adj_mx = _normalize_adj(adj_mx, adj_norm)
         params["adj_mx"] = adj_mx
+    elif spec.requires_graph:
+        raise ValueError(
+            f"model {spec.name!r} needs the dataset adjacency (adj_mx), but dataset "
+            f"{config.dataset.name!r} provides none; use a graph dataset that ships adj_mx.npy"
+        )
     num_nodes = getattr(train_set, "num_nodes", None)
     if num_nodes is not None:
         params.setdefault("num_nodes", num_nodes)

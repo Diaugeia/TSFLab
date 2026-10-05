@@ -132,7 +132,12 @@ class Model(nn.Module):
             raise ValueError("lengths, nodes, blocks, graph order, and widths must be positive")
         if cov_dim < 0:
             raise ValueError("cov_dim must be non-negative")
-        adjacency = np.ones((enc_in, enc_in), dtype=np.float32) if adj_mx is None else np.asarray(adj_mx, dtype=np.float32)
+        if adj_mx is None:
+            raise ValueError(
+                "ASTGCN needs the road-network adjacency adj_mx [enc_in, enc_in] for its Chebyshev "
+                "supports; use a graph dataset that ships adj_mx.npy (for example a PEMS preset)"
+            )
+        adjacency = np.asarray(adj_mx, dtype=np.float32)
         if adjacency.shape != (enc_in, enc_in):
             raise ValueError(f"adj_mx must have shape {(enc_in, enc_in)}")
         supports = chebyshev_supports(adjacency, K)

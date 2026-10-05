@@ -19,17 +19,6 @@ import torch.nn.functional as F
 from tsflab.models._components.marks import to_spatiotemporal
 
 
-def default_dartboard(nodes: int, regions: int) -> torch.Tensor:
-    """Create a circular, row-normalized regional projection fallback."""
-    regions = min(nodes, regions)
-    projection = torch.zeros(nodes, regions, nodes)
-    for query in range(nodes):
-        for source in range(nodes):
-            region = ((source - query) % nodes) * regions // nodes
-            projection[query, region, source] = 1.0
-    return projection / projection.sum(-1, keepdim=True).clamp_min(1.0)
-
-
 class CausalTemporalAttention(nn.Module):
     """Windowed CT-MSA with a causal receptive field."""
 
@@ -125,11 +114,10 @@ class Model(nn.Module):
         d_model: int = 32,
         nhead: int = 4,
         num_encoder_layers: int = 3,
-        spatial_regions: int = 4,
         dropout: float = 0.1,
     ) -> None:
         super().__init__()
-        if min(seq_len, pred_len, enc_in, cov_dim, d_model, nhead, num_encoder_layers, spatial_regions) <= 0:
+        if min(seq_len, pred_len, enc_in, cov_dim, d_model, nhead, num_encoder_layers) <= 0:
             raise ValueError("AirFormer dimensions must be positive")
         if d_model % nhead:
             raise ValueError("d_model must be divisible by nhead")
@@ -137,7 +125,12 @@ class Model(nn.Module):
         self.pred_len = pred_len
         self.enc_in = enc_in
         self.cov_dim = cov_dim
-        projection = default_dartboard(enc_in, spatial_regions) if dartboard_mx is None else torch.as_tensor(dartboard_mx, dtype=torch.float32)
+        if dartboard_mx is None:
+            raise ValueError(
+                "AirFormer needs a station graph: a dartboard projection [enc_in, regions, enc_in] or the "
+                "dataset adjacency adj_mx [enc_in, enc_in]; use a graph dataset that ships adj_mx.npy"
+            )
+        projection = torch.as_tensor(dartboard_mx, dtype=torch.float32)
         if projection.ndim == 2:
             projection = projection.unsqueeze(1)
         if projection.ndim != 3 or projection.shape[0] != enc_in or projection.shape[2] != enc_in:

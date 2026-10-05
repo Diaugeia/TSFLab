@@ -72,7 +72,15 @@ class Model(nn.Module):
         self.seq_len, self.pred_len, self.enc_in = seq_len, pred_len, enc_in
         self.patch_len = min(patch_len, seq_len)
         self.stride = min(stride, self.patch_len)
-        self.num_patches = 1 + (seq_len - self.patch_len) // self.stride
+        # PatchTST end padding as in the official code: replicate the last step by
+        # ``stride`` when patches overlap; for non-overlapping patches pad only the
+        # remainder, so the most recent steps are always inside the last patch.
+        if self.patch_len != self.stride:
+            self.pad_len = self.stride
+        else:
+            self.pad_len = (-(seq_len - self.patch_len)) % self.stride
+        self.padding = nn.ReplicationPad1d((0, self.pad_len)) if self.pad_len else nn.Identity()
+        self.num_patches = 1 + (seq_len + self.pad_len - self.patch_len) // self.stride
         self.revin = RevIN(enc_in, enabled=use_revin)
         self.patch_projection = nn.Linear(self.patch_len, d_model)
         self.importance = FourierPolyMask(d_model, fourier_order, polynomial_order)
@@ -104,7 +112,7 @@ class Model(nn.Module):
         if x_enc.ndim != 3 or x_enc.shape[1:] != (self.seq_len, self.enc_in):
             raise ValueError(f"expected [B,{self.seq_len},{self.enc_in}], got {tuple(x_enc.shape)}")
         normalized = self.revin(x_enc, "norm")
-        patches = normalized.transpose(1, 2).unfold(-1, self.patch_len, self.stride)
+        patches = self.padding(normalized.transpose(1, 2)).unfold(-1, self.patch_len, self.stride)
         tokens = self.patch_projection(patches)
         adaptive, _ = self.adaptive_features(tokens)
         hidden = self.norm(tokens + adaptive).reshape(-1, self.num_patches, tokens.shape[-1]).transpose(1, 2)

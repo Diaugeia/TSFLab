@@ -14,7 +14,7 @@ On two benchmarks it reduces errors by up to 10% across 24/48/72 h lead times, s
 
 ## Runtime contract
 
-Inputs are `x_enc [B, seq_len, N]` and historical raw or node meteorology; distance and directed flow graphs are construction inputs with explicit ring fallbacks. Output is `[B, pred_len, N]`.
+Inputs are `x_enc [B, seq_len, N]` and historical raw or node meteorology; the distance graph is a required construction input; a missing directed flow graph is replaced by a ring placeholder with a warning. Output is `[B, pred_len, N]`.
 
 ## Citation
 

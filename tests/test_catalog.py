@@ -813,3 +813,20 @@ def test_verify_command_writes_every_result_and_fails_on_any_failure(monkeypatch
     assert verification_command([]) == 2
     with pytest.raises(SystemExit):
         verification_command(["NoSuchModel"])
+
+
+def test_contract_supplies_a_graph_only_to_requires_graph_specs() -> None:
+    from tsflab.catalog import model_contracts
+
+    class Params(BaseModel):
+        enc_in: int
+
+    def spec(requires_graph: bool) -> ModelSpec:
+        return ModelSpec(name="G", module="m", model_class=nn.Module, factory=lambda cfg, params: params,
+                         params_schema=Params, capabilities=frozenset(["spatiotemporal"]),
+                         requires_graph=requires_graph)
+
+    built = model_contracts._build_model(spec(True), None, {"enc_in": 5})
+    assert built["adj_mx"].shape == (5, 5)
+    assert np.allclose(built["adj_mx"], built["adj_mx"].T) and np.all(np.diag(built["adj_mx"]) == 1)
+    assert "adj_mx" not in model_contracts._build_model(spec(False), None, {"enc_in": 5})

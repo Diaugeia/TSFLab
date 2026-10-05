@@ -14,6 +14,7 @@ No implementation source from the former CauAir-derived file is retained.
 
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 import numpy as np
@@ -28,16 +29,13 @@ def _row_normalize(matrix: torch.Tensor) -> torch.Tensor:
     return matrix / matrix.sum(-1, keepdim=True).clamp_min(1e-6)
 
 
-def _default_graphs(nodes: int) -> tuple[torch.Tensor, torch.Tensor]:
-    """Return an undirected ring and a directed wind-like ring."""
-    distance = torch.eye(nodes)
+def _placeholder_flow(nodes: int) -> torch.Tensor:
+    """Directed ring used for advection when no flow graph is given (not the paper's wind graph)."""
     flow = torch.zeros(nodes, nodes)
     if nodes > 1:
         index = torch.arange(nodes)
-        distance[index, (index + 1) % nodes] = 1
-        distance[index, (index - 1) % nodes] = 1
         flow[index, (index + 1) % nodes] = 1
-    return _row_normalize(distance), _row_normalize(flow)
+    return _row_normalize(flow)
 
 
 class PhysicsVectorField(nn.Module):
@@ -92,9 +90,21 @@ class Model(nn.Module):
         self.cov_dim = cov_dim
         self.ode_method = ode_method
 
-        default_distance, default_flow = _default_graphs(enc_in)
-        distance = default_distance if adj_mx is None else torch.as_tensor(adj_mx, dtype=torch.float32)
-        flow = default_flow if flow_mx is None else torch.as_tensor(flow_mx, dtype=torch.float32)
+        if adj_mx is None:
+            raise ValueError(
+                "AirPhyNet needs the station distance graph adj_mx [enc_in, enc_in] for its diffusion "
+                "Laplacian; use a graph dataset that ships adj_mx.npy"
+            )
+        distance = torch.as_tensor(adj_mx, dtype=torch.float32)
+        if flow_mx is None:
+            warnings.warn(
+                "AirPhyNet: no flow_mx given; advection uses a directed ring placeholder, not the "
+                "paper's wind-derived flow graph, so the advection term carries no physical meaning",
+                stacklevel=2,
+            )
+            flow = _placeholder_flow(enc_in)
+        else:
+            flow = torch.as_tensor(flow_mx, dtype=torch.float32)
         if distance.shape != (enc_in, enc_in) or flow.shape != (enc_in, enc_in):
             raise ValueError("adj_mx and flow_mx must both have shape (enc_in, enc_in)")
         self.register_buffer("distance_support", _row_normalize(distance.clamp_min(0)))

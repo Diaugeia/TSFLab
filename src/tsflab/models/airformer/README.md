@@ -15,7 +15,7 @@ description: "Air-quality Transformer: causal windowed temporal attention, dartb
 ## When to use
 
 - Nationwide-scale air-quality forecasting over hundreds to thousands of stations, where full station attention is too expensive and nearby regions matter most.
-- Needs station geography to build the dartboard projection; with a plain adjacency (one region) or the topological fallback the spatial prior is weak.
+- Needs a station graph; construction fails without it. Station geography gives the paper's dartboard projection; the runner injects only the dataset adjacency, which acts as one region, so the spatial prior is weaker than the paper's.
 - Latents model data uncertainty during training, but evaluation returns point forecasts (latent means).
 
 ## Configure
@@ -28,4 +28,4 @@ Other hyperparameters: preset defaults in `configs/models/AirFormer.toml`; tune 
 
 ## Differences
 
-Local implementation from the paper after inspecting the official `src/models/airformer.py` at the pinned revision; nothing copied (no license file). CT-MSA is causal; DS-MSA attends from every station to its regional aggregates; training samples each top-down latent and evaluation uses latent means. The fallback spatial projection without a dartboard matrix is topological, not geographic.
+Local implementation from the paper after inspecting the official `src/models/airformer.py` at the pinned revision; nothing copied (no license file). CT-MSA is causal; DS-MSA attends from every station to its regional aggregates; training samples each top-down latent and evaluation uses latent means. The official code loads a precomputed dartboard `assignment.npy` and `mask.npy` from station geography (`get_dartboard_info`); no TSFLab dataset ships one, so runs use the adjacency as a single region.

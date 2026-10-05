@@ -4,7 +4,6 @@ name = "DFDGCN"
 tags = ["gnn", "cnn", "frequency", "graph-learning", "spatiotemporal", "covariates"]
 fits = ["spatial-graph", "calendar-effects"]
 fidelity = "reference-checked"
-issues_checked = "the card reconstructs the dilated temporal backbone, graph mixture, frequency graph, and embeddings against the MIT official code at the pinned revision and records only TSFLab's preset and scoping differences."
 
 [paper]
 title = "Dynamic Frequency Domain Graph Convolutional Network for Traffic Forecasting"
@@ -16,7 +15,7 @@ year = 2024
 url = "https://github.com/GestaltCogTeam/DFDGCN"
 revision = "3105058512a9279c000e98046a49d1baf3469884"
 license = "MIT"
-reference_sources = []
+reference_sources = ["https://github.com/GestaltCogTeam/DFDGCN/blob/3105058512a9279c000e98046a49d1baf3469884/DFDGCN/basicts/archs/arch_zoo/dfdgcn_arch/dfdgcn_arch.py", "https://github.com/GestaltCogTeam/DFDGCN/blob/3105058512a9279c000e98046a49d1baf3469884/DFDGCN/examples/DFDGCN/DFDGCN_PEMS08.py"]
 
 [composition]
 normalization = "none"
@@ -28,12 +27,31 @@ loss = "loss:mse"
 
 [data_params]
 enc_in = { from = "nodes", rule = "must equal the number of graph nodes N" }
-adj_mx = { from = "graph", rule = "dataset adjacency [N, N] for the forward/reverse supports" }
+adj_mx = { from = "graph", rule = "dataset adjacency [N, N] for the forward/reverse supports; required, construction fails without it" }
+steps_per_day = { from = "frequency", rule = "steps per day (288 for 5-minute data); sizes the time-of-day embedding of the frequency graph" }
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "a73be734"
 device = "cpu"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = ""
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "dfdgcn_arch.py lines 70-81, 270-271 and 284 (dy_mask_graph, DFDGCN.forward)"
+what = "the official frequency graph L2-normalizes the FFT magnitudes over nodes and frequencies, scales them by `a`, and keeps the `subgraph` largest scores per row (random 0.01 tie-break); paper Eqs. (4)-(6) mention neither."
+resolution = "follows the official code; `a` and `subgraph` are model parameters (official defaults 1 and 20); `subgraph` is clamped to the node count."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "dfdgcn_arch.py lines 80 and 285"
+what = "the top-k mask multiplies the scores before the softmax, so dropped neighbours keep weight exp(0) instead of 0."
+resolution = "follows the official code."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "dfdgcn_arch.py lines 128 and 277"
+what = "the paper describes a shared 1x1 convolution over the concatenated embedding; the official code applies a separate projection per node (`Wd` [N, D, hidden])."
+resolution = "follows the official code (per-node projection)."

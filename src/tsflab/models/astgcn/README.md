@@ -15,7 +15,7 @@ description: "Spatial and temporal attention modulating Chebyshev graph convolut
 ## When to use
 
 - Traffic flow or similar sensor networks with a given adjacency and dynamic spatial-temporal correlations.
-- Needs `adj_mx`; without it a dense fallback graph removes the spatial prior.
+- Needs `adj_mx` (PEMS and METR-LA presets ship it); construction fails without it.
 - The paper's daily- and weekly-periodic branches are absent, so periodicity is only captured within the lookback.
 - Dense node attention is quadratic in the node count; point output only.
 

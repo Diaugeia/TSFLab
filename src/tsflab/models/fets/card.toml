@@ -27,15 +27,15 @@ loss = "loss:mse"
 
 [data_params]
 enc_in = { from = "channels", rule = "equals the number of channels" }
-stride = { from = "seq_len", rule = "seq_len - patch_len should be divisible by stride, else the latest steps are dropped" }
+stride = { from = "seq_len", rule = "at most patch_len; the input is end-padded by replication, so any seq_len is covered" }
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "a73be734"
 device = "cpu"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = ""
 
 [[issues]]
 kind = "underspecified"
@@ -48,3 +48,15 @@ kind = "license"
 where = "repository root"
 what = "no license file at the pinned revision."
 resolution = "independent rewrite; license recorded as `NOASSERTION`."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "models/FeTS.py lines 71-74 (AdaFE.forward)"
+what = "official threshold is the mean over the whole batch tensor with a strict `>`; paper Eqs. (7)-(8) use the per-row mean mu_Z[r] with `>=`."
+resolution = "follows the paper: per-row mean and `>=`."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "models/FeTS.py lines 92-120 and 178-188 (DSFFN, Model.forward)"
+what = "official DSFFN uses a pointwise expansion conv (d_model * ffn_ratio), a combine conv and a pointwise output conv, and adds the patch embedding residually after DSFFN; paper Eqs. (10)-(14) give a K-sized local conv, fusion conv and output conv with no residual."
+resolution = "not changed in this fix: TSFLab keeps a k=3 local conv, a 1x1 fusion conv, GELU + dropout in place of the Eq. (14) output conv, and a residual tokens + AdaFE before LayerNorm; recorded in README Differences."

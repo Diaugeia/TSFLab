@@ -17,8 +17,8 @@ gradient-alive.
 
 ## When to use
 
-Use in mixture-of-experts forecasters where inputs (for example windows
-summarized by their mean and standard deviation, as in `duet`) should be routed
+Use in mixture-of-experts forecasters where inputs (for example raw per-channel
+windows, as in `duet`) should be routed
 mostly to `k` experts while a small dense gradient path keeps the others
 trained. Do not use if non-selected experts must be skipped to save compute, if
 an exactly sparse weight vector is required with `floor > 0`, or when the gate

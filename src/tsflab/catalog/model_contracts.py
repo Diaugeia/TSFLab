@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from tsflab.core.paths import repository_root
 from types import SimpleNamespace
 
+import numpy as np
 import torch
 
 from tsflab.catalog.registry.models import MODEL_CATALOG, ModelSpec
@@ -46,8 +47,32 @@ def _params_for(spec: ModelSpec) -> dict:
     return dict(config["model"].get("params", {}))
 
 
+def contract_graph(nodes: int) -> np.ndarray:
+    """Synthetic ``[nodes, nodes]`` ring graph with self-loops for ``requires_graph`` models.
+
+    It stands in for the dataset adjacency that the runner injects in a real run; it
+    is never used outside the executable contract.
+    """
+    graph = np.eye(nodes, dtype=np.float32)
+    index = np.arange(nodes)
+    graph[index, (index + 1) % nodes] = 1.0
+    graph[index, (index - 1) % nodes] = 1.0
+    return graph
+
+
+def _construct_params(spec: ModelSpec, params: dict) -> dict:
+    """Validated preset parameters plus the synthetic graph a ``requires_graph`` model needs."""
+    validated = spec.validate_params(params)
+    if spec.requires_graph:
+        nodes = int(validated.get("num_nodes") or validated.get("enc_in"))
+        validated["adj_mx"] = contract_graph(nodes)
+    return validated
+
+
 def _build_model(spec: ModelSpec, cfg, params: dict):
     """Construct through the ordinary or explicit local-artifact path."""
+    if spec.requires_graph:
+        return spec.factory(cfg, _construct_params(spec, params))
     if not spec.artifacts:
         return spec.build(cfg, params)
     from tsflab.catalog.model_artifacts import require_artifacts
