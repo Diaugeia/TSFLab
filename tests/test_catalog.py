@@ -852,3 +852,24 @@ def test_dense_weight_cap_refuses_wide_cells_and_admits_narrow_ones(slug, maps) 
     assert count(96, 720, 862, 16) > cap and count(36, 60, 2000, 12) > cap
     # few-channel cells stay far below the cap (ETTh1 96 -> 720, ILI 36 -> 60)
     assert count(96, 720, 7, 20) < cap / 20 and count(36, 60, 7, 20) < cap / 500
+
+
+@pytest.mark.model  # builds DeepAR and runs forward/backward
+@pytest.mark.parametrize("dropout", [0.0, 0.3])
+def test_deepar_checkpointed_rollout_matches_plain_rollout(dropout) -> None:
+    from tsflab.models.deepar.model import Model
+
+    def loss_and_grads(checkpoint_steps):
+        torch.manual_seed(0)
+        model = Model(seq_len=8, pred_len=7, enc_in=3, dropout=dropout,
+                      checkpoint_steps=checkpoint_steps).train()
+        x = torch.randn(2, 8, 3)
+        torch.manual_seed(1)
+        loss = model(x).square().mean()
+        loss.backward()
+        return loss.detach(), [p.grad.clone() for p in model.parameters()]
+
+    plain_loss, plain_grads = loss_and_grads(0)
+    loss, grads = loss_and_grads(3)  # segments of 3, 3 and 1 steps
+    assert torch.allclose(loss, plain_loss)
+    assert all(torch.allclose(a, b, atol=1e-6) for a, b in zip(grads, plain_grads, strict=True))

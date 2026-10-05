@@ -2,7 +2,7 @@
 
 TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 307 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 306 of 311 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -63,7 +63,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `DecisionTreeTS` | Single differentiable soft binary tree (sigmoid routing, learned leaf values) over the flattened multichannel lag window. | paper-only | passed | [card](../../src/tsflab/models/decision_tree_ts/README.md) |
 | `DecompRevisit` | Dual-MLP decomposition forecaster: a moving-average trend forecast under RevIN plus an unnormalized seasonal shift-MLP fed the raw window, summed. | reference-checked | passed | [card](../../src/tsflab/models/decomprevisit/README.md) |
 | `DeepAir` | Air-quality station forecaster: target-relative regional aggregation of neighbouring stations feeds five residual fusion MLPs (weather, forecast weather, pollutants, calendar/station meta, holistic). | reference-checked | passed | [card](../../src/tsflab/models/deepair/README.md) |
-| `DeepAR` | Global autoregressive LSTM shared across channels that emits a Gaussian per step and feeds back its own mean. | reference-checked | passed | [card](../../src/tsflab/models/deepar/README.md) |
+| `DeepAR` | Global autoregressive LSTM shared across channels that emits a Gaussian per step and feeds back its own mean. | reference-checked | pending | [card](../../src/tsflab/models/deepar/README.md) |
 | `DFDGCN` | Traffic GNN: gated dilated temporal convolutions with graph propagation over static, adaptive and a per-sample frequency-domain graph built from FFT magnitudes and node identity. | reference-checked | passed | [card](../../src/tsflab/models/dfdgcn/README.md) |
 | `DGCRN` | Graph-GRU encoder-decoder whose directed graphs are regenerated at every step by hypernetworks from the hidden state and mixed with the predefined road graph. | reference-checked | passed | [card](../../src/tsflab/models/dgcrn/README.md) |
 | `DiPELinear` | Parameter-efficient linear forecaster: static frequency and time attention, then a per-frequency complex FFT mapping to the horizon, with low-rank expert sharing and a spectrum-weighted loss. | reference-checked | passed | [card](../../src/tsflab/models/dipelinear/README.md) |
