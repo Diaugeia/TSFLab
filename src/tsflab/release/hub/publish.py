@@ -8,10 +8,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tsflab.release.hub.bundle import MANIFEST
+from tsflab.release.hub.bundle import CHECKPOINTS_PREFIX, MANIFEST
 from tsflab.release.hub.uri import DEFAULT_OWNER, HubURI, default_repo
 
-DEFAULT_WEIGHTS_REPO = default_repo("TSFLab-Weights")
+# One model repository holds run results, top-ranked checkpoints, the generated
+# board, and the TSEval-era archive (``legacy/``).
+DEFAULT_CHECKPOINTS_REPO = default_repo("TSFLab-Checkpoints")
+DEFAULT_WEIGHTS_REPO = DEFAULT_CHECKPOINTS_REPO  # backward-compatible alias
 
 
 def _api():
@@ -40,16 +43,26 @@ def push(bundle_dir: Path, path_in_repo: str, repo_id: str = DEFAULT_WEIGHTS_REP
 
 def list_bundles(repo_id: str = DEFAULT_WEIGHTS_REPO, revision: str = "main",
                  dataset: str | None = None, model: str | None = None) -> list[str]:
-    """Return ``<dataset>/<model>/<run_id>`` directories present in ``repo_id``."""
+    """Return bundle directories present in ``repo_id``.
+
+    Bundles live at ``checkpoints/<track>/<dataset>/<model>/<run_id>``; the
+    earlier ``<dataset>/<model>/<run_id>`` layout is still listed.
+    """
     files = _api().list_repo_files(repo_id, repo_type="model", revision=revision)
     bundles = []
     for name in files:
         parts = name.split("/")
-        if len(parts) != 4 or parts[-1] != MANIFEST:
+        if parts[-1] != MANIFEST:
             continue
-        if (dataset and parts[0] != dataset) or (model and parts[1] != model):
+        if len(parts) == 6 and parts[0] == CHECKPOINTS_PREFIX:
+            ds, mdl = parts[2], parts[3]
+        elif len(parts) == 4 and parts[0] not in ("results", "board", "legacy"):
+            ds, mdl = parts[0], parts[1]
+        else:
             continue
-        bundles.append("/".join(parts[:3]))
+        if (dataset and ds != dataset) or (model and mdl != model):
+            continue
+        bundles.append("/".join(parts[:-1]))
     return sorted(bundles)
 
 
@@ -121,14 +134,22 @@ def repository_plan(owner: str = DEFAULT_OWNER) -> list[dict[str, str]]:
     """Return the published repositories: id, type, and README card."""
     return [
         {"repo_id": f"{owner}/TSFLab-Datasets", "repo_type": "dataset", "card": _datasets_card()},
-        {"repo_id": f"{owner}/TSFLab-Weights", "repo_type": "model", "card": _card(
+        {"repo_id": f"{owner}/TSFLab-Checkpoints", "repo_type": "model", "card": _card(
             {"license": "mit", "library_name": "tsflab"},
             f"""
-# TSFLab trained weights
+# TSFLab checkpoints and results
 
-Checksummed safetensors bundles at `<dataset>/<model>/<run_id>/`, published with
-`tsf result hub push` and loaded with `tsf result hub pull hf://{owner}/TSFLab-Weights@<revision>/...`.
-Source: [TSFLab]({_SOURCE}).""")},
+Run results and top-ranked trained checkpoints of [TSFLab]({_SOURCE}):
+
+| Path | Contents |
+| --- | --- |
+| `results/<track>/<dataset>/<model>/<submission_id>/` | validated submission bundles (`submission.json`, `trajectory.jsonl`, `report.md`) |
+| `checkpoints/<track>/<dataset>/<model>/<run_id>/` | checksummed safetensors bundles of top-ranked runs |
+| `board/` | `leaderboard.json` and `model-meta.json`, generated from `results/`; the leaderboard Space reads them |
+| `legacy/` | TSEval-era weights and submissions, archived and not ranked |
+
+Publish with `tsf result hub results push` and `tsf result hub push-top`; load a
+checkpoint with `tsf result hub pull hf://{owner}/TSFLab-Checkpoints@<revision>/checkpoints/...`.""")},
         {"repo_id": f"{owner}/TSFLab", "repo_type": "space", "card": _card(
             {"title": "TSFLab Leaderboard", "emoji": '"📈"', "colorFrom": "gray",
              "colorTo": "yellow", "sdk": "static", "pinned": "false", "license": "mit"},
@@ -142,7 +163,7 @@ Static leaderboard auto-deployed by the `ci` workflow of
 
 # Former TSEval repositories; moving them keeps their old URLs redirecting here.
 # TSFLab-Datasets has no predecessor to rename: TSFLab-Static stays frozen for 0.8.0.
-LEGACY_NAMES = {"TSFLab": "TSEval"}
+LEGACY_NAMES = {"TSFLab": "TSEval", "TSFLab-Checkpoints": "TSFLab-Weights"}
 
 
 def init_repositories(owner: str = DEFAULT_OWNER, *, private: bool = False,
