@@ -31,4 +31,4 @@ SPEC = ModelSpec(name="AirDualODE", module="tsflab.models.airdualode", model_cla
     factory=build_model, params_schema=ModelParameterConfig,
     config_path="configs/models/AirDualODE.toml", model_card="src/tsflab/models/airdualode/README.md",
     capabilities=frozenset(["covariate"]), components=("marks",),
-    contract_task={"seq_len": 24, "pred_len": 24, "label_len": 0})
+    contract_task={"seq_len": 24, "pred_len": 24, "label_len": 0}, requires_graph=True)

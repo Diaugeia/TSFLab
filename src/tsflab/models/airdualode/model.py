@@ -9,6 +9,7 @@ graph before decoding, as described after Decay-TCL in Eqs. 11--13.
 
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 import numpy as np
@@ -23,15 +24,13 @@ def _normalize(matrix: torch.Tensor) -> torch.Tensor:
     return matrix / matrix.sum(-1, keepdim=True).clamp_min(1e-6)
 
 
-def _default_graphs(nodes: int) -> tuple[torch.Tensor, torch.Tensor]:
-    diffusion = torch.eye(nodes)
+def _placeholder_advection(nodes: int) -> torch.Tensor:
+    """Directed ring used for advection when no flow graph is given (not the paper's wind graph)."""
     advection = torch.zeros(nodes, nodes)
     if nodes > 1:
         index = torch.arange(nodes)
-        diffusion[index, (index + 1) % nodes] = 1
-        diffusion[index, (index - 1) % nodes] = 1
         advection[index, (index + 1) % nodes] = 1
-    return _normalize(diffusion), _normalize(advection)
+    return _normalize(advection)
 
 
 class BoundaryAwareDynamics(nn.Module):
@@ -120,9 +119,21 @@ class Model(nn.Module):
         self.cov_dim = cov_dim
         self.ode_method = ode_method
 
-        default_diffusion, default_advection = _default_graphs(enc_in)
-        diffusion = default_diffusion if adj_mx is None else torch.as_tensor(adj_mx, dtype=torch.float32)
-        advection = default_advection if flow_mx is None else torch.as_tensor(flow_mx, dtype=torch.float32)
+        if adj_mx is None:
+            raise ValueError(
+                "Air-DualODE needs the station distance graph adj_mx [enc_in, enc_in] for diffusion, "
+                "attention masking and graph fusion; use a graph dataset that ships adj_mx.npy"
+            )
+        diffusion = torch.as_tensor(adj_mx, dtype=torch.float32)
+        if flow_mx is None:
+            warnings.warn(
+                "Air-DualODE: no flow_mx given; advection uses a directed ring placeholder, not the "
+                "paper's wind-derived flow graph, so the advection term carries no physical meaning",
+                stacklevel=2,
+            )
+            advection = _placeholder_advection(enc_in)
+        else:
+            advection = torch.as_tensor(flow_mx, dtype=torch.float32)
         if diffusion.shape != (enc_in, enc_in) or advection.shape != (enc_in, enc_in):
             raise ValueError("adj_mx and flow_mx must both have shape (enc_in, enc_in)")
         self.register_buffer("diffusion_support", _normalize(diffusion.clamp_min(0)))

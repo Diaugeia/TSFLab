@@ -23,4 +23,4 @@ SPEC = ModelSpec(name="AirPhyNet", module="tsflab.models.airphynet", model_class
     factory=build_model, params_schema=ModelParameterConfig,
     config_path="configs/models/AirPhyNet.toml", model_card="src/tsflab/models/airphynet/README.md",
     capabilities=frozenset(["covariate"]), components=("marks",),
-    contract_task={"seq_len": 24, "pred_len": 24, "label_len": 0})
+    contract_task={"seq_len": 24, "pred_len": 24, "label_len": 0}, requires_graph=True)

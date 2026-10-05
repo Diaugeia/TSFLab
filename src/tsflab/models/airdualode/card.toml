@@ -28,16 +28,13 @@ loss = "loss:mse"
 [data_params]
 enc_in = { from = "nodes", rule = "number of stations (nodes)" }
 cov_dim = { from = "covariates", rule = "meteorology covariates per station; exactly cov_dim features are required (2 for converted calendar marks)" }
-adj_mx = { from = "graph", rule = "[enc_in, enc_in] distance adjacency for diffusion; without it a ring placeholder is used" }
-flow_mx = { from = "graph", rule = "[enc_in, enc_in] directed wind/flow adjacency for advection; without it a ring placeholder is used" }
+adj_mx = { from = "graph", rule = "[enc_in, enc_in] distance adjacency for diffusion; required, construction fails without it" }
+flow_mx = { from = "graph", rule = "[enc_in, enc_in] directed wind/flow adjacency for advection; no TSFLab data path supplies it, so a directed ring placeholder is used with a warning" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
+status = "pending"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = "adj_mx now required (ring fallback removed); missing flow_mx warns; re-run tsf model verify AirDualODE"
 
 [[issues]]
 kind = "license"

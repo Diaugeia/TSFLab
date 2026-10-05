@@ -2,7 +2,7 @@
 
 TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 308 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 304 of 311 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -10,9 +10,9 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `AdaMSHyper` | Per-scale learned hypergraphs over a conv pyramid, node/hyperedge constraint loss, intra-scale and hyperedge attention. | reference-checked | passed | [card](../../src/tsflab/models/adamshyper/README.md) |
 | `AGCRN` | Graph GRU with node-embedding-generated filter weights and a self-learned adjacency; needs no predefined graph. | reference-checked | passed | [card](../../src/tsflab/models/agcrn/README.md) |
 | `AirCade` | Air-quality Transformer with four-path domain-knowledge attention decoupling AQI-weather causality in past and future. | reference-checked | passed | [card](../../src/tsflab/models/aircade/README.md) |
-| `AirDualODE` | Dual neural ODE: boundary-aware diffusion-advection physics plus masked-attention latent ODE, fused on the graph. | reference-checked | passed | [card](../../src/tsflab/models/airdualode/README.md) |
-| `AirFormer` | Air-quality Transformer: causal windowed temporal attention, dartboard regional spatial attention, stochastic latents. | reference-checked | passed | [card](../../src/tsflab/models/airformer/README.md) |
-| `AirPhyNet` | Graph neural ODE with gated diffusion-advection vector field, evolved from a sampled GRU initial state. | reference-checked | passed | [card](../../src/tsflab/models/airphynet/README.md) |
+| `AirDualODE` | Dual neural ODE: boundary-aware diffusion-advection physics plus masked-attention latent ODE, fused on the graph. | reference-checked | pending | [card](../../src/tsflab/models/airdualode/README.md) |
+| `AirFormer` | Air-quality Transformer: causal windowed temporal attention, dartboard regional spatial attention, stochastic latents. | reference-checked | pending | [card](../../src/tsflab/models/airformer/README.md) |
+| `AirPhyNet` | Graph neural ODE with gated diffusion-advection vector field, evolved from a sampled GRU initial state. | reference-checked | pending | [card](../../src/tsflab/models/airphynet/README.md) |
 | `AMD` | Avg-pool multi-scale mixing, patch-sequential blocks, and an MoE of MLP predictors gated by the scale embedding. | reference-checked | passed | [card](../../src/tsflab/models/amd/README.md) |
 | `Amplifier` | Adds the mirrored spectrum to expose low-energy frequencies, then semi-channel mixing, decomposition, restoration. | reference-checked | passed | [card](../../src/tsflab/models/amplifier/README.md) |
 | `AMRC` | Training objective adding adaptive prefix-masking loss and embedding-similarity penalty to a compact linear forecaster. | reference-checked | passed | [card](../../src/tsflab/models/amrc/README.md) |
@@ -23,7 +23,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `ARMD` | Deterministic diffusion that slides a window from history to future; a linear devolution net, few-step DDIM forecast. | reference-checked | passed | [card](../../src/tsflab/models/armd/README.md) |
 | `AROpt` | iTransformer patch forecaster rolled out autoregressively; discounted patch losses penalize non-monotone error. | reference-checked | passed | [card](../../src/tsflab/models/aropt/README.md) |
 | `ASGMamba` | Patch Mamba at scales 8/16/32 whose tokens are gated by patch rFFT low/mid/high band energies; softmax scale fusion. | reference-checked | passed | [card](../../src/tsflab/models/asgmamba/README.md) |
-| `ASTGCN` | Spatial and temporal attention modulating Chebyshev graph convolution plus gated temporal conv; recent branch only. | reference-checked | passed | [card](../../src/tsflab/models/astgcn/README.md) |
+| `ASTGCN` | Spatial and temporal attention modulating Chebyshev graph convolution plus gated temporal conv; recent branch only. | reference-checked | pending | [card](../../src/tsflab/models/astgcn/README.md) |
 | `Aurora` | Patch Transformer guided by distilled text/image tokens, decoding via prototype retrieval and flow integration. | reference-checked | passed | [card](../../src/tsflab/models/aurora/README.md) |
 | `Autoformer` | Progressive series decomposition in every layer plus FFT auto-correlation attention aggregating top-k delays. | reference-checked | passed | [card](../../src/tsflab/models/autoformer/README.md) |
 | `AutoRegressiveTS` | One shared linear map from the whole lag window to all horizons, applied to every channel independently. | paper-only | passed | [card](../../src/tsflab/models/autoregressive_ts/README.md) |

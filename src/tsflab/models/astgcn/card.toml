@@ -28,15 +28,12 @@ loss = "loss:mse"
 [data_params]
 enc_in = { from = "nodes", rule = "number of graph nodes (sensors)" }
 cov_dim = { from = "covariates", rule = "covariate features per node; inputs are cropped/padded to 1 + cov_dim (2 for converted calendar stamps)" }
-adj_mx = { from = "graph", rule = "[enc_in, enc_in] road-network adjacency, converted to Chebyshev supports; absent, a dense fallback is used" }
+adj_mx = { from = "graph", rule = "[enc_in, enc_in] road-network adjacency, converted to Chebyshev supports; required, construction fails without it" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
+status = "pending"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = "adj_mx now required (the all-ones fallback was removed); re-run tsf model verify ASTGCN"
 
 [[issues]]
 kind = "license"

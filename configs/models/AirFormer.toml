@@ -7,5 +7,4 @@ cov_dim = 2
 d_model = 32
 nhead = 2
 num_encoder_layers = 4
-spatial_regions = 4
 dropout = 0.1

@@ -28,15 +28,12 @@ loss = "loss:mse"
 [data_params]
 enc_in = { from = "nodes", rule = "number of stations (nodes)" }
 cov_dim = { from = "covariates", rule = "covariate features per station (2 for converted calendar marks)" }
-adj_mx = { from = "graph", rule = "dartboard projection [enc_in, regions, enc_in] from station geography; a plain adjacency is one region; absent, a topological fallback is used" }
+adj_mx = { from = "graph", rule = "dartboard projection [enc_in, regions, enc_in] from station geography, or a plain [enc_in, enc_in] adjacency (one region); required, construction fails without it" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
+status = "pending"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = "graph now required (topological dartboard fallback and its spatial_regions parameter removed); re-run tsf model verify AirFormer"
 
 [[issues]]
 kind = "license"
