@@ -38,6 +38,9 @@ GROUPS = {
     "spatial": ["metr_la", "pems03", "pems04", "pems07", "pems08", "pems_bay"],
 }
 PILOT = {"long": ["etth1"], "spatial": ["pems08"]}
+# Smoke: one epoch at the longest horizon on the extreme shapes (fewest channels,
+# shortest lookback, most channels, most nodes) to catch shape and memory errors.
+SMOKE = {"long": ["traffic"], "short": ["nasdaq", "ili", "wike2000"], "spatial": ["pems07"]}
 
 # One batch size per dataset, shared by every model (training settings are part
 # of the protocol fingerprint, so a per-model batch would split the cohort).
@@ -208,6 +211,10 @@ def overlay(out: Path, name: str, sig: tuple[str, ...], spatial: bool) -> Path:
     return path
 
 
+def horizons(phase: str, preds: list[int]) -> list[int]:
+    return {"pilot": preds[:1], "smoke": preds[-1:]}.get(phase, preds)
+
+
 def root_doc(phase: str, tag: str, c: str, spatial: bool, seq: int) -> dict:
     doc = {
         "extends": [],
@@ -219,6 +226,8 @@ def root_doc(phase: str, tag: str, c: str, spatial: bool, seq: int) -> dict:
                  "seq_len": seq, "label_len": seq // 2, "features": "M"},
         "training": {"loss": CLASS[c]["loss"]},
     }
+    if phase == "smoke":
+        doc["training"].update({"epochs": 1, "patience": 1})
     if CLASS[c]["metrics"]:
         doc["evaluation"] = {"metrics": CLASS[c]["metrics"]}
     return doc
@@ -242,7 +251,7 @@ def check(out: Path, m: dict, ov: Path, doc: dict, preds) -> str | None:
 
 
 def generate(phase: str, out: Path, validate: bool = False) -> list[dict]:
-    groups = PILOT if phase == "pilot" else GROUPS
+    groups = {"pilot": PILOT, "smoke": SMOKE}.get(phase, GROUPS)
     by_class: dict[str, list[dict]] = {}
     skipped = []
     rows = models()
@@ -264,8 +273,8 @@ def generate(phase: str, out: Path, validate: bool = False) -> list[dict]:
                     for d in datasets:
                         ov = overlay(out, d, sig, spatial)
                         seqs = proto[d]["seq_lens"]
-                        for seq in (seqs[:1] if phase in ("pilot", "main") else seqs[1:]):
-                            preds = proto[d]["pred_lens"][:1] if phase == "pilot" else proto[d]["pred_lens"]
+                        for seq in (seqs[:1] if phase in ("pilot", "smoke", "main") else seqs[1:]):
+                            preds = horizons(phase, proto[d]["pred_lens"])
                             doc = root_doc(phase, "check", c, spatial, seq)
                             for m in members:
                                 if (m["name"], d) not in EXCLUDE:
@@ -288,9 +297,9 @@ def generate(phase: str, out: Path, validate: bool = False) -> list[dict]:
                 buckets: dict[tuple, list[str]] = {}
                 for d in (d for d in datasets if d not in drop and (d in HEAVY) == (weight == "heavy")):
                     seqs = proto[d]["seq_lens"]
-                    chosen = seqs[:1] if phase in ("pilot", "main") else seqs[1:]
+                    chosen = seqs[:1] if phase in ("pilot", "smoke", "main") else seqs[1:]
                     for s in chosen:
-                        preds = proto[d]["pred_lens"][:1] if phase == "pilot" else proto[d]["pred_lens"]
+                        preds = horizons(phase, proto[d]["pred_lens"])
                         buckets.setdefault((s, tuple(preds)), []).append(d)
                 for (seq, preds), ds in sorted(buckets.items()):
                     tag = (f"{group}__{c}__{'-'.join(sig) or 'none'}__sl{seq}__{tier}-{weight}"
@@ -321,7 +330,7 @@ def generate(phase: str, out: Path, validate: bool = False) -> list[dict]:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--phase", choices=["pilot", "main", "lookback"], required=True)
+    ap.add_argument("--phase", choices=["pilot", "smoke", "main", "lookback"], required=True)
     ap.add_argument("--out", type=Path, help="default: experiments/benchmark-1.0/runs/<phase>")
     ap.add_argument("--validate", action="store_true",
                     help="load every (model, dataset) cell with the TSFLab loader and exclude the rejected ones")
