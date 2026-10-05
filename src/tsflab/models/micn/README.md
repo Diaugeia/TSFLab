@@ -1,20 +1,21 @@
 ---
 name: "MICN"
-description: "Multi-scale isometric convolution network: multi-kernel seasonal-trend decomposition, then per-scale downsampled local and global convolutions with linear horizon maps. Use for long-term forecasting with trend plus local fluctuations at modest compute; not for calendar-driven targets (time marks are ignored)."
+description: "Multi-scale isometric convolution network: multi-kernel seasonal-trend decomposition, a linear trend regression, and MIC layers with per-scale downsampling and full-length isometric convolutions over the zero-padded seasonal sequence. Use for long-term forecasting with trend plus local fluctuations at modest compute; not for calendar-driven targets (time marks are ignored)."
 ---
 
 # MICN
 
 ## Idea
 
-- `MultiScaleDecomposition` averages several moving-average decompositions (`series_decomposition`) into one seasonal and one trend component.
-- Each `IsometricConvolutionBranch` downsamples with a strided depthwise conv (local pattern), adds a global context convolution over the shortened sequence, and restores length with a transposed conv; `MICLayer` merges the scales.
-- The seasonal part is refined with a residual and mapped by a linear history-to-horizon layer; the trend part gets its own linear map and the two forecasts are summed.
-- The input embedding is a linear map over channels; calendar embedding is omitted.
+- `MultiScaleDecomposition` averages several moving-average decompositions (`series_decomposition`) into one seasonal and one trend part.
+- Trend: `mode = "regre"` maps the trend with a linear layer over time (weights start at `1 / pred_len`); `mode = "mean"` repeats the window mean.
+- Seasonal: the seasonal part is extended with `pred_len` zeros and embedded (`embed` token convolution plus sinusoidal positions).
+- Each `MICLayer` runs one `LocalGlobalBranch` per scale `s`: decompose again, downsample with a stride-`s` convolution (local features), apply an isometric convolution (left-pad the `S` downsampled steps with `S - 1` zeros, kernel `S`; global correlations), upsample with a transposed convolution. A `(scales, 1)` Conv2d merges the branches; a feed-forward with residual follows.
+- A linear projection maps to channels; the last `pred_len` steps plus the trend forecast give the output.
 
 ## When to use
 
-- Designed for long-term forecasting where both local fluctuations and global trends matter, as a CNN alternative to quadratic attention (linear in sequence length).
+- Long-term forecasting where both local fluctuations and global trends matter, as a CNN alternative to quadratic attention.
 - The explicit trend branch helps on trending series.
 - Channels are mixed by the input embedding, so it is a weaker fit for many weakly correlated channels.
 - No instance normalization and no calendar features.
@@ -22,12 +23,15 @@ description: "Multi-scale isometric convolution network: multi-kernel seasonal-t
 ## Configure
 
 - `enc_in`: number of input channels.
-- `conv_kernel`: distinct integers >= 2, smaller than `seq_len`; each is both a moving-average window (even values +1) and a downsampling stride (input replicate-padded to a multiple).
+- `conv_kernel`: distinct integers >= 2, smaller than `seq_len`; each is a moving-average window (even values +1) and a downsampling stride. The isometric kernel of each scale is derived from `seq_len + pred_len`.
+- `mode`: `regre` (paper default) or `mean`.
 
 Other hyperparameters: preset defaults in `configs/models/MICN.toml`; tune generically.
 
 ## Differences
 
-- Clean-room implementation from the paper; the unlicensed repository is reference-only.
-- The global context step is a depthwise kernel-3 convolution plus a pointwise convolution over the downsampled sequence.
-- Calendar embedding is intentionally omitted.
+- Clean-room implementation; the unlicensed repository (`models/model.py`, `models/local_global.py`, `run.py` at `370c69b8`) is reference-only, nothing copied.
+- The reference adds a calendar embedding of `x_mark_dec`; it is omitted here, so the embedding is the token convolution plus positions only.
+- The shared `embed` token convolution has no bias; the reference convolution has one.
+- The MIC-layer dropout is fixed at 0.05 and `dropout` sets only the embedding dropout, as in the reference (see `[[issues]]`).
+- `c_out` must equal `enc_in`.

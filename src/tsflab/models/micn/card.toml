@@ -6,8 +6,8 @@ fits = ["long-horizon", "strong-trend", "efficiency"]
 fidelity = "reference-checked"
 
 [data_params]
-enc_in = { from = "channels", rule = "number of input channels; mixed by the linear input embedding" }
-conv_kernel = { from = "seq_len", rule = "distinct integers >= 2, smaller than seq_len; each is a moving-average window (even values +1) and a downsampling stride (input replicate-padded to a multiple)" }
+enc_in = { from = "channels", rule = "number of input channels; mixed by the convolutional token embedding" }
+conv_kernel = { from = "seq_len", rule = "distinct integers >= 2, smaller than seq_len; each is a moving-average window (even values +1) and a downsampling stride; the isometric kernel per scale is the downsampled length of seq_len + pred_len" }
 
 [paper]
 title = "MICN: Multi-scale Local and Global Context Modeling for Long-term Series Forecasting"
@@ -19,14 +19,14 @@ year = 2023
 url = "https://github.com/wanghq21/MICN"
 revision = "370c69b841d72246556ca05dd23163c560c22b5a"
 license = "NOASSERTION"
-reference_sources = []
+reference_sources = ["https://github.com/wanghq21/MICN/blob/370c69b841d72246556ca05dd23163c560c22b5a/models/model.py", "https://github.com/wanghq21/MICN/blob/370c69b841d72246556ca05dd23163c560c22b5a/models/local_global.py", "https://github.com/wanghq21/MICN/blob/370c69b841d72246556ca05dd23163c560c22b5a/models/embed.py", "https://github.com/wanghq21/MICN/blob/370c69b841d72246556ca05dd23163c560c22b5a/run.py"]
 
 [composition]
 normalization = "none"
 decomposition = "component:series_decomposition"
-temporal = "local:multi-scale-isometric-convolution-branches"
-channel = "local:channel-mixing-linear-embedding"
-head = "local:linear-history-to-horizon-seasonal-plus-trend"
+temporal = "local:multi-scale-downsample-isometric-convolution-branches"
+channel = "component:embed"
+head = "local:seasonal-projection-plus-linear-trend-regression"
 loss = "loss:mse"
 
 [admission]
@@ -42,3 +42,9 @@ kind = "license"
 where = "repository root"
 what = "no license file at the pinned revision."
 resolution = "clean-room implementation from the paper, repository used as reference only; license recorded as `NOASSERTION`."
+
+[[issues]]
+kind = "code-bug"
+where = "`models/local_global.py` `Seasonal_Prediction.__init__` (L171-173) and `MIC.__init__` (L95, L125)"
+what = "`Seasonal_Prediction` does not pass `dropout` to `MIC`, so the MIC feed-forward uses the default 0.05 and the branch dropout is hard-coded 0.05; the `--dropout` flag reaches only the input embedding."
+resolution = "kept: MIC-layer dropout is fixed at 0.05 and `dropout` sets only the embedding dropout, as in the reference."
