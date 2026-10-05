@@ -1,0 +1,22 @@
+# Execution policy: re-runs of out-of-memory cells, one run per GPU with the whole card.
+#   python make_runs.py --phase main --cells oom.csv --out ../runs/main-oom1
+#   python enqueue.py --phase main-oom1 --queue <dir> --policy policy-exclusive.toml --heavy-policy policy-exclusive.toml --jobs 8
+
+[budget]
+max_parallel_jobs = 8
+run_timeout_minutes = 720
+max_retries = 0
+
+[resources]
+gpus = ["0", "1", "2", "3", "4", "5", "6", "7"]
+gpus_per_run = 1
+sharing = true
+max_processes_per_gpu = 1
+memory_per_run_mb = 44000
+min_free_memory_mb = 44000
+threads_per_run = 16
+wait_timeout_minutes = 1440
+min_free_disk_gb = 100
+
+[storage]
+keep_epoch_checkpoints = 0
