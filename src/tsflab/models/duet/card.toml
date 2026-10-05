@@ -4,7 +4,6 @@ name = "DUET"
 tags = ["hybrid", "mixture-of-experts", "channel-mixing", "decomposition", "attention-variant", "normalization"]
 fits = ["non-stationary", "high-cross-correlation"]
 fidelity = "reference-checked"
-issues_checked = "the card maps the distributional router, trend/seasonal experts, top-k mixture, Mahalanobis attention bias, and channel encoder to the paper with the MIT official code as reference and records no paper or official-code problem."
 
 [paper]
 title = "DUET: Dual Clustering Enhanced Multivariate Time Series Forecasting"
@@ -16,13 +15,19 @@ year = 2025
 url = "https://github.com/decisionintelligence/DUET"
 revision = "dcc6e6780a9138731b64b9b5398a94a1d97033f0"
 license = "MIT"
-reference_sources = []
+reference_sources = [
+  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/models/duet_model.py",
+  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/utils/masked_attention.py",
+  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/linear_extractor_cluster.py",
+  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/distributional_router_encoder.py",
+  "https://github.com/decisionintelligence/DUET/blob/dcc6e6780a9138731b64b9b5398a94a1d97033f0/ts_benchmark/baselines/duet/layers/linear_pattern_extractor.py",
+]
 
 [composition]
 normalization = "component:revin"
 decomposition = "local:moving-average-trend-seasonal-experts"
 temporal = "component:topk_expert_router+local:distributional-temporal-experts"
-channel = "local:mahalanobis-biased-channel-attention"
+channel = "local:frequency-mahalanobis-channel-mask+local:masked-channel-attention"
 head = "local:linear-horizon-head"
 loss = "loss:mse"
 
@@ -30,9 +35,24 @@ loss = "loss:mse"
 enc_in = { from = "channels", rule = "equals the number of channels" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
+status = "pending"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = "channel mask moved to the frequency-domain learnable Mahalanobis metric and the router to raw per-channel input (new parameters); re-run tsf model verify DUET"
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "utils/masked_attention.py lines 178 and 182-192 (Mahalanobis_mask)"
+what = "paper Eq. (18) sets P_ii = 1 and samples M_ij ~ Bernoulli(P_ij); the official code scales the whole matrix (diagonal included) by 0.99 and feeds Gumbel-softmax the logits log(p/(1-p)) and log((1-p)/p), which samples 1 with probability p^2/(p^2+(1-p)^2), not p."
+resolution = "follows the official code (diagonal 0.99, the same two logits, hard Gumbel-softmax also at inference) because the reported results come from it."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "utils/masked_attention.py lines 95-99 (FullAttention.forward)"
+what = "paper Eq. (20) fills masked scores with -inf; the official code fills them with -log(1e10) (about -23) before the 1/sqrt(d) scale, a finite soft mask."
+resolution = "follows the official code; a finite fill also keeps rows finite when the sampled mask drops a channel's own diagonal entry."
+
+[[issues]]
+kind = "underspecified"
+where = "paper Section 4.3 Eq. (16) and models/duet_model.py lines 66-68"
+what = "the paper does not say whether the channel metric reads the raw or the RevIN-normalized input; the official code reads the raw input."
+resolution = "follows the official code: the mask and the router read the raw input; the experts read the RevIN-normalized input."

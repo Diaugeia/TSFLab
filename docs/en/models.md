@@ -2,7 +2,7 @@
 
 TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 310 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 309 of 311 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -80,7 +80,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `DSTAGNN` | Temporal and spatial attention modulating Chebyshev graph convolution, plus kernel 3/5/7 gated temporal convolutions. | reference-checked | passed | [card](../../src/tsflab/models/dstagnn/README.md) |
 | `DTAF` | Dual-branch patch Transformer for non-stationary series: an MoE filter subtracts temporal non-stationary patterns and a frequency-differencing branch keeps shifting spectral bins. | reference-checked | passed | [card](../../src/tsflab/models/dtaf/README.md) |
 | `Dualformer` | Time- and frequency-domain Transformer branches fed depth-specific frequency bands, fused by a harmonic-energy periodicity gate. | reference-checked | passed | [card](../../src/tsflab/models/dualformer/README.md) |
-| `DUET` | Distribution-routed mixture of trend/seasonal linear experts, then distance-biased attention across channels. | reference-checked | passed | [card](../../src/tsflab/models/duet/README.md) |
+| `DUET` | Distribution-routed mixture of trend/seasonal linear experts, then channel attention masked by a learned frequency-domain metric. | reference-checked | pending | [card](../../src/tsflab/models/duet/README.md) |
 | `DynamicTMoE` | Patch mixture of five heterogeneous experts routed by recurrent memory and RBF-MMD drift detection, plus cyclic channel relations. | reference-checked | passed | [card](../../src/tsflab/models/dynamic_tmoe/README.md) |
 | `DynGDiff` | Unconditional S4 diffusion model guided at sampling time by a policy network's per-variable, per-step precision on a quantile likelihood. | reference-checked | passed | [card](../../src/tsflab/models/dyngdiff/README.md) |
 | `ElasticNetTS` | Shared linear lag regression from lookback to all horizons, gradient-trained with an L1/L2 elastic-net weight penalty. | paper-only | passed | [card](../../src/tsflab/models/elastic_net_ts/README.md) |

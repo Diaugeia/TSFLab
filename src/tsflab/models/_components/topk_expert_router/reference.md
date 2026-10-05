@@ -7,7 +7,7 @@ which says both routers were reproduced bit-for-bit. `GatingMLP` is DUET's
 `DistributionalRouter` gate; `topk_dense_mix` is the same arithmetic DUET applied
 after its router and DynamicTMoE applied in `routing_weights` (it passes a
 configurable `routing_floor`; DUET passes 1e-3). Model-local: the gate input
-features (DUET: per-channel mean and std), DynamicTMoE's drift, MMD and memory
+features (DUET: each raw channel series of length `seq_len`), DynamicTMoE's drift, MMD and memory
 logits (it uses only `topk_dense_mix`), expert networks, and MAGE's gate, DUET's
 even-kernel moving average and STWave's Haar step, which the commit kept local
 with documented reasons.
