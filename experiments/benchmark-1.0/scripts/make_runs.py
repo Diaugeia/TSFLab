@@ -231,6 +231,8 @@ def overlay(out: Path, name: str, sig: tuple[str, ...], spatial: bool, batch_sca
 # Optional horizon filter for the long group (paper tables use horizon 192 first;
 # the other horizons follow in a second pass): set by --long-preds / --skip-long-preds.
 LONG_PREDS: set[int] | None = None
+# --datasets: only these presets; --skip-done: (model, dataset) pairs already complete in report CSVs.
+ONLY_DATASETS: set[str] | None = None
 SKIP_LONG_PREDS: set[int] = set()
 
 
@@ -283,6 +285,9 @@ def generate(phase: str, out: Path, validate: bool = False, only: set[str] | Non
     groups = {"pilot": PILOT, "smoke": SMOKE}.get(phase, GROUPS)
     if only_groups:
         groups = {g: ds for g, ds in groups.items() if g in only_groups}
+    if ONLY_DATASETS is not None:
+        groups = {g: [d for d in ds if d in ONLY_DATASETS] for g, ds in groups.items()}
+        groups = {g: ds for g, ds in groups.items() if ds}
     by_class: dict[str, list[dict]] = {}
     skipped = []
     rows = models()
@@ -415,15 +420,36 @@ def main() -> None:
                     help="CSV with model,dataset,pred_len: write one re-run file per (model, dataset)")
     ap.add_argument("--batch-scale", type=float, default=1.0, help="with --cells: scale the batch (flagged)")
     ap.add_argument("--groups", nargs="+", choices=sorted(GROUPS), help="only these dataset groups")
+    ap.add_argument("--datasets", nargs="+", help="only these dataset presets")
+    ap.add_argument("--exclude-datasets", nargs="+", default=[], help="skip these dataset presets")
+    ap.add_argument("--skip-done", type=Path, nargs="+", default=[],
+                    help="report.py CSVs: skip (model, dataset) pairs whose every generated horizon already succeeded")
     ap.add_argument("--long-preds", type=int, nargs="+", help="long group: only these horizons")
     ap.add_argument("--skip-long-preds", type=int, nargs="+", default=[], help="long group: skip these horizons")
     ap.add_argument("--validate", action="store_true",
                     help="load every (model, dataset) cell with the TSFLab loader and exclude the rejected ones")
     args = ap.parse_args()
     out = (args.out or HERE.parent / "runs" / args.phase).resolve()
-    global LONG_PREDS, SKIP_LONG_PREDS
+    global LONG_PREDS, SKIP_LONG_PREDS, ONLY_DATASETS
     LONG_PREDS = set(args.long_preds) if args.long_preds else None
     SKIP_LONG_PREDS = set(args.skip_long_preds)
+    every = {d for ds in GROUPS.values() for d in ds}
+    ONLY_DATASETS = (set(args.datasets) if args.datasets else every) - set(args.exclude_datasets)
+    if ONLY_DATASETS == every:
+        ONLY_DATASETS = None
+    if args.skip_done:
+        import csv
+        ok: dict[tuple[str, str], set[int]] = {}
+        for path in args.skip_done:
+            with path.open() as stream:
+                for rec in csv.DictReader(stream):
+                    if rec["status"] == "succeeded":
+                        ok.setdefault((rec["model"], rec["dataset"]), set()).add(int(rec["pred_len"]))
+        for (m, d), preds in ok.items():
+            wanted = set(horizons(args.phase, card(d)["protocol"]["pred_lens"],
+                                  next((g for g, ds in GROUPS.items() if d in ds), "")))
+            if wanted and wanted <= preds:
+                EXCLUDE.setdefault((m, d), "already complete in an earlier run (--skip-done)")
     shutil.rmtree(out, ignore_errors=True)
     if args.cells:
         import csv
