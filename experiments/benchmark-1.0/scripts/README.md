@@ -6,6 +6,7 @@ Every catalog model on the 27 static datasets under each dataset card's
 | File | Purpose |
 | --- | --- |
 | `make_runs.py` | Writes the run files and dataset overlays to `../runs/<phase>/` plus `plan.json` (cells, priorities, tier-1 models, excluded cells with reasons) |
+| `report.py` | Per-run status, diagnosis, last error, train time and profile metrics of a phase (`--csv`) |
 | `enqueue.py` | Prepares every run file of a phase and adds it to one queue with its priority (`queued.json` records the sweeps) |
 | `policy-pilot.toml`, `policy-main.toml` | Execution policies for one 8-GPU server (the smoke phase uses the pilot policy) |
 
@@ -28,7 +29,7 @@ category) before tier 2, and light datasets before heavy ones; `plan.json`
 gives each run file a queue priority.
 
 ```bash
-uv run python experiments/benchmark-1.0/scripts/make_runs.py --phase pilot --validate   # also: smoke, main, lookback
+uv run python experiments/benchmark-1.0/scripts/make_runs.py --phase pilot --validate   # also: smoke, main, lookback; --models A B to re-check fixed models
 uv run tsf run experiments/benchmark-1.0/runs/pilot/<file>.toml \
     --policy experiments/benchmark-1.0/scripts/policy-pilot.toml --gpus 0,1,2,3,4,5,6,7 --jobs 24
 uv run python experiments/benchmark-1.0/scripts/make_runs.py --phase main --validate

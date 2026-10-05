@@ -252,12 +252,17 @@ def check(out: Path, m: dict, ov: Path, doc: dict, preds) -> str | None:
     return None
 
 
-def generate(phase: str, out: Path, validate: bool = False) -> list[dict]:
+def generate(phase: str, out: Path, validate: bool = False, only: set[str] | None = None) -> list[dict]:
     groups = {"pilot": PILOT, "smoke": SMOKE}.get(phase, GROUPS)
     by_class: dict[str, list[dict]] = {}
     skipped = []
     rows = models()
     categorize(rows)
+    if only:
+        missing = only - {m["name"] for m in rows}
+        if missing:
+            raise SystemExit(f"unknown models: {sorted(missing)}")
+        rows = [m for m in rows if m["name"] in only]
     for m in rows:
         c = model_class(m)
         (by_class.setdefault(c, []) if c else skipped).append(m)
@@ -334,12 +339,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--phase", choices=["pilot", "smoke", "main", "lookback"], required=True)
     ap.add_argument("--out", type=Path, help="default: experiments/benchmark-1.0/runs/<phase>")
+    ap.add_argument("--models", nargs="+", help="only these models (e.g. to re-check fixed models)")
     ap.add_argument("--validate", action="store_true",
                     help="load every (model, dataset) cell with the TSFLab loader and exclude the rejected ones")
     args = ap.parse_args()
     out = (args.out or HERE.parent / "runs" / args.phase).resolve()
     shutil.rmtree(out, ignore_errors=True)
-    plan = generate(args.phase, out, validate=args.validate)
+    plan = generate(args.phase, out, validate=args.validate, only=set(args.models or ()))
     total = sum(p["cells"] for p in plan)
     excluded = json.loads((out / "plan.json").read_text())["excluded_cells"]
     print(f"{len(plan)} run files, {total} cells, {len(excluded)} excluded (model, dataset) pairs -> {out}")
