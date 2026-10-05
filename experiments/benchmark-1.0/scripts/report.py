@@ -45,6 +45,7 @@ def cell(run_dir: Path) -> dict:
         "status": last.get("status", "pending"),
         "attempts": len(attempts),
         "diagnosis": last.get("diagnosis", ""),
+        "category": "",
         "error": "",
         "train_time_sec": None,
         "epochs_run": None,
@@ -61,9 +62,19 @@ def cell(run_dir: Path) -> dict:
     if events.exists():
         steps = [json.loads(line).get("step") for line in events.read_text().splitlines() if line.strip()]
         row["epochs_run"] = max((s for s in steps if isinstance(s, int)), default=None)
+    row["category"] = "ok" if row["status"] == "succeeded" else row["status"]
     if row["status"] != "succeeded":
         logs = sorted(run_dir.glob("attempt-*.log"), key=lambda p: int(p.stem.split("-")[1]))
         row["error"] = last_error(logs[-1]) if logs else ""
+        text = logs[-1].read_text(errors="replace") if logs else ""
+        if row["status"] == "failed":
+            if "OutOfMemoryError" in row["error"] or "out of memory" in row["error"]:
+                row["category"] = "oom"
+            elif row["error"].startswith("ValueError") and "Epoch 1/" not in text:
+                # the model or its spec refused the cell at construction: not applicable
+                row["category"] = "n/a"
+            else:
+                row["category"] = "error"
     return row
 
 
@@ -98,11 +109,12 @@ def main() -> None:
             row[key] = p.get(key)
     counts = collections.Counter(r["status"] for r in rows)
     print(f"{len(rows)} runs: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
-    diag = collections.Counter(r["diagnosis"] or "-" for r in rows if r["status"] != "succeeded")
-    if diag:
-        print("not succeeded by diagnosis: " + ", ".join(f"{k}={v}" for k, v in diag.most_common()))
-    for r in sorted((r for r in rows if r["status"] != "succeeded"), key=lambda r: (r["model"], r["dataset"])):
-        print(f"  {r['status']:10s} {r['model']:22s} {r['dataset']:12s} {r['diagnosis'] or '-':16s} {r['error']}")
+    cats = collections.Counter(r["category"] for r in rows)
+    print("by category: " + ", ".join(f"{k}={v}" for k, v in sorted(cats.items())))
+    order = {"error": 0, "oom": 1, "timed_out": 2, "n/a": 3}
+    for r in sorted((r for r in rows if r["category"] not in ("ok", "pending", "running")),
+                    key=lambda r: (order.get(r["category"], 9), r["model"], r["dataset"])):
+        print(f"  {r['category']:10s} {r['model']:22s} {r['dataset']:12s} {r['error']}")
     done = [r for r in rows if r["train_time_sec"]]
     if done:
         times = sorted(r["train_time_sec"] for r in done)
