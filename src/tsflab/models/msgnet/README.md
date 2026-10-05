@@ -30,3 +30,5 @@ Other hyperparameters: preset defaults in `configs/models/MSGNet.toml`; tune gen
 
 - Independent implementation of FFT scale discovery, scale-specific adaptive MixHop graphs, intra-segment attention, and amplitude-weighted aggregation from the paper; the official repository has no license file and was used for reference only.
 - `c_out` must equal `enc_in`; the convolution, skip, and embedding arguments of the official signature (`conv_channel`, `skip_channel`, `embed`, `freq`, `individual`) are accepted and unused.
+- The per-scale attention runs in chunks of 32768 sequences (batch x segments x nodes);
+  PyTorch's fused kernels reject more than 65535 sequences in one call. Same function.

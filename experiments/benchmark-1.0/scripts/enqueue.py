@@ -39,23 +39,30 @@ def main() -> None:
     ap.add_argument("--gpus", default="0,1,2,3,4,5,6,7")
     ap.add_argument("--jobs", default="24")
     ap.add_argument("--policy", type=Path, help="default: policy-<phase>.toml, else policy-main.toml")
+    ap.add_argument("--heavy-policy", type=Path,
+                    help="policy for heavy-dataset run files (default: policy-<phase>-heavy.toml if present)")
+    ap.add_argument("--weight", choices=["light", "heavy", "all"], default="all",
+                    help="enqueue only light or heavy run files (heavy ones need fewer runs per GPU)")
     args = ap.parse_args()
     phase_dir = HERE.parent / "runs" / args.phase
     policy = args.policy or next(p for p in (HERE / f"policy-{args.phase}.toml", HERE / "policy-main.toml")
                                  if p.exists())
+    heavy_policy = args.heavy_policy or next(
+        (p for p in (HERE / f"policy-{args.phase}-heavy.toml",) if p.exists()), policy)
     plan = json.loads((phase_dir / "plan.json").read_text())
     ledger_path = phase_dir / "queued.json"
     ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {}
     for item in plan["files"]:
-        if item["file"] in ledger:
+        if item["file"] in ledger or args.weight not in ("all", item.get("weight")):
             continue
-        prepared = tsf("run", str(phase_dir / item["file"]), "--policy", str(policy),
+        chosen = heavy_policy if item.get("weight") == "heavy" else policy
+        prepared = tsf("run", str(phase_dir / item["file"]), "--policy", str(chosen),
                        "--gpus", args.gpus, "--jobs", args.jobs, "--prepare-only")
         if not prepared.get("ok"):
             raise SystemExit(f"{item['file']}: {prepared}")
         added = tsf("run", "--backend", "queue", "add", str(args.queue),
                     "--run", prepared["directory"], "--priority", str(item["priority"]))
-        ledger[item["file"]] = {"sweep": prepared["directory"], "priority": item["priority"],
+        ledger[item["file"]] = {"sweep": prepared["directory"], "priority": item["priority"], "policy": chosen.name,
                                 "cells": item["cells"], "queue": added}
         ledger_path.write_text(json.dumps(ledger, indent=1))
         print(f"p{item['priority']}  {item['cells']:6d}  {item['file']}")
