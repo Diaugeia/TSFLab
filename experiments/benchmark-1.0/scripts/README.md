@@ -14,7 +14,8 @@ lookbacks and horizons from the card; `enc_in` / `dec_in` / `c_out` /
 `num_nodes` from the card's channel count; 288 steps per day for the 5-minute
 spatial data; a `dataset.alias` so results do not merge under `custom`; one
 batch size per dataset, shared by every model; the loss per output type
-(`mse`, `quantile`, `nll_gaussian`; `masked_mae` for spatial). `--validate`
+(`mse`, `quantile`, `nll_gaussian`; `masked_mae` for spatial); `evaluation.enable_profile`
+(parameters, MACs, inference VRAM, latency) in every phase except the pilot. `--validate`
 loads every (model, dataset) cell with the TSFLab loader and excludes the ones a
 model's parameter schema rejects.
 
