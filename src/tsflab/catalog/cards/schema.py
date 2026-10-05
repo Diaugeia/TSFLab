@@ -30,7 +30,8 @@ ISSUE_KINDS = ("code-bug", "paper-code-mismatch", "paper-error", "underspecified
                "leakage", "license")
 DATA_PARAM_SOURCES = ("period", "frequency", "channels", "nodes", "covariates", "seq_len", "pred_len",
                       "graph", "train-split")
-#: ``hosted``: TSFLab re-hosts the files in Diaugeia/TSFLab-Static (``tsf data download``), with
+#: ``hosted``: TSFLab re-hosts the files in Diaugeia/TSFLab-Datasets (``static/`` or ``realtime/``;
+#: ``tsf data download``), with
 #: any extra source terms stated in ``source.conditions``; ``upstream``: fetched from another
 #: party's Hugging Face repository, never re-hosted; ``script``: the license forbids re-hosting,
 #: so TSFLab ships a fetch command and users download from the original source.

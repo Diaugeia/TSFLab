@@ -1,7 +1,10 @@
 """Publish and download benchmark dataset files through one pinned manifest.
 
 ``configs/hub/datasets.json`` maps every published file (a path relative to the
-local ``dataset/`` root) to the commit that holds it and its SHA-256. Its
+local ``dataset/`` root) to the commit that holds it and its SHA-256. Schema 2
+adds ``prefix``: the files live under ``<prefix>/`` in the repository
+(``static/`` of ``TSFLab-Datasets``). A schema 1 manifest has no prefix; its
+files sit at the repository root (``TSFLab-Static``, read by 0.8.0). Its
 ``upstream`` table maps files of ``upstream``-class presets to another party's
 pinned URL and SHA-256; ``tsf data download`` fetches them from there and
 TSFLab never re-hosts them. A preset's files are selected from its config
@@ -21,7 +24,12 @@ from tsflab.release.hub.fetch import download, sha256_file
 from tsflab.release.hub.uri import default_repo
 from tsflab.core.paths import is_packaged_root, repository_root
 
-DEFAULT_STATIC_REPO = default_repo("TSFLab-Static")
+DEFAULT_DATASETS_REPO = default_repo("TSFLab-Datasets")
+#: Backward-compatible name; the static files now live under ``static/`` of TSFLab-Datasets.
+DEFAULT_STATIC_REPO = DEFAULT_DATASETS_REPO
+#: Folder of the static benchmark files in the datasets repository.
+STATIC_PREFIX = "static"
+MANIFEST_SCHEMA_VERSION = 2
 MANIFEST_RELATIVE = Path("configs") / "hub" / "datasets.json"
 _DATASET_PREFIX = "./dataset/"
 
@@ -56,7 +64,8 @@ def manifest_path(root: Path | None = None) -> Path:
 def load_manifest(root: Path | None = None) -> dict:
     path = manifest_path(root)
     if not path.is_file():
-        return {"schema_version": 1, "repo": DEFAULT_STATIC_REPO, "files": {}}
+        return {"schema_version": MANIFEST_SCHEMA_VERSION, "repo": DEFAULT_DATASETS_REPO,
+                "prefix": STATIC_PREFIX, "files": {}}
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -108,9 +117,16 @@ def fetch_preset(preset: str, data_root: Path = Path("dataset"), root: Path | No
     return written
 
 
+def _repo_path(manifest: dict, name: str) -> str:
+    """Path of ``name`` in the repository: under ``prefix/`` (schema 2) or at the root (schema 1)."""
+    prefix = str(manifest.get("prefix") or "").strip("/")
+    return f"{prefix}/{name}" if prefix else name
+
+
 def _entry_url(manifest: dict, name: str, entry: dict) -> str:
-    """An upstream entry's own URL, else the pinned TSFLab-Static ``hf://`` URI."""
-    return entry.get("url") or f"hf://datasets/{manifest['repo']}@{entry['revision']}/{name}"
+    """An upstream entry's own URL, else the pinned TSFLab ``hf://`` URI."""
+    return entry.get("url") or (
+        f"hf://datasets/{manifest['repo']}@{entry['revision']}/{_repo_path(manifest, name)}")
 
 
 def local_files(preset: str, data_root: Path = Path("dataset"), root: Path | None = None,
@@ -135,13 +151,14 @@ def redistribution(preset: str, root: Path | None = None) -> str:
 
 
 def publish_presets(presets: list[str], data_root: Path = Path("dataset"),
-                    repo_id: str = DEFAULT_STATIC_REPO, *, paths: tuple[str, ...] = (),
+                    repo_id: str = DEFAULT_DATASETS_REPO, *, paths: tuple[str, ...] = (),
                     create: bool = False, private: bool = False,
                     root: Path | None = None) -> dict[str, str]:
     """Upload local files (one commit per preset or raw ``paths`` subtree) and pin them.
 
     ``paths`` are directories or files relative to ``data_root`` published in
-    full, for example a complete store beyond what any preset reads.
+    full, for example a complete store beyond what any preset reads. Files go
+    under the manifest ``prefix`` (``static/``) of ``repo_id``.
     """
     if is_packaged_root(root or repository_root()):
         raise RuntimeError("publishing datasets requires a TSFLab checkout")
@@ -162,6 +179,10 @@ def publish_presets(presets: list[str], data_root: Path = Path("dataset"),
         raise ValueError(f"the manifest already pins files in {manifest['repo']}; "
                          "publish to that repository or start a new manifest")
     manifest["repo"] = repo_id
+    if not manifest["files"]:  # a new or reset manifest uses the current layout
+        manifest["schema_version"] = MANIFEST_SCHEMA_VERSION
+        manifest["prefix"] = STATIC_PREFIX
+    prefix = str(manifest.get("prefix") or "").strip("/")
     revisions = {}
     targets = [(preset, None) for preset in presets]
     targets += [(path.strip("/"), Selection(preset=path, base=path.strip("/"))) for path in paths]
@@ -179,7 +200,7 @@ def publish_presets(presets: list[str], data_root: Path = Path("dataset"),
             continue
         commit = api.upload_folder(
             repo_id=repo_id, repo_type="dataset", folder_path=str(data_root),
-            allow_patterns=pending, commit_message=f"{preset}: {len(pending)} file(s)",
+            path_in_repo=prefix or None, allow_patterns=pending, commit_message=f"{preset}: {len(pending)} file(s)",
         )
         for name in pending:
             manifest["files"][name] = {

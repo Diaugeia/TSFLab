@@ -45,12 +45,19 @@ def _latest_round(track: str, round_id: str | None):
 def _update(track_id: str, pull: bool, push: bool, repo: str) -> dict | None:
     from tsflab.realtime import sources
 
+    from tsflab.realtime.publish import push_refusal
+
     track = get_track(track_id)
     store = PanelStore(track_id)
+    refusal = push_refusal(track_id)
     if pull and not store.exists:
-        from tsflab.realtime.publish import pull_track
+        if refusal:
+            print(f"{track_id}: not hosted on the Hub, nothing to pull; "
+                  f"build it with `tsf realtime update --bootstrap --track {track_id}`")
+        else:
+            from tsflab.realtime.publish import pull_track
 
-        pull_track(store, repo)
+            pull_track(store, repo)
     if not store.exists:
         raise RuntimeError(f"no local store for {track_id!r}; run `tsf realtime update --bootstrap` first")
     last = pd.Timestamp(store.manifest()["last_timestamp"])
@@ -63,10 +70,24 @@ def _update(track_id: str, pull: bool, push: bool, repo: str) -> dict | None:
     release = store.append(new, note="weekly update")
     print(f"{track_id}: release {release['version']} -> last {release['last_timestamp']}")
     if push:
-        from tsflab.realtime.publish import push_release
+        if refusal:
+            print(f"skip push: {refusal}")
+        else:
+            from tsflab.realtime.publish import push_release
 
-        release["hf_revision"] = push_release(store, repo)
+            release["hf_revision"] = push_release(store, repo)
     return release
+
+
+def _push(store: PanelStore, repo: str) -> None:
+    """Upload the store with ``--push``, or print why the track is never uploaded."""
+    from tsflab.realtime.publish import push_refusal, push_release
+
+    refusal = push_refusal(store.track)
+    if refusal:
+        print(f"skip push: {refusal}")
+        return
+    print("hub revision:", push_release(store, repo, create=True))
 
 
 def _score(track_id: str) -> dict:
@@ -107,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--track", required=True)
         if name == "update":
             p.add_argument("--push", action="store_true", help="publish the release to the Hub")
-            p.add_argument("--repo", default=default_repo("TSFLab-RealTime"))
+            p.add_argument("--repo", default=default_repo("TSFLab-Datasets"))
             p.add_argument("--pull", action="store_true", help="fetch the published store first")
             mode = p.add_mutually_exclusive_group()
             mode.add_argument("--bootstrap", action="store_true",
@@ -130,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
     weekly.add_argument("--track", nargs="+", required=True)
     weekly.add_argument("--pull", action="store_true")
     weekly.add_argument("--push", action="store_true")
-    weekly.add_argument("--repo", default=default_repo("TSFLab-RealTime"))
+    weekly.add_argument("--repo", default=default_repo("TSFLab-Datasets"))
     replay = sub.add_parser("replay", help="backtest the rolling protocol on historical weeks")
     replay.add_argument("--track", required=True)
     replay.add_argument("--end", required=True)
@@ -155,9 +176,7 @@ def main(argv: list[str] | None = None) -> int:
                 release = store.append(sources.bootstrap(get_track(args.track)), note="bootstrap")
                 print(f"{args.track}: bootstrapped through {release['last_timestamp']}")
                 if args.push:
-                    from tsflab.realtime.publish import push_release
-
-                    print("hub revision:", push_release(store, args.repo, create=True))
+                    _push(store, args.repo)
             elif args.no_fetch:
                 from tsflab.realtime.publish import push_release
 
@@ -166,6 +185,7 @@ def main(argv: list[str] | None = None) -> int:
                     raise RuntimeError(f"no local store for {args.track!r}; run `tsf realtime update --bootstrap` first")
                 if not args.push:
                     raise RuntimeError("--no-fetch only makes sense with --push")
+                # Publishing is the only action here, so a refused track is an error.
                 print("hub revision:", push_release(store, args.repo, create=True))
             else:
                 _update(args.track, args.pull, args.push, args.repo)
@@ -234,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.out.write_text(text + "\n", encoding="utf-8")
             print(text)
             return 0
-    except (KeyError, RuntimeError, ValueError, FileNotFoundError) as exc:
+    except (KeyError, RuntimeError, ValueError, FileNotFoundError, PermissionError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     return 0

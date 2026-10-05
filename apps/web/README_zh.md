@@ -6,7 +6,7 @@
 
 [![Live](https://img.shields.io/badge/live-Hugging%20Face%20Space-8c6f24.svg)](https://huggingface.co/spaces/Diaugeia/TSFLab)
 [![🤗 Space](https://img.shields.io/badge/🤗%20Space-Diaugeia/TSFLab-yellow.svg)](https://huggingface.co/spaces/Diaugeia/TSFLab)
-[![🤗 Datasets](https://img.shields.io/badge/🤗%20Datasets-TSFLab--Static-orange.svg)](https://huggingface.co/datasets/Diaugeia/TSFLab-Static)
+[![🤗 Datasets](https://img.shields.io/badge/🤗%20Datasets-TSFLab--Datasets-orange.svg)](https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets)
 [![Next.js](https://img.shields.io/badge/Next.js-static%20export-black.svg?logo=next.js)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -47,7 +47,7 @@ TSFLab Leaderboard 是 [TSFLab](https://github.com/Diaugeia/TSFLab) 的公开记
 ## 🔗 在线与数据
 
 - 🌐 **网站:** [Hugging Face Space](https://huggingface.co/spaces/Diaugeia/TSFLab)(每次推送到 `main` 自动部署)
-- 📦 **数据集**(在 Hugging Face):[`Diaugeia/TSFLab-Static`](https://huggingface.co/datasets/Diaugeia/TSFLab-Static) —— 基准数据集(ETT、electricity、solar、traffic、weather…)
+- 📦 **数据集**(在 Hugging Face):[`Diaugeia/TSFLab-Datasets`](https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets) —— `static/` 基准数据集(ETT、electricity、solar、traffic、weather…)与 `realtime/` 实时赛道面板
 - 🧠 **权重(可选):** [`Diaugeia/TSFLab-Weights`](https://huggingface.co/Diaugeia/TSFLab-Weights) —— 一个公开、*可选*的可复现归档(训练好的 checkpoint)。提交本身不含权重,上榜从不需要 `.pth`。
 
 ---

@@ -1,464 +1,260 @@
 {
-  "schema_version": 1,
-  "repo": "Diaugeia/TSFLab-Static",
+  "schema_version": 2,
+  "repo": "Diaugeia/TSFLab-Datasets",
+  "prefix": "static",
   "files": {
     "AQShunyi/AQShunyi.csv": {
-      "revision": "fd629b657602e4e6360d3a22a4090bd8958f5842",
+      "revision": "b380d0adca41b8e91c77868c4b5c7cbc1ce8bad5",
       "sha256": "8aae73ca69d9eea0ba7ee08387d7c9bfd15f0198fa5a1f50e6a69ffb3f943212",
       "size": 2675345
     },
     "AQWan/AQWan.csv": {
-      "revision": "27a4d78d90d28881f9823fb8ac4bef446cb3d5d0",
+      "revision": "d6b9c707420375a5ee85042efcb80fdfb7e3cd48",
       "sha256": "16b973031c43416333782cbb12d073fe7cb4df2cbb129d6cf07afff14e1441a3",
       "size": 2680258
     },
     "Covid-19/Covid-19.csv": {
-      "revision": "21e6a553a9529d57f086ff324c18e2fb5a7cf59b",
+      "revision": "ade0e4033f4e975804757da880bac8268dfd6bcf",
       "sha256": "43f574ee1c9b07882ce696ee88a5ebc4d0db3ac6748af2fa2a44121279694685",
       "size": 4952674
     },
     "CzeLan/CzeLan.csv": {
-      "revision": "b81ed5735e3c966961c9b4415ff9ec21dc65f1da",
+      "revision": "79af6648c1aa128bedd13fe92d38a8d2c3a58a9b",
       "sha256": "6a59b7efdc111c615d5444c5a7a4de7e281623760162ce2c23313dc36229131b",
       "size": 2711976
     },
     "ETT-small/ETTh1.csv": {
-      "revision": "462f3731284fae0d1a8820b02ac7f3a3671d190b",
+      "revision": "16f82194dbce800d20eea44a7e0275db95ef8c8c",
       "sha256": "b5028151b34355bb3ddb0c48e392e6fdf78f5c7bbc834b9e7c52120c9c004e23",
       "size": 2583406
     },
     "ETT-small/ETTh2.csv": {
-      "revision": "0c330d5a1654cba2a200446ccfd70b38fa428365",
+      "revision": "fd31156a253830bed9a9098dc7b6eaa978797be5",
       "sha256": "ce4411749ef75b9a5cf1bb654838fe430059dcfac554f1c42633031c2a508813",
       "size": 2414212
     },
     "ETT-small/ETTm1.csv": {
-      "revision": "67e084528c75c8b44d03ed7029cf16bf412481bd",
+      "revision": "87ec1d0547b159c5d658b5d8fdaa6f15bbf6b2ee",
       "sha256": "c722e6f0737f457ee618499b5780a756ce269f5d199dc18a48d45297936d6a86",
       "size": 10333616
     },
     "ETT-small/ETTm2.csv": {
-      "revision": "5ead00e07c4fe302aa89a636ca76644b8945865c",
+      "revision": "3c6c94343632b10fd9aad2706771c6739ad0a777",
       "sha256": "e42eb92e1f3c93cf920a5241ba15b53e8f3bf4ae6ccec9e062732d6cf83d6e0d",
       "size": 9661219
     },
     "NN5/NN5.csv": {
-      "revision": "89fe74f5f52c527e81132aa63c630ec6f53101b3",
+      "revision": "79dcd413bd34cbf0314a72f6da6a3c1b4f707b59",
       "sha256": "8078ec48f58351763c0721171352008212e2878ebbd8361ab52511199785347a",
       "size": 1493724
     },
     "Wind/Wind.csv": {
-      "revision": "9ca34b4310575de9e57668523dc34633e4b2d803",
+      "revision": "b2f682a1914ce4411a1c0c09ebca3b6a73f6a718",
       "sha256": "8d0a06a4de54f4c87b77a5bca162b7cca29392c34334ad31d3e6f52587bc1c49",
       "size": 2561666
     },
     "ZafNoo/ZafNoo.csv": {
-      "revision": "c9f748300cdee5d07aac93b813b88c1f445cad94",
+      "revision": "d79a3b40a5c78891692b03bf51cc481297321af3",
       "sha256": "a4df4902e4b0f5b6ed5521c06a48ee51a9d3fabd0c2e7077328fa6d508886204",
       "size": 2227398
     },
     "electricity/electricity.csv": {
-      "revision": "69eeba55feb81b1795c503c9d08b7ecf357772cf",
+      "revision": "cdbf537c26d8e10cb2b701e1cf42613436cb2be2",
       "sha256": "d4a2ecb5145cb2a1f184901c9696209e724e781f39a273f14e3d3f700acae409",
       "size": 53337540
     },
     "illness/national_illness.csv": {
-      "revision": "8706ab570cb8a22bdc0cd5efcd0c74808bfb5b63",
+      "revision": "2205da305dabaf7fa89c83b67bebfc9c40aacc92",
       "sha256": "93601f64d2566dc796ca4305adad8b8560c2db1a1ff04543c3bd813a7263570a",
       "size": 67620
     },
     "pems03/SOURCE.txt": {
-      "revision": "c1673abd06c69e980cfc006041305d1144f2e73f",
+      "revision": "edb5948ac00384422a07abe6515b8ff696200384",
       "sha256": "9a164718e24164ac443a1456d9a2d4920dd22d2b6649ed172990242de859a939",
       "size": 1914
     },
     "pems03/adj_mx.npy": {
-      "revision": "c1673abd06c69e980cfc006041305d1144f2e73f",
+      "revision": "edb5948ac00384422a07abe6515b8ff696200384",
       "sha256": "bf79dab120cc0ed249d619db7f43ec73fdb6c5cb8625240d2e36a71799af51eb",
       "size": 512784
     },
     "pems03/his.npz": {
-      "revision": "c1673abd06c69e980cfc006041305d1144f2e73f",
+      "revision": "edb5948ac00384422a07abe6515b8ff696200384",
       "sha256": "6882fee49b8b3fac04a55c213c050f98e4f786b9afc47b3f0e2d7917d7d10a81",
       "size": 112591100
     },
     "pems03/idx_test.npy": {
-      "revision": "c1673abd06c69e980cfc006041305d1144f2e73f",
+      "revision": "edb5948ac00384422a07abe6515b8ff696200384",
       "sha256": "4bb949c6f096e3125710c0519238f8f244f55c04c1dfb6546ba4b5cbd37f52ed",
       "size": 42032
     },
     "pems03/idx_train.npy": {
-      "revision": "c1673abd06c69e980cfc006041305d1144f2e73f",
+      "revision": "edb5948ac00384422a07abe6515b8ff696200384",
       "sha256": "0f7ae7935f9c82d83273061a3c9f07fd832455d2ceecce1ca6094920bca714e4",
       "size": 146760
     },
     "pems03/idx_val.npy": {
-      "revision": "c1673abd06c69e980cfc006041305d1144f2e73f",
+      "revision": "edb5948ac00384422a07abe6515b8ff696200384",
       "sha256": "c6137043a71d20edad020e1d0aed116d371b7103cb076263cab25832bc25e47d",
       "size": 21072
     },
     "pems03/split.json": {
-      "revision": "c1673abd06c69e980cfc006041305d1144f2e73f",
+      "revision": "edb5948ac00384422a07abe6515b8ff696200384",
       "sha256": "7ab7801c8a212c51cffc0579e1956707cbec19daf461f89106e0e1c97297221c",
       "size": 253
     },
     "pems04/SOURCE.txt": {
-      "revision": "e238345364233154d4d9bc2d2dc19bdd7cbf6a5d",
+      "revision": "4ce74e4789196db0218b591b25171b5b2c55b9d9",
       "sha256": "d113f48ef2fde8f5b28eb962a44584cddd27778175438b564d459d2d46422aa4",
       "size": 1757
     },
     "pems04/adj_mx.npy": {
-      "revision": "e238345364233154d4d9bc2d2dc19bdd7cbf6a5d",
+      "revision": "4ce74e4789196db0218b591b25171b5b2c55b9d9",
       "sha256": "c9a8d0c67cb4c6c67976f05645afc7f98b8276cdca870a3196f713e6e895939a",
       "size": 377124
     },
     "pems04/his.npz": {
-      "revision": "e238345364233154d4d9bc2d2dc19bdd7cbf6a5d",
+      "revision": "4ce74e4789196db0218b591b25171b5b2c55b9d9",
       "sha256": "b10cea3a9879e69ce718b45b9b5b116e246a09e0a4ffd41f46effd4ed8c07162",
       "size": 62600060
     },
     "pems04/idx_test.npy": {
-      "revision": "e238345364233154d4d9bc2d2dc19bdd7cbf6a5d",
+      "revision": "4ce74e4789196db0218b591b25171b5b2c55b9d9",
       "sha256": "f378c766f37410a61c301a1e7d69494da8f8328fc86f948f34d2e0245aa06f66",
       "size": 27288
     },
     "pems04/idx_train.npy": {
-      "revision": "e238345364233154d4d9bc2d2dc19bdd7cbf6a5d",
+      "revision": "4ce74e4789196db0218b591b25171b5b2c55b9d9",
       "sha256": "7d586365fe8e6546934cf659a683def2911a7b221e74fc298d820d93eb0593a7",
       "size": 95152
     },
     "pems04/idx_val.npy": {
-      "revision": "e238345364233154d4d9bc2d2dc19bdd7cbf6a5d",
+      "revision": "4ce74e4789196db0218b591b25171b5b2c55b9d9",
       "sha256": "1fa3fffa645a56a9302b3fd09203128cd223097e90af1826da0b93268a8e8e9a",
       "size": 13696
     },
     "pems04/split.json": {
-      "revision": "e238345364233154d4d9bc2d2dc19bdd7cbf6a5d",
+      "revision": "4ce74e4789196db0218b591b25171b5b2c55b9d9",
       "sha256": "52b5edbbc2115c8b59024612e668981f3753a3fb023f84805e8de43b0b37d1d3",
       "size": 253
     },
     "pems07/SOURCE.txt": {
-      "revision": "a24a306751397f98f95ed171f095fa43e2cf9ef2",
+      "revision": "61d0548c094c233dcb35b99363dab39e4374a4a0",
       "sha256": "4441ea8f4a220a0f1bcf772df588bad61a8252d65bf1ff4b7739c4fdde731222",
       "size": 1668
     },
     "pems07/adj_mx.npy": {
-      "revision": "a24a306751397f98f95ed171f095fa43e2cf9ef2",
+      "revision": "61d0548c094c233dcb35b99363dab39e4374a4a0",
       "sha256": "9c422e87dd0513da23a3caede340c364e402d99bb9f8ddef0a5197e0ece581d7",
       "size": 3118884
     },
     "pems07/his.npz": {
-      "revision": "a24a306751397f98f95ed171f095fa43e2cf9ef2",
+      "revision": "61d0548c094c233dcb35b99363dab39e4374a4a0",
       "sha256": "d6007148a1263349bc88c4a5a22822c10f19ed979155371759f66aa8fe112091",
       "size": 299063036
     },
     "pems07/idx_test.npy": {
-      "revision": "a24a306751397f98f95ed171f095fa43e2cf9ef2",
+      "revision": "61d0548c094c233dcb35b99363dab39e4374a4a0",
       "sha256": "585df11e49d9e35c2f117bbfb8e4f1dca1edb666703fa30751232ce775e46b21",
       "size": 45256
     },
     "pems07/idx_train.npy": {
-      "revision": "a24a306751397f98f95ed171f095fa43e2cf9ef2",
+      "revision": "61d0548c094c233dcb35b99363dab39e4374a4a0",
       "sha256": "fa17e5d4c09343e29fdbfcd589996d11af1af0d054ce0b4ca8dd277e5151e6b1",
       "size": 158048
     },
     "pems07/idx_val.npy": {
-      "revision": "a24a306751397f98f95ed171f095fa43e2cf9ef2",
+      "revision": "61d0548c094c233dcb35b99363dab39e4374a4a0",
       "sha256": "29ec26caa07be60e203d620a88b4a5c967e54423889ac66fa9b418a1acc37b41",
       "size": 22688
     },
     "pems07/split.json": {
-      "revision": "a24a306751397f98f95ed171f095fa43e2cf9ef2",
+      "revision": "61d0548c094c233dcb35b99363dab39e4374a4a0",
       "sha256": "88b0d43fe70a67406e5859edcf48c5c991be717767b30d4dda4f484b0e70be64",
       "size": 253
     },
     "pems08/SOURCE.txt": {
-      "revision": "f784e862903310e6aa047a040d83a80cb8dc8ae0",
+      "revision": "247b447ef55e9401a913fdc8cb4da01a4778995d",
       "sha256": "0f6b2fc01764da2073da55e902ce2db31f861ae2d2039fc4d2cdcaffd86fe4cc",
       "size": 1757
     },
     "pems08/adj_mx.npy": {
-      "revision": "f784e862903310e6aa047a040d83a80cb8dc8ae0",
+      "revision": "247b447ef55e9401a913fdc8cb4da01a4778995d",
       "sha256": "4cdcddb4daf955ede8e986aa400c6546606f74e84bef002171d20730c9784d6e",
       "size": 115728
     },
     "pems08/his.npz": {
-      "revision": "f784e862903310e6aa047a040d83a80cb8dc8ae0",
+      "revision": "247b447ef55e9401a913fdc8cb4da01a4778995d",
       "sha256": "c637ae3ac8d38ee8955ff5b048f1b46987ade3c617ee9af79f5fbdfc0bac55f2",
       "size": 36427772
     },
     "pems08/idx_test.npy": {
-      "revision": "f784e862903310e6aa047a040d83a80cb8dc8ae0",
+      "revision": "247b447ef55e9401a913fdc8cb4da01a4778995d",
       "sha256": "044fa75dc855a12a2d5be68ca8199202dc0373f468dab4cc5f4cda45a60eb396",
       "size": 28664
     },
     "pems08/idx_train.npy": {
-      "revision": "f784e862903310e6aa047a040d83a80cb8dc8ae0",
+      "revision": "247b447ef55e9401a913fdc8cb4da01a4778995d",
       "sha256": "7417227b8bea5a85c390add845f383db3e7c232b7ff8e968d7a364ef85c74e73",
       "size": 99992
     },
     "pems08/idx_val.npy": {
-      "revision": "f784e862903310e6aa047a040d83a80cb8dc8ae0",
+      "revision": "247b447ef55e9401a913fdc8cb4da01a4778995d",
       "sha256": "82c758988e98ce684acfd76aa2a55c2fa08bc11cece72b6b5c82b320747ac145",
       "size": 14392
     },
     "pems08/split.json": {
-      "revision": "f784e862903310e6aa047a040d83a80cb8dc8ae0",
+      "revision": "247b447ef55e9401a913fdc8cb4da01a4778995d",
       "sha256": "5139acb7ce0a45d65e8ff2861018f22444126f962f0e63ee2d078698f124c5fb",
       "size": 253
     },
     "pems_bay/SOURCE.txt": {
-      "revision": "5facf6cd4c2762c2d92d4ea94f2e828cb08bd846",
+      "revision": "2fc8766201286861a36f9d066a732b407efd4974",
       "sha256": "510ed39ace2fa4d59b34fa532b674fd5f6ef12fc5567f32455dda28519d8048b",
       "size": 1927
     },
     "pems_bay/adj_mx.npy": {
-      "revision": "5facf6cd4c2762c2d92d4ea94f2e828cb08bd846",
+      "revision": "2fc8766201286861a36f9d066a732b407efd4974",
       "sha256": "bfe332913480221f0c1e67ff6c7a5ea8896a70a8fc2f6ff04b052842b91072b9",
       "size": 422628
     },
     "pems_bay/his.npz": {
-      "revision": "5facf6cd4c2762c2d92d4ea94f2e828cb08bd846",
+      "revision": "2fc8766201286861a36f9d066a732b407efd4974",
       "sha256": "df59b8dbb161bc327fc22f72e7bd6827c6a822cf220caa4c923c1df5d68b0dc6",
       "size": 203253932
     },
     "pems_bay/idx_test.npy": {
-      "revision": "5facf6cd4c2762c2d92d4ea94f2e828cb08bd846",
+      "revision": "2fc8766201286861a36f9d066a732b407efd4974",
       "sha256": "3b6119f677d1e5b61b46025aa3b9e113bfac087c968d4587d3649dc81d062b7a",
       "size": 83480
     },
     "pems_bay/idx_train.npy": {
-      "revision": "5facf6cd4c2762c2d92d4ea94f2e828cb08bd846",
+      "revision": "2fc8766201286861a36f9d066a732b407efd4974",
       "sha256": "cd5ce5cfa803b5797de4c665c4c42f002b182ff52bb305ffaa081337c3ca6efe",
       "size": 291848
     },
     "pems_bay/idx_val.npy": {
-      "revision": "5facf6cd4c2762c2d92d4ea94f2e828cb08bd846",
+      "revision": "2fc8766201286861a36f9d066a732b407efd4974",
       "sha256": "45c1c464057e134d4f8580c0898f965ebf761d13291824ab4faa721f385c5988",
       "size": 41800
     },
     "pems_bay/split.json": {
-      "revision": "5facf6cd4c2762c2d92d4ea94f2e828cb08bd846",
+      "revision": "2fc8766201286861a36f9d066a732b407efd4974",
       "sha256": "a41217080af05ea40b88f3130435b5faa62835763893324f45203072c15c7278",
       "size": 254
     },
-    "realtime/air_airnow_us/manifest.json": {
-      "revision": "de9ba5b36f84257dcee92bde170af536b18f03a2",
-      "sha256": "152d1f0eae5aeb9a683182c6148340d4cdd23a5e2e08995ee95efbce51e53dd1",
-      "size": 4403
-    },
-    "realtime/air_airnow_us/panel/2026.parquet": {
-      "revision": "de9ba5b36f84257dcee92bde170af536b18f03a2",
-      "sha256": "004e1c9c513a7542f51e201f38761beaa91d06990632801c7966f00e1a22fbc3",
-      "size": 549754
-    },
-    "realtime/grid_ercot/manifest.json": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "a1123f48bb8f10050bb562207df3048898ebec0f96d5d475e89ffe1feef9cbda",
-      "size": 503
-    },
-    "realtime/grid_ercot/panel/2019.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "bcbcd08950801940f73b5c1fa8ec76fcbd93c2d9b23a17fd2add7c94e5c03181",
-      "size": 764770
-    },
-    "realtime/grid_ercot/panel/2020.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "4fded5d88bc63de5035d0fc19cd747770b5f92bfe2ca1bdb709f9302c4234efd",
-      "size": 766845
-    },
-    "realtime/grid_ercot/panel/2021.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "7925e94da86c092f4d5469728ae674331e676ea55b21fe6eccaeb499566f295b",
-      "size": 764766
-    },
-    "realtime/grid_ercot/panel/2022.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "37c47f1430ff747470ace869a0e9cec82ad40ac017e1912f549a6fc29de464e7",
-      "size": 764760
-    },
-    "realtime/grid_ercot/panel/2023.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "a7782d50b14e15d94dd361ac48b835872d951838cf6ea0818dc156778140985d",
-      "size": 764769
-    },
-    "realtime/grid_ercot/panel/2024.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "5681d26e08d3c3d3f7e1f5500f561de06a1832ce847132aaae030dbc2921823c",
-      "size": 766850
-    },
-    "realtime/grid_ercot/panel/2025.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "2b20abef74682bbb9577643db5a8ac4d9c4978e0cd631d564e550449c4f1705d",
-      "size": 764769
-    },
-    "realtime/grid_ercot/panel/2026.parquet": {
-      "revision": "804200bf6cc205d1478957cfaac78c32282eefc3",
-      "sha256": "558dc64da587ccdb42180bfcbb4acc6bdb5a967abcc839814dfc8b3d9e386619",
-      "size": 568045
-    },
-    "realtime/solar_openmeteo_ghi/manifest.json": {
-      "revision": "16595d725bef19d88bfa29f787512e56e66f3c9c",
-      "sha256": "46387336541db97e9bbbeea7c276aeb9450c569fb68b80534a814288057e6c46",
-      "size": 1282
-    },
-    "realtime/solar_openmeteo_ghi/panel/2025.parquet": {
-      "revision": "16595d725bef19d88bfa29f787512e56e66f3c9c",
-      "sha256": "b170ed1ae87a9b1a81d49ecd1501452691d0203b5bc7979782499db188123804",
-      "size": 234408
-    },
-    "realtime/solar_openmeteo_ghi/panel/2026.parquet": {
-      "revision": "16595d725bef19d88bfa29f787512e56e66f3c9c",
-      "sha256": "8f15f3497b2b4c8bd5624b602ab143638f29d9b80963e6ef70231e8649f785d0",
-      "size": 602829
-    },
-    "realtime/traffic_pems_ba/manifest.json": {
-      "revision": "1d7338a62854a0e32a9059eb3d6005c74bca3d18",
-      "sha256": "9f6a0e779cad30a90c3cb24e30e70755300bee2a97e070daf89e725be5eb6509",
-      "size": 35014
-    },
-    "realtime/traffic_pems_ba/panel/2019.parquet": {
-      "revision": "1d7338a62854a0e32a9059eb3d6005c74bca3d18",
-      "sha256": "a814bf16a97d6a0e051be709c6a8556098e99607341a48b40bb3ee3aa6314d91",
-      "size": 63177599
-    },
-    "realtime/traffic_pems_ba/panel/2020.parquet": {
-      "revision": "1d7338a62854a0e32a9059eb3d6005c74bca3d18",
-      "sha256": "617d3569e6826740edc837fd2a759ea83d5444ac9bded48f4c837a617a299c51",
-      "size": 62063838
-    },
-    "realtime/traffic_pems_ba/panel/2021.parquet": {
-      "revision": "1d7338a62854a0e32a9059eb3d6005c74bca3d18",
-      "sha256": "b5aabfabf832e95809bcfeecb4e3a594664d65bedc607c4b836c3eb3bb35cc4b",
-      "size": 59987011
-    },
-    "realtime/traffic_pems_ba/panel/2022.parquet": {
-      "revision": "1d7338a62854a0e32a9059eb3d6005c74bca3d18",
-      "sha256": "ae3c051c08e3e4420d1bad9ee19d85dd4fd696246334b49b1f6e9babf499b9bc",
-      "size": 61407316
-    },
-    "realtime/traffic_pems_ba/panel/2023.parquet": {
-      "revision": "1d7338a62854a0e32a9059eb3d6005c74bca3d18",
-      "sha256": "981887c9fff80bdcf13f61a6adf3e3daf91654e8041e3508c22c2ee02c7afc68",
-      "size": 64675746
-    },
-    "realtime/traffic_pems_la/manifest.json": {
-      "revision": "e85e92dd3a1c800cb9e426ea712f571fa4f74858",
-      "sha256": "624a5e105cc55455f111ae3cd285705e5e16d140554aca5def1eb99bcf24888f",
-      "size": 27370
-    },
-    "realtime/traffic_pems_la/panel/2019.parquet": {
-      "revision": "e85e92dd3a1c800cb9e426ea712f571fa4f74858",
-      "sha256": "e1d310e90da6a97361407f6283506add4f139d6530db1a4715be65c5bcb3c711",
-      "size": 51167228
-    },
-    "realtime/traffic_pems_la/panel/2020.parquet": {
-      "revision": "e85e92dd3a1c800cb9e426ea712f571fa4f74858",
-      "sha256": "90729d5c4e6cb4aafa4ea3f05f850aa248c1cc74fc8371ed6c4d3b61fa6566e8",
-      "size": 52231463
-    },
-    "realtime/traffic_pems_la/panel/2021.parquet": {
-      "revision": "e85e92dd3a1c800cb9e426ea712f571fa4f74858",
-      "sha256": "4bfe6c284a362367121f86d355d08bffb03e7bec93c60065857f01cedc6fc9aa",
-      "size": 49313171
-    },
-    "realtime/traffic_pems_la/panel/2022.parquet": {
-      "revision": "e85e92dd3a1c800cb9e426ea712f571fa4f74858",
-      "sha256": "01a18a4c9d9b81a30a8725c2b874d56b1267a59bdea107305f50d9ef1b5d6f5e",
-      "size": 40241579
-    },
-    "realtime/traffic_pems_la/panel/2023.parquet": {
-      "revision": "e85e92dd3a1c800cb9e426ea712f571fa4f74858",
-      "sha256": "43966b449230c41cc2bffab49eb8a3f4c97d5fd847a5848e63be7aa423adb529",
-      "size": 37238636
-    },
-    "realtime/traffic_pems_sac/manifest.json": {
-      "revision": "d33837e52847a282f8acf97fdaead0f626448185",
-      "sha256": "c99ed2a81f0f58950ccdee832b7d8e73813d5ab331a29932a433dd4cf71eb3d8",
-      "size": 11899
-    },
-    "realtime/traffic_pems_sac/panel/2019.parquet": {
-      "revision": "d33837e52847a282f8acf97fdaead0f626448185",
-      "sha256": "6e834545250b3f4ac31695bd201fbbb9c98cabf4e5c38c2225df9a6deae6c57f",
-      "size": 13126634
-    },
-    "realtime/traffic_pems_sac/panel/2020.parquet": {
-      "revision": "d33837e52847a282f8acf97fdaead0f626448185",
-      "sha256": "defe03eea5872facdbcfc423d86daa13a077436321603c1a39e8dee94dda1126",
-      "size": 13446834
-    },
-    "realtime/traffic_pems_sac/panel/2021.parquet": {
-      "revision": "d33837e52847a282f8acf97fdaead0f626448185",
-      "sha256": "8adc4ed6942e06b784d90ec4b79633dc9b6e63ea91c71d1790bc09900ceb7258",
-      "size": 14144916
-    },
-    "realtime/traffic_pems_sac/panel/2022.parquet": {
-      "revision": "d33837e52847a282f8acf97fdaead0f626448185",
-      "sha256": "d99bc1dd812d8cc53981ad49ed10cc22c7573a2eaf49b71bf7afcd57d0f6eecb",
-      "size": 15608814
-    },
-    "realtime/traffic_pems_sac/panel/2023.parquet": {
-      "revision": "d33837e52847a282f8acf97fdaead0f626448185",
-      "sha256": "dcb8e9971b83f25155eea61786eb969a6ed080f8787e010a21a2b5fde6c6aae1",
-      "size": 17705113
-    },
-    "realtime/traffic_pems_sb/manifest.json": {
-      "revision": "c132a6408174fbc1430c27be56bd20feb443e314",
-      "sha256": "85ba7d636aaad7b955e92616ed2976bfc2b9d941a10924d8b01fb56ed56a1c6c",
-      "size": 15876
-    },
-    "realtime/traffic_pems_sb/panel/2019.parquet": {
-      "revision": "c132a6408174fbc1430c27be56bd20feb443e314",
-      "sha256": "d32f73aa0dff94f4d1a5080ed427699a6f556d73e9d0d493897a7c3b4cae790d",
-      "size": 24472776
-    },
-    "realtime/traffic_pems_sb/panel/2020.parquet": {
-      "revision": "c132a6408174fbc1430c27be56bd20feb443e314",
-      "sha256": "01f6f6e6623e37581295a74d3943c156d0f7f4ab8afb2fdf098d595953142351",
-      "size": 23631302
-    },
-    "realtime/traffic_pems_sb/panel/2021.parquet": {
-      "revision": "c132a6408174fbc1430c27be56bd20feb443e314",
-      "sha256": "ca023244b351b3cd95343371408900f72349f0efe5d411ff3e41c7c9ca30a465",
-      "size": 24037939
-    },
-    "realtime/traffic_pems_sb/panel/2022.parquet": {
-      "revision": "c132a6408174fbc1430c27be56bd20feb443e314",
-      "sha256": "c0a7f191a7739448d3a9310324c40d4e88d879709e0e9939396180445cee0a29",
-      "size": 24000607
-    },
-    "realtime/traffic_pems_sb/panel/2023.parquet": {
-      "revision": "c132a6408174fbc1430c27be56bd20feb443e314",
-      "sha256": "04017d3e0153d6f4b2036e6a92e5fb2dcea5647421124dd79090282df50ecc59",
-      "size": 24113735
-    },
-    "realtime/weather_openmeteo_temp/manifest.json": {
-      "revision": "0adff834d3ad1275dd4ce2a91cbaae7551b68057",
-      "sha256": "0b9d630fc61f19063c1e8732c9f0d3adefcb976c40ab419c77df348543b9acc7",
-      "size": 1724
-    },
-    "realtime/weather_openmeteo_temp/panel/2025.parquet": {
-      "revision": "0adff834d3ad1275dd4ce2a91cbaae7551b68057",
-      "sha256": "3e97c4c2dc7317cc78d543f49f6a64693557772956d721ce4d6876917bc684bb",
-      "size": 337747
-    },
-    "realtime/weather_openmeteo_temp/panel/2026.parquet": {
-      "revision": "0adff834d3ad1275dd4ce2a91cbaae7551b68057",
-      "sha256": "ed8c70e26179316df6c7ae5900d01c64f6bb22b627e0451b248129329adf1629",
-      "size": 859088
-    },
     "solar/solar.txt": {
-      "revision": "9e54ed1f30f4ca63bb45d58415d10af755f40dbc",
+      "revision": "34d6913e74e01a0eaf90e61476da90b5c4fd59ec",
       "sha256": "6ba8c36db9a21bd173e5b5aa7dff4acc9c4769e665bbd4e0b3e43e24df99fa46",
       "size": 24105448
     },
     "traffic/traffic.csv": {
-      "revision": "5144549e845461c98016a6ed44b2549f22c0081e",
+      "revision": "42e2bfa6674b762f297ec0f3317f82511ee8f651",
       "sha256": "8113d63b6621750c29a49d4b7e391b638f36eef28fac6fcb1fc486f819d05251",
       "size": 104181443
     },
     "weather/weather.csv": {
-      "revision": "88a5ea493d7d69513754cf2248863b6cd56da691",
+      "revision": "c6b41fa5d4f5a33326588d63f5aabc5494086733",
       "sha256": "18130da0fdb23d4e03dbded9af578bda0fb76b88eb3b466bcdc1b21f7cf20586",
       "size": 7182728
     }

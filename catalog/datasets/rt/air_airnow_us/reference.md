@@ -3,7 +3,7 @@
 ## Provenance and license
 
 - Source: EPA AirNow `HourlyData` files (https://www.airnow.gov). The AirNow data use guidelines (https://docs.airnowapi.org/docs/DataUseGuidelines.pdf) require attribution and a notice that the data are preliminary and unvalidated, so `redistribution` is `hosted` with `conditions`; AQS holds the validated values months later.
-- Releases are mirrored to the Hugging Face dataset `Diaugeia/TSFLab-RealTime` (`air_airnow_us/`).
+- Releases are mirrored to the Hugging Face dataset `Diaugeia/TSFLab-Datasets` (`realtime/air_airnow_us/`).
 
 ## Structure and statistics
 

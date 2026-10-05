@@ -7,7 +7,7 @@
     tsf result hub init [--owner OWNER] [--private] [--migrate-legacy] [--dry-run]
 
 Publishing is always explicit: ``push`` uploads only the run it is given, and
-``init`` creates the published repositories (static data, real-time panels,
+``init`` creates the published repositories (datasets: static and real-time,
 weights, leaderboard Space) with their cards.
 """
 

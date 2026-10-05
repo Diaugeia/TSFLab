@@ -1,8 +1,12 @@
 name: weekly
 
 # Weekly jobs on CPU runners (no GPU, no torch):
-#   realtime  update  - fetch new observations, record a release, mirror it to the HF dataset
-#             score   - score every round whose target window is now observed
+#   realtime  update  - fetch new observations, record a release, mirror it to
+#                       realtime/<track>/ of the HF dataset TSFLab-Datasets. Only tracks
+#                       whose card says redistribution = "hosted" are pulled and pushed;
+#                       the stock tracks print a skip line and need a store on the runner
+#                       (`tsf realtime update --bootstrap --track <track>`).
+#             score  - score every round whose target window is now observed
 #             open    - open this week's round on the new release, submit the baselines
 #             Results land as a pull request (rounds, forecasts, scores, summaries).
 #   merge     checks that PR with `tsf repo check` (no secrets) and squash-merges it
