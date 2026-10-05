@@ -49,13 +49,15 @@ def main() -> None:
     ap.add_argument("--jobs", default="24")
     ap.add_argument("--slots", default="64", help="worker slots = sweeps started at once")
     ap.add_argument("--poll", type=float, default=120)
+    ap.add_argument("--policy-phase", help="phase whose policies to use (default: --phase), e.g. main for main-p1")
     args = ap.parse_args()
     py = sys.executable
     for stage in args.stages:
         tier, weight = stage.split("-")
         queue = args.queue_root / f"{args.phase}-{stage}"
-        policy = HERE / f"policy-{args.phase}.toml"
-        heavy = HERE / f"policy-{args.phase}-heavy.toml"
+        base = args.policy_phase or args.phase
+        policy = HERE / f"policy-{base}.toml"
+        heavy = HERE / f"policy-{base}-heavy.toml"
         cmd = [py, str(HERE / "enqueue.py"), "--phase", args.phase, "--queue", str(queue),
                "--tier", tier, "--weight", weight, "--jobs", args.jobs, "--policy", str(policy)]
         if heavy.exists():

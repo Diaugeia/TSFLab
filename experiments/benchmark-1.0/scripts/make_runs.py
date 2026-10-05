@@ -228,8 +228,17 @@ def overlay(out: Path, name: str, sig: tuple[str, ...], spatial: bool, batch_sca
     return path
 
 
-def horizons(phase: str, preds: list[int]) -> list[int]:
-    return {"pilot": preds[:1], "smoke": preds[-1:]}.get(phase, preds)
+# Optional horizon filter for the long group (paper tables use horizon 192 first;
+# the other horizons follow in a second pass): set by --long-preds / --skip-long-preds.
+LONG_PREDS: set[int] | None = None
+SKIP_LONG_PREDS: set[int] = set()
+
+
+def horizons(phase: str, preds: list[int], group: str = "") -> list[int]:
+    chosen = {"pilot": preds[:1], "smoke": preds[-1:]}.get(phase, preds)
+    if group == "long":
+        chosen = [p for p in chosen if (LONG_PREDS is None or p in LONG_PREDS) and p not in SKIP_LONG_PREDS]
+    return chosen
 
 
 def root_doc(phase: str, tag: str, c: str, spatial: bool, seq: int) -> dict:
@@ -269,8 +278,11 @@ def check(out: Path, m: dict, ov: Path, doc: dict, preds) -> str | None:
     return None
 
 
-def generate(phase: str, out: Path, validate: bool = False, only: set[str] | None = None) -> list[dict]:
+def generate(phase: str, out: Path, validate: bool = False, only: set[str] | None = None,
+             only_groups: set[str] | None = None) -> list[dict]:
     groups = {"pilot": PILOT, "smoke": SMOKE}.get(phase, GROUPS)
+    if only_groups:
+        groups = {g: ds for g, ds in groups.items() if g in only_groups}
     by_class: dict[str, list[dict]] = {}
     skipped = []
     rows = models()
@@ -302,7 +314,7 @@ def generate(phase: str, out: Path, validate: bool = False, only: set[str] | Non
                         ov = overlay(out, d, sig, spatial)
                         seqs = proto[d]["seq_lens"]
                         for seq in (seqs[:1] if phase in ("pilot", "smoke", "main") else seqs[1:]):
-                            preds = horizons(phase, proto[d]["pred_lens"])
+                            preds = horizons(phase, proto[d]["pred_lens"], group)
                             doc = root_doc(phase, "check", c, spatial, seq)
                             for m in members:
                                 if (m["name"], d) not in EXCLUDE:
@@ -327,7 +339,7 @@ def generate(phase: str, out: Path, validate: bool = False, only: set[str] | Non
                     seqs = proto[d]["seq_lens"]
                     chosen = seqs[:1] if phase in ("pilot", "smoke", "main") else seqs[1:]
                     for s in chosen:
-                        preds = horizons(phase, proto[d]["pred_lens"])
+                        preds = horizons(phase, proto[d]["pred_lens"], group)
                         buckets.setdefault((s, tuple(preds)), []).append(d)
                 for (seq, preds), ds in sorted(buckets.items()):
                     tag = (f"{group}__{c}__{'-'.join(sig) or 'none'}__sl{seq}__{tier}-{weight}"
@@ -402,10 +414,16 @@ def main() -> None:
     ap.add_argument("--cells", type=Path,
                     help="CSV with model,dataset,pred_len: write one re-run file per (model, dataset)")
     ap.add_argument("--batch-scale", type=float, default=1.0, help="with --cells: scale the batch (flagged)")
+    ap.add_argument("--groups", nargs="+", choices=sorted(GROUPS), help="only these dataset groups")
+    ap.add_argument("--long-preds", type=int, nargs="+", help="long group: only these horizons")
+    ap.add_argument("--skip-long-preds", type=int, nargs="+", default=[], help="long group: skip these horizons")
     ap.add_argument("--validate", action="store_true",
                     help="load every (model, dataset) cell with the TSFLab loader and exclude the rejected ones")
     args = ap.parse_args()
     out = (args.out or HERE.parent / "runs" / args.phase).resolve()
+    global LONG_PREDS, SKIP_LONG_PREDS
+    LONG_PREDS = set(args.long_preds) if args.long_preds else None
+    SKIP_LONG_PREDS = set(args.skip_long_preds)
     shutil.rmtree(out, ignore_errors=True)
     if args.cells:
         import csv
@@ -415,7 +433,8 @@ def main() -> None:
                 cells.setdefault((rec["model"], rec["dataset"]), []).append(int(rec["pred_len"]))
         plan = generate_cells(args.phase, out, cells, args.batch_scale)
     else:
-        plan = generate(args.phase, out, validate=args.validate, only=set(args.models or ()))
+        plan = generate(args.phase, out, validate=args.validate, only=set(args.models or ()),
+                        only_groups=set(args.groups or ()))
     total = sum(p["cells"] for p in plan)
     excluded = json.loads((out / "plan.json").read_text())["excluded_cells"]
     print(f"{len(plan)} run files, {total} cells, {len(excluded)} excluded (model, dataset) pairs -> {out}")
