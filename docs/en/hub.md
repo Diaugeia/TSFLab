@@ -56,20 +56,23 @@ endpoint, so private repositories work; `HF_ENDPOINT` overrides the endpoint.
 
 | Repository | Type | Contents |
 | --- | --- | --- |
-| `Diaugeia/TSFLab-Static` | dataset | files behind the dataset presets, laid out as `dataset/` |
-| `Diaugeia/TSFLab-RealTime` | dataset | append-only real-time track panels, one commit per release |
+| `Diaugeia/TSFLab-Datasets` | dataset | `static/`: files behind the dataset presets, laid out as `dataset/`; `realtime/<track>/`: append-only panels of the hosted real-time tracks, one commit per release |
 | `Diaugeia/TSFLab-Weights` | model | trained weights bundles |
 | `Diaugeia/TSFLab` | space | the static leaderboard site |
 
 A fork or personal mirror sets `TSFLAB_HUB_OWNER` to publish under another
 namespace instead of passing `--repo` to every command. Maintainers create them, with their cards, through
 `uv run tsf result hub init [--migrate-legacy]`; `--migrate-legacy` renames the former
-TSEval repositories so their old addresses redirect.
+TSEval leaderboard Space so its old address redirects.
+
+TSFLab 0.8.0 reads the frozen `Diaugeia/TSFLab-Static` repository (files at its
+root, manifest schema 1); later releases use `TSFLab-Datasets` only.
 
 ## Benchmark data
 
 `configs/hub/datasets.json` pins every published data file by commit and
-SHA-256. Presets download into the local `dataset/` root, verified:
+SHA-256; its `prefix` (`static`) is the folder of the files in the repository.
+Presets download into the local `dataset/` root, verified:
 
 ```bash
 uv run tsf data download --list          # presets with published files
@@ -77,8 +80,8 @@ uv run tsf data download etth1 weather   # or --all
 uv run tsf data download --check         # every pinned file still resolves
 ```
 
-Maintainers publish local files, which updates the manifest to commit with the
-change:
+Maintainers publish local files to `static/`, which updates the manifest to
+commit with the change:
 
 ```bash
 uv run tsf data publish etth1 etth2 [--create]

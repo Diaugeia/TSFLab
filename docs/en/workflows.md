@@ -353,7 +353,7 @@ were measured from local files or reported by the source.
 
 | Value | Meaning | Presets |
 | --- | --- | --- |
-| `hosted` | TSFLab re-hosts the files in TSFLab-Static (`tsf data download <preset>`); extra source terms, if any, are in `conditions` (ETT, `solar`, `covid19`, `rt/grid_ercot`, `rt/air_airnow_us`) | 29 |
+| `hosted` | TSFLab re-hosts the files in TSFLab-Datasets (`static/`: `tsf data download <preset>`; `realtime/`: `tsf realtime update --pull`); extra source terms, if any, are in `conditions` (ETT, `solar`, `covid19`, `rt/grid_ercot`, `rt/air_airnow_us`) | 29 |
 | `upstream` | fetched from another party's Hugging Face repository, never re-hosted: GIFT-Eval with `tsf data prepare --from gift-eval` (55 presets and the family card), `exchange` with `tsf data download exchange` | 57 |
 | `script` | the license forbids re-hosting; TSFLab ships a fetch command and you download from the original source: `tsf data prepare --from tfb` (`fred_md`, `nasdaq`, `nyse`, `wike2000`), `tsf data prepare --from dcrnn` (`metr_la`), `tsf realtime update --bootstrap --track <t>` (`rt/stock_*`) | 8 |
 

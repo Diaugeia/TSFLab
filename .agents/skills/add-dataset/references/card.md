@@ -22,8 +22,8 @@ modes, and parameters are derived from code; never copy them into the card.
   terms (`spatial-graph`, `calendar-effects`, `exogenous-covariates`, ...) by hand
   only when the loader or source supports them.
 - Set `redistribution` from the source terms, with `license_url` as evidence:
-  `hosted` (TSFLab re-hosts the files in TSFLab-Static; write any extra terms the
-  source attaches, such as verbatim copies only, in `conditions`), `upstream`
+  `hosted` (TSFLab re-hosts the files in TSFLab-Datasets, under `static/` or
+  `realtime/`; write any extra terms the source attaches, such as verbatim copies only, in `conditions`), `upstream`
   (fetched from another party's Hugging Face repository: GIFT-Eval through
   `tsf data prepare --from gift-eval`, others through an `upstream` entry in
   `configs/hub/datasets.json`), or `script` (no explicit terms, or terms that forbid

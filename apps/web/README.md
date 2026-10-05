@@ -6,7 +6,7 @@
 
 [![Live](https://img.shields.io/badge/live-Hugging%20Face%20Space-8c6f24.svg)](https://huggingface.co/spaces/Diaugeia/TSFLab)
 [![🤗 Space](https://img.shields.io/badge/🤗%20Space-Diaugeia/TSFLab-yellow.svg)](https://huggingface.co/spaces/Diaugeia/TSFLab)
-[![🤗 Datasets](https://img.shields.io/badge/🤗%20Datasets-TSFLab--Static-orange.svg)](https://huggingface.co/datasets/Diaugeia/TSFLab-Static)
+[![🤗 Datasets](https://img.shields.io/badge/🤗%20Datasets-TSFLab--Datasets-orange.svg)](https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets)
 [![Next.js](https://img.shields.io/badge/Next.js-static%20export-black.svg?logo=next.js)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -53,7 +53,7 @@ one that tells you when the problem is genuinely hard.
 ## 🔗 Live & data
 
 - 🌐 **Site:** [Hugging Face Space](https://huggingface.co/spaces/Diaugeia/TSFLab) (auto-deployed on every push to `main`)
-- 📦 **Datasets** (on Hugging Face): [`Diaugeia/TSFLab-Static`](https://huggingface.co/datasets/Diaugeia/TSFLab-Static) — benchmark sets (ETT, electricity, solar, traffic, weather, …)
+- 📦 **Datasets** (on Hugging Face): [`Diaugeia/TSFLab-Datasets`](https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets) — `static/` benchmark sets (ETT, electricity, solar, traffic, weather, …) and `realtime/` track panels
 - 🧠 **Weights (optional):** [`Diaugeia/TSFLab-Weights`](https://huggingface.co/Diaugeia/TSFLab-Weights) — a public, *optional* reproducibility archive of trained checkpoints. A submission carries no weights and never needs a `.pth` to rank.
 
 ---

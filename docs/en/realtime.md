@@ -80,16 +80,21 @@ Open-Meteo, and ERCOT tracks need no key. Notes per source:
   `station_hour` flow values.
 
 A new track is bootstrapped once by a maintainer (`tsf realtime update --bootstrap --track T
---push`); the weekly workflow then pulls the store from the Hub and appends.
+--push`); the weekly workflow then pulls the store from the Hub and appends. The
+stock tracks are never uploaded: `--push` prints a skip line for them, and each
+machine that runs them builds its own store with
+`tsf realtime update --bootstrap --track <track>`.
 
 ## Data releases
 
 Each track has an append-only panel store (`dataset/realtime/<track>/`,
 parquet by year plus a manifest). An update only adds new timestamps or fills
 cells that were missing, never rewrites observed history, and records a release
-with a content hash. Releases are mirrored to the Hugging Face dataset
-`Diaugeia/TSFLab-RealTime` (owner overridable with `TSFLAB_HUB_OWNER`), one commit per release, so every round can be
-reproduced from a pinned revision.
+with a content hash. Releases of the hosted tracks are mirrored to the folder
+`realtime/<track>/` of the Hugging Face dataset `Diaugeia/TSFLab-Datasets` (owner
+overridable with `TSFLAB_HUB_OWNER`), one commit per release, so every round can be
+reproduced from a pinned revision. Only tracks whose card says
+`[source] redistribution = "hosted"` are uploaded; `--push` skips the others.
 
 ## Tracks as static datasets
 
