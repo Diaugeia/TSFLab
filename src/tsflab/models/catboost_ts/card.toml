@@ -24,9 +24,9 @@ loss = "loss:mse"
 enc_in = { from = "channels", rule = "must equal the dataset channel count; input and output widths are seq_len*enc_in and pred_len*enc_in" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
+status = "pending"
+date = "2026-10-05"
+commit = ""
+device = ""
 reference = "none"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = "re-verify: max_dense_parameters cap (2e9 dense weights) added on fix/smoke-failures; forward unchanged below the cap"
