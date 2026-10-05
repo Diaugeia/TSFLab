@@ -1,0 +1,23 @@
+# Execution policy: main phase of the 1.0 static benchmark on UH_Public.
+#   uv run tsf run <run.toml> --policy experiments/benchmark-1.0/scripts/policy-main.toml \
+#       --gpus 0,1,2,3,4,5,6,7 --jobs 24 --prepare-only --json
+# memory_per_run_mb and run_timeout_minutes are set from the pilot measurements.
+
+[budget]
+max_parallel_jobs = 24      # overridden by --jobs
+run_timeout_minutes = 360
+max_retries = 1             # same config; an out-of-memory cell is re-run later with a halved batch, flagged
+
+[resources]
+gpus = ["0", "1", "2", "3", "4", "5", "6", "7"]
+gpus_per_run = 1
+sharing = true
+max_processes_per_gpu = 3
+memory_per_run_mb = 12000
+min_free_memory_mb = 4000
+threads_per_run = 6
+wait_timeout_minutes = 1440
+min_free_disk_gb = 100
+
+[storage]
+keep_epoch_checkpoints = 0
