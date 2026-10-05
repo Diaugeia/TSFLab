@@ -113,6 +113,17 @@ def categorize(rows: list[dict]) -> None:
         else:
             m["tier"] = "t2"
 
+# Models whose design does not fit a whole dataset group (the model raises at
+# construction); recorded in plan.json as not run, with the reason.
+EXCLUDE_GROUPS = {
+    ("GMRL", "spatial"): "needs several source modalities per location (enc_in = num_sources x num_locations); "
+                         "PEMS / METR-LA have one",
+    ("MoSSL", "spatial"): "needs several modalities per node (enc_in = num_modalities x num_nodes); PEMS / METR-LA have one",
+    ("MGSFformer", "spatial"): "needs seq_len to be a multiple of 24; the spatial protocol uses 12",
+    ("PCATransformer", "long"): "forecasts one target from reduced covariates (task.features = 'MS'); the protocol is 'M'",
+    ("PCATransformer", "short"): "forecasts one target from reduced covariates (task.features = 'MS'); the protocol is 'M'",
+}
+
 STEPS_PER_DAY_KEYS = ("num_time_in_day", "steps_per_day", "time_in_day_size")
 CHANNEL_KEYS = ("enc_in", "dec_in", "c_out")
 
@@ -268,6 +279,10 @@ def generate(phase: str, out: Path, validate: bool = False, only: set[str] | Non
         (by_class.setdefault(c, []) if c else skipped).append(m)
     plan = []
     for group, datasets in groups.items():
+        for (name, g), reason in EXCLUDE_GROUPS.items():
+            if g == group:
+                for d in datasets:
+                    EXCLUDE.setdefault((name, d), reason)
         spatial = group == "spatial"
         classes = ["spatial"] if spatial else ["point", "quantile", "distribution"]
         proto = {d: card(d)["protocol"] for d in datasets}
