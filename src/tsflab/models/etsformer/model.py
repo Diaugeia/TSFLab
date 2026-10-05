@@ -38,30 +38,39 @@ class FrequencyAttention(nn.Module):
 
 
 class ExponentialSmoothing(nn.Module):
-    """AES(V)_t = alpha V_t + (1-alpha) AES(V)_{t-1}."""
+    """Multi-head AES: AES(V)_t = alpha_h V_t + (1-alpha_h) AES(V)_{t-1}, one alpha per head.
 
-    def __init__(self, width: int) -> None:
+    The ``width`` features are split into ``heads`` contiguous groups of
+    ``width // heads``; each group shares one learnable smoothing weight.
+    """
+
+    def __init__(self, width: int, heads: int) -> None:
         super().__init__()
-        self.alpha_logit = nn.Parameter(torch.zeros(width))
+        if width % heads:
+            raise ValueError("d_model must be divisible by n_heads")
+        self.head_width = width // heads
+        self.alpha_logit = nn.Parameter(torch.zeros(heads))
         self.initial = nn.Parameter(torch.zeros(width))
 
     def forward(self, values: torch.Tensor) -> torch.Tensor:
-        alpha = self.alpha_logit.sigmoid().view(1, 1, -1)
+        alpha = self.alpha_logit.sigmoid().repeat_interleave(self.head_width).view(1, -1)
         state = self.initial.view(1, -1).expand(values.shape[0], -1)
         outputs = []
         for step in values.unbind(dim=1):
-            state = alpha[:, 0] * step + (1.0 - alpha[:, 0]) * state
+            state = alpha * step + (1.0 - alpha) * state
             outputs.append(state)
         return torch.stack(outputs, dim=1)
 
 
 class ETSLayer(nn.Module):
-    def __init__(self, width: int, hidden: int, top_k: int, dropout: float,
+    def __init__(self, width: int, heads: int, hidden: int, top_k: int, dropout: float,
                  activation: str) -> None:
         super().__init__()
+        self.head_width = width // heads
         self.frequency = FrequencyAttention(top_k)
         self.growth_input = nn.Linear(width, width)
-        self.smoothing = ExponentialSmoothing(width)
+        self.smoothing = ExponentialSmoothing(width, heads)
+        self.growth_output = nn.Linear(width, width)
         nonlinearity: nn.Module = nn.Sigmoid() if activation == "sigmoid" else nn.GELU()
         self.feed_forward = nn.Sequential(
             nn.Linear(width, hidden), nonlinearity, nn.Dropout(dropout),
@@ -69,17 +78,17 @@ class ETSLayer(nn.Module):
         )
         self.norm_growth = nn.LayerNorm(width)
         self.norm_feed_forward = nn.LayerNorm(width)
-        self.damping_logit = nn.Parameter(torch.zeros(width))
+        self.damping_logit = nn.Parameter(torch.zeros(heads))
 
     def forward(self, residual: torch.Tensor, horizon: int):
         season, future_season = self.frequency(residual, horizon)
         deseasonalized = residual - season
         projected = self.growth_input(deseasonalized)
         difference = torch.diff(projected, dim=1, prepend=projected[:, :1])
-        growth = self.smoothing(difference)
+        growth = self.growth_output(self.smoothing(difference))
         residual = self.norm_growth(deseasonalized - growth)
         residual = self.norm_feed_forward(residual + self.feed_forward(residual))
-        gamma = self.damping_logit.sigmoid()
+        gamma = self.damping_logit.sigmoid().repeat_interleave(self.head_width)
         powers = torch.arange(1, horizon + 1, device=residual.device,
                               dtype=residual.dtype).view(-1, 1)
         damping = gamma.view(1, -1).pow(powers).cumsum(dim=0)
@@ -92,17 +101,18 @@ class Model(nn.Module):
 
     def __init__(
         self, seq_len: int, pred_len: int, enc_in: int, d_model: int = 128,
-        n_heads: int = 8, e_layers: int = 2, d_layers: int = 2,
-        d_ff: int = 256, top_k: int = 3, dropout: float = 0.1,
-        activation: str = "sigmoid", embed: str = "timeF", freq: str = "h",
+        n_heads: int = 8, e_layers: int = 2, d_ff: int = 256, top_k: int = 3,
+        dropout: float = 0.1, activation: str = "sigmoid",
     ) -> None:
         super().__init__()
-        del seq_len, n_heads, d_layers, embed, freq
+        del seq_len
+        if d_model % n_heads:
+            raise ValueError("d_model must be divisible by n_heads")
         self.pred_len = pred_len
         self.embedding = nn.Conv1d(enc_in, d_model, kernel_size=3,
                                    padding=1, padding_mode="circular")
         self.layers = nn.ModuleList([
-            ETSLayer(d_model, d_ff, top_k, dropout, activation)
+            ETSLayer(d_model, n_heads, d_ff, top_k, dropout, activation)
             for _ in range(e_layers)
         ])
         self.season_projection = nn.ModuleList([nn.Linear(d_model, enc_in) for _ in range(e_layers)])

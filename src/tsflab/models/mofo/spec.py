@@ -2,22 +2,24 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from tsflab.catalog.registry.models import ModelSpec
 from tsflab.models.mofo.model import Model
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ModelParameterConfig(BaseModel):
     """Validated MoFo parameters supplied via ``model.params``."""
 
-    enc_in: int
-    d_model: int = 64
-    periodic: int = 24
-    head: int = 4
-    d_layers: int = 1
-    bias: int = 1
-    cias: int = 1
+    enc_in: int = Field(gt=0)
+    d_model: int = Field(default=64, gt=0)
+    periodic: int = Field(default=24, ge=2)
+    head: int = Field(default=4, gt=0)
+    d_layers: int = Field(default=1, gt=0)
+    bias: Literal[0, 1] = 1
+    cias: Literal[0, 1] = 1
 
 
 def build_model(cfg, params):
@@ -37,6 +39,6 @@ SPEC = ModelSpec(
     model_card='src/tsflab/models/mofo/README.md',
     smoke_config=None,
     capabilities=frozenset(['time-series']),
-    components=('revin',),
+    components=('marks', 'revin'),
     contract_task={'seq_len': 96, 'pred_len': 96, 'label_len': 0},
 )

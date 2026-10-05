@@ -14,6 +14,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from tsflab.models._components.marks import elapsed_minutes
 from tsflab.models._components.revin import RevIN
 from tsflab.models._components.topk_expert_router import topk_dense_mix
 
@@ -220,12 +221,32 @@ class Model(nn.Module):
         weights = topk_dense_mix(soft, self.top_k, self.routing_floor)
         return weights, drift
 
-    def channel_relation(self, x: torch.Tensor) -> torch.Tensor:
+    def window_phase(self, x_mark_enc: torch.Tensor | None, batch: int,
+                     device: torch.device) -> torch.Tensor:
+        """Cycle index ``t`` of Eq. (10) for each sample: the phase of the first input step.
+
+        The phase is the absolute step count of the first raw mark since
+        1970-01-01 00:00 modulo ``relation_period``; the step length is the
+        minute gap between the first two marks (at least one minute). For
+        hourly data and ``relation_period = 24`` this is the hour of day.
+        Without marks every sample uses phase 0, as the reference does.
+        """
+        period = self.cycle_relation.shape[0]
+        if x_mark_enc is None:
+            return torch.zeros(batch, dtype=torch.long, device=device)
+        if (x_mark_enc.ndim != 3 or x_mark_enc.shape[0] != batch or x_mark_enc.shape[1] < 2
+                or x_mark_enc.shape[-1] != 6):
+            raise ValueError("x_mark_enc must be raw marks [batch, seq_len >= 2, 6]")
+        minutes = elapsed_minutes(x_mark_enc[:, :2])
+        step = (minutes[:, 1] - minutes[:, 0]).clamp_min(1)
+        return torch.div(minutes[:, 0], step, rounding_mode="floor").remainder(period).to(device)
+
+    def channel_relation(self, x: torch.Tensor, phase: torch.Tensor) -> torch.Tensor:
         centered = x - x.mean(1, keepdim=True)
         covariance = torch.einsum("blc,bld->bcd", centered, centered)
         scale = centered.square().sum(1).sqrt().clamp_min(1e-6)
         current = covariance / (scale[:, :, None] * scale[:, None, :])
-        prototype = self.cycle_relation[(self.seq_len - 1) % self.cycle_relation.shape[0]]
+        prototype = self.cycle_relation[phase]
         residual = self.relation_residual((current - prototype).unsqueeze(-1)).squeeze(-1)
         return (prototype + residual).softmax(-1)
 
@@ -244,7 +265,9 @@ class Model(nn.Module):
             [expert(patch_tokens) for expert in self.experts], dim=-2
         )
         mixed = (expert_outputs * weights[:, :, None, :, None]).sum(-2)
-        relation = self.channel_relation(normalized)
+        relation = self.channel_relation(
+            normalized, self.window_phase(x_mark_enc, x_enc.shape[0], x_enc.device)
+        )
         mixed = mixed + torch.einsum("bck,bnkd->bncd", relation, mixed)
         forecast = self.head(mixed.permute(0, 2, 1, 3).flatten(-2)).transpose(1, 2)
         self.last_mmd = drift.detach()
