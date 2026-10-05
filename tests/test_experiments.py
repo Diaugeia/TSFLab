@@ -1145,3 +1145,60 @@ def test_model_io_does_not_mask_internal_type_errors():
     values = torch.randn(1, 4, 2)
     with pytest.raises(TypeError, match="internal failure"):
         call_forecaster(Broken(), values, None, values, None)
+
+
+# --- streaming metrics ---------------------------------------------------------------
+
+def _split(arr, sizes):
+    out, start = [], 0
+    for size in sizes:
+        out.append(arr[start:start + size])
+        start += size
+    return out
+
+
+@pytest.mark.parametrize("output_type", ["point", "quantile", "distribution"])
+def test_streaming_metrics_match_concatenated(output_type):
+    import numpy as np
+
+    from tsflab.experiments.evaluation.streaming import MetricAccumulator
+    from tsflab.experiments.runner.evaluator import _CANONICAL_LEVELS, _compute_metrics
+
+    rng = np.random.default_rng(0)
+    b, horizon, c = 37, 5, 4
+    true = (rng.normal(size=(b, horizon, c)) * 3 + 10).astype(np.float32)
+    levels = list(_CANONICAL_LEVELS)
+    if output_type == "point":
+        pred = (true + rng.normal(size=true.shape)).astype(np.float32)
+    elif output_type == "quantile":
+        base = true[..., None] + rng.normal(size=(*true.shape, 1))
+        pred = np.sort(base + rng.normal(size=(*true.shape, len(levels))), axis=-1).astype(np.float32)
+    else:
+        loc = true + rng.normal(size=true.shape)
+        pred = np.stack([loc, np.abs(rng.normal(size=true.shape)) + 0.5], axis=-1).astype(np.float32)
+    expected = _compute_metrics(pred, true, output_type, "gaussian", levels)
+    acc = MetricAccumulator(output_type, "gaussian", levels)
+    for p, t in zip(_split(pred, [1, 16, 3, 17]), _split(true, [1, 16, 3, 17])):
+        acc.update(p, t)
+    got = acc.result()
+    assert set(got) == set(expected)
+    for key, value in expected.items():
+        assert got[key] == pytest.approx(value, rel=1e-5, abs=1e-6), key
+
+
+def test_streaming_metrics_zero_variance_and_empty():
+    import numpy as np
+
+    from tsflab.experiments.evaluation.streaming import MetricAccumulator
+    from tsflab.experiments.evaluation.metrics import collect_metrics
+
+    true = np.ones((4, 3, 2), dtype=np.float32)
+    pred = np.full_like(true, 2.0)
+    acc = MetricAccumulator()
+    acc.update(pred[:2], true[:2])
+    acc.update(pred[2:], true[2:])
+    got, expected = acc.result(), collect_metrics(pred, true)
+    assert got["corr"] == expected["corr"] == 0.0
+    assert np.isnan(got["mase"]) and np.isnan(expected["mase"])
+    with pytest.raises(ValueError):
+        MetricAccumulator().result()

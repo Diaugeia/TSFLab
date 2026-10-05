@@ -15,6 +15,7 @@ from tsflab.experiments.runner.model_io import (
     unwrap_model,
 )
 from tsflab.experiments.evaluation.metrics import collect_metrics, collect_prob_metrics
+from tsflab.experiments.evaluation.streaming import MetricAccumulator
 
 _CANONICAL_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
@@ -231,8 +232,7 @@ def evaluate(
     output_type, distribution_family = _resolve_output_kind(model)
     levels = list(quantile_levels) if quantile_levels else list(_CANONICAL_LEVELS)
 
-    preds = []
-    trues = []
+    acc = MetricAccumulator(output_type, distribution_family, levels)
 
     from pathlib import Path
     from tsflab.experiments.infra.checkpoint import capture_rng, set_rng, runtime_state, restore_runtime_state
@@ -242,7 +242,11 @@ def evaluate(
     state = None
     if checkpoint is not None and Path(checkpoint).exists():
         state = torch.load(checkpoint, map_location="cpu", weights_only=False)
-        preds, trues = state["preds"], state["trues"]
+        if "metrics" in state:
+            acc = state["metrics"]
+        else:  # an evaluation checkpoint from before streaming metrics
+            for pred_batch, true_batch in zip(state["preds"], state["trues"]):
+                acc.update(pred_batch, true_batch)
         restore_runtime_state(model, state["runtime"])
         set_rng(state["epoch_rng"])
         if state["loader_rng"] is not None:
@@ -289,20 +293,14 @@ def evaluate(
                         outputs, batch_y_sliced, dataset, output_type
                     )
 
-            preds.append(outputs)
-            trues.append(batch_y_sliced)
+            acc.update(outputs, batch_y_sliced)
             if checkpoint is not None and checkpoint_every_batches and (index + 1) % checkpoint_every_batches == 0:
-                atomic_state(checkpoint, {"next_batch": index + 1, "preds": preds, "trues": trues,
+                atomic_state(checkpoint, {"next_batch": index + 1, "metrics": acc,
                     "runtime": runtime_state(model), "rng": capture_rng(), "epoch_rng": epoch_rng,
                     "loader_rng": loader_rng, "elapsed": prior_elapsed + time.perf_counter() - start_time})
 
     test_time = prior_elapsed + time.perf_counter() - start_time
-    preds = np.concatenate(preds, axis=0)
-    trues = np.concatenate(trues, axis=0)
-    metrics = _compute_metrics(
-        preds, trues, output_type, distribution_family, levels
-    )
-    return metrics, test_time
+    return acc.result(), test_time
 
 
 def evaluate_rolling(
@@ -394,8 +392,7 @@ def evaluate_rolling(
     if num_rollings is not None:
         starts = starts[: max(int(num_rollings), 0)]
 
-    preds = []
-    trues = []
+    acc = MetricAccumulator(output_type, distribution_family, levels)
 
     model.eval()
     start_time = time.perf_counter()
@@ -477,15 +474,9 @@ def evaluate_rolling(
                         outputs, batch_y_sliced, dataset, output_type
                     )
 
-            preds.append(outputs)
-            trues.append(batch_y_sliced)
+            acc.update(outputs, batch_y_sliced)
 
     test_time = time.perf_counter() - start_time
-    if not preds:
+    if acc.n == 0:
         raise ValueError("rolling forecast produced no windows")
-    preds = np.concatenate(preds, axis=0)
-    trues = np.concatenate(trues, axis=0)
-    metrics = _compute_metrics(
-        preds, trues, output_type, distribution_family, levels
-    )
-    return metrics, test_time
+    return acc.result(), test_time
