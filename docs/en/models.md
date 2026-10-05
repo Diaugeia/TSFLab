@@ -2,7 +2,7 @@
 
 TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 311 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 310 of 311 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -94,7 +94,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `FAITH` | Multi-scale trend/seasonal split; attention over sampled FFT bins along the channel axis, then the time axis, on the seasonal part, plus a linear trend forecast. | reference-checked | passed | [card](../../src/tsflab/models/faith/README.md) |
 | `FDNet` | Local-only weight-normalized 1x1/3x1 conv features per value with focal input decomposition: the latest sub-sequence gets the deepest branch. | reference-checked | passed | [card](../../src/tsflab/models/fdnet/README.md) |
 | `FEDformer` | Encoder-decoder Transformer with Fourier-enhanced blocks and frequency cross-attention on a few selected modes, inside progressive seasonal-trend decomposition. | reference-checked | passed | [card](../../src/tsflab/models/fedformer/README.md) |
-| `FeTS` | Patch tokens scored by a Fourier-plus-polynomial basis into a binary feature mask that gates local feature aggregation, then local-conv and global fusion. | reference-checked | passed | [card](../../src/tsflab/models/fets/README.md) |
+| `FeTS` | Patch tokens scored by a Fourier-plus-polynomial basis into a binary feature mask that gates local feature aggregation, then local-conv and global fusion. | reference-checked | pending | [card](../../src/tsflab/models/fets/README.md) |
 | `FiLM` | Legendre-memory projection of the history, low-rank complex Fourier filtering to remove noise, and a mixture of multiscale-history experts. | reference-checked | passed | [card](../../src/tsflab/models/film/README.md) |
 | `FITS` | Low-pass rFFT, one learned complex frequency interpolation to the extended length, then irFFT; about 10k parameters. | reference-checked | passed | [card](../../src/tsflab/models/fits/README.md) |
 | `FPPformer` | Channel-independent patch Transformer with a bottom-up patch-merging encoder using diagonal-masked element/patch attention and a top-down patch-splitting decoder that cross-attends first. | reference-checked | passed | [card](../../src/tsflab/models/fppformer/README.md) |
