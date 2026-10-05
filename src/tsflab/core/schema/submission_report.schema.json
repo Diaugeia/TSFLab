@@ -27,7 +27,7 @@
             }
           ],
           "default": null,
-          "description": "Hugging Face repo path, e.g. 'Diaugeia/TSFLab-Static:ett1'.",
+          "description": "Hugging Face repo path, e.g. 'Diaugeia/TSFLab-Datasets:static/ett1'.",
           "title": "Hf Path"
         },
         "hf_revision": {

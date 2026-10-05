@@ -188,7 +188,7 @@ def _hub_dataset_command(action: str, rest: list[str]) -> int:
         parser.add_argument("--check", action="store_true",
                             help="check that every pinned file still resolves (no download)")
     else:
-        parser.add_argument("--repo", default=hub.DEFAULT_STATIC_REPO)
+        parser.add_argument("--repo", default=hub.DEFAULT_DATASETS_REPO)
         parser.add_argument("--create", action="store_true", help="create the repo if missing")
         parser.add_argument("--private", action="store_true", help="create the repo as private")
         parser.add_argument("--path", action="append", default=[], dest="paths",

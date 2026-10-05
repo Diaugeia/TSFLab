@@ -32,15 +32,15 @@ REV = "0123abcd"
 def test_parse_round_trips_every_repo_type() -> None:
     for text, repo_type in (
         (f"hf://{REPO}@{REV}/weather/DLinear/run/model.safetensors", "model"),
-        ("hf://datasets/Diaugeia/TSFLab-Static@main/ett/ETTh1.csv", "dataset"),
+        ("hf://datasets/Diaugeia/TSFLab-Datasets@main/static/ett/ETTh1.csv", "dataset"),
         ("hf://spaces/Diaugeia/TSFLab@v1/index.html", "space"),
     ):
         uri = hub.parse(text)
         assert uri.repo_type == repo_type
         assert str(uri) == text
-    uri = hub.parse("hf://datasets/Diaugeia/TSFLab-Static@main/ett/ETTh1.csv")
+    uri = hub.parse("hf://datasets/Diaugeia/TSFLab-Datasets@main/static/ett/ETTh1.csv")
     assert uri.resolve_url() == (
-        "https://huggingface.co/datasets/Diaugeia/TSFLab-Static/resolve/main/ett/ETTh1.csv"
+        "https://huggingface.co/datasets/Diaugeia/TSFLab-Datasets/resolve/main/static/ett/ETTh1.csv"
     )
 
 
@@ -154,11 +154,11 @@ def test_hub_owner_comes_from_the_environment(monkeypatch) -> None:
 
     monkeypatch.setenv("TSFLAB_HUB_OWNER", "someone")
     try:
-        assert importlib.reload(uri).default_repo("TSFLab-Static") == "someone/TSFLab-Static"
+        assert importlib.reload(uri).default_repo("TSFLab-Datasets") == "someone/TSFLab-Datasets"
     finally:
         monkeypatch.delenv("TSFLAB_HUB_OWNER")
         importlib.reload(uri)
-    assert uri.default_repo("TSFLab-Static") == "Diaugeia/TSFLab-Static"
+    assert uri.default_repo("TSFLab-Datasets") == "Diaugeia/TSFLab-Datasets"
 
 
 # ---------------------------------------------------------------------------
@@ -218,9 +218,100 @@ def test_local_files_respects_selection(tmp_path) -> None:
     assert hd.local_files("ultratraffic", data, chosen=whole) == ["ultratraffic/PEMS_BA/static/2023.parquet"]
 
 
+def test_v2_manifest_urls_use_the_prefix_and_v1_urls_the_root() -> None:
+    entry = {"revision": "abc", "sha256": "0" * 64, "size": 1}
+    v2 = {"schema_version": 2, "repo": "o/TSFLab-Datasets", "prefix": "static", "files": {}}
+    v1 = {"schema_version": 1, "repo": "o/TSFLab-Static", "files": {}}
+    assert hd._entry_url(v2, "ETT-small/ETTh1.csv", entry) == \
+        "hf://datasets/o/TSFLab-Datasets@abc/static/ETT-small/ETTh1.csv"
+    assert hd._entry_url(v1, "ETT-small/ETTh1.csv", entry) == \
+        "hf://datasets/o/TSFLab-Static@abc/ETT-small/ETTh1.csv"
+    upstream = {"url": "https://example.org/x.csv", "sha256": "0" * 64, "size": 1}
+    assert hd._entry_url(v2, "x.csv", upstream) == "https://example.org/x.csv"
+    assert hd.DEFAULT_STATIC_REPO == hd.DEFAULT_DATASETS_REPO == hub.DEFAULT_DATASETS_REPO
+
+
+def _fixture_repo(tmp_path: Path, manifest: dict) -> Path:
+    """A checkout with the shipped presets and cards and its own hub manifest."""
+    root = tmp_path / "repo"
+    shutil.copytree(ROOT / "configs" / "datasets", root / "configs" / "datasets")
+    shutil.copytree(ROOT / "catalog" / "datasets" / "etth1", root / "catalog" / "datasets" / "etth1")
+    _write_bytes(root / hd.MANIFEST_RELATIVE, json.dumps(manifest).encode())
+    return root
+
+
+class _FakeHfApi:
+    uploads: list[dict] = []
+
+    def create_repo(self, *args, **kwargs) -> None:
+        pass
+
+    def upload_folder(self, **kwargs):
+        type(self).uploads.append(kwargs)
+        return type("Commit", (), {"oid": f"rev{len(type(self).uploads)}"})()
+
+
+def test_publish_uploads_under_the_static_prefix(tmp_path, monkeypatch) -> None:
+    import huggingface_hub
+
+    upstream = {"x/x.csv": {"url": "https://example.org/x.csv", "sha256": "0" * 64, "size": 1}}
+    root = _fixture_repo(tmp_path, {"schema_version": 2, "repo": "o/TSFLab-Datasets", "prefix": "static",
+                                    "files": {}, "upstream": upstream})
+    data = tmp_path / "dataset"
+    _write_bytes(data / "ETT-small/ETTh1.csv", b"date,OT\n2020-01-01,1\n")
+    _FakeHfApi.uploads = []
+    monkeypatch.setattr(huggingface_hub, "HfApi", _FakeHfApi)
+    assert hd.publish_presets(["etth1"], data, "o/TSFLab-Datasets", root=root) == {"etth1": "rev1"}
+    (upload,) = _FakeHfApi.uploads
+    assert upload["path_in_repo"] == "static" and upload["allow_patterns"] == ["ETT-small/ETTh1.csv"]
+    assert upload["folder_path"] == str(data) and upload["repo_type"] == "dataset"
+    manifest = hd.load_manifest(root)
+    assert manifest["schema_version"] == 2 and manifest["prefix"] == "static"
+    assert manifest["upstream"] == upstream
+    assert hd._entry_url(manifest, "ETT-small/ETTh1.csv", manifest["files"]["ETT-small/ETTh1.csv"]) == \
+        "hf://datasets/o/TSFLab-Datasets@rev1/static/ETT-small/ETTh1.csv"
+    # Unchanged files are not uploaded again.
+    assert hd.publish_presets(["etth1"], data, "o/TSFLab-Datasets", root=root) == {"etth1": "unchanged"}
+    assert len(_FakeHfApi.uploads) == 1
+
+
+def test_publish_keeps_a_v1_manifest_at_the_repo_root(tmp_path, monkeypatch) -> None:
+    import huggingface_hub
+
+    pinned = {"ETT-small/ETTh2.csv": {"revision": "old", "sha256": "0" * 64, "size": 1}}
+    root = _fixture_repo(tmp_path, {"schema_version": 1, "repo": "o/TSFLab-Static", "files": pinned})
+    data = tmp_path / "dataset"
+    _write_bytes(data / "ETT-small/ETTh1.csv", b"x")
+    _FakeHfApi.uploads = []
+    monkeypatch.setattr(huggingface_hub, "HfApi", _FakeHfApi)
+    with pytest.raises(ValueError, match="already pins files in o/TSFLab-Static"):
+        hd.publish_presets(["etth1"], data, "o/TSFLab-Datasets", root=root)
+    hd.publish_presets(["etth1"], data, "o/TSFLab-Static", root=root)
+    assert _FakeHfApi.uploads[0]["path_in_repo"] is None
+    assert "prefix" not in hd.load_manifest(root)
+
+
+def test_hub_init_creates_one_datasets_repo_with_both_folders() -> None:
+    from tsflab.release.hub import publish
+
+    plan = publish.repository_plan("o")
+    assert [(item["repo_id"], item["repo_type"]) for item in plan] == [
+        ("o/TSFLab-Datasets", "dataset"), ("o/TSFLab-Weights", "model"), ("o/TSFLab", "space")]
+    card = plan[0]["card"]
+    assert "## `static/`" in card and "## `realtime/`" in card
+    hosted, fetched = (line for line in card.splitlines() if line.startswith(("- Hosted", "- Not redistributed")))
+    assert "`grid_ercot`" in hosted and "`stock_hs300`" not in hosted
+    assert all(f"`{t}`" in fetched for t in ("stock_hs300", "stock_nasdaq100", "stock_sp500"))
+    assert "TSFLab-Static" not in publish.LEGACY_NAMES
+    dry = publish.init_repositories("o", migrate=True, dry_run=True)
+    assert dry[0] == "create dataset:o/TSFLab-Datasets"
+
+
 def test_packaged_manifest_is_well_formed() -> None:
     manifest = hd.load_manifest()
-    assert manifest["repo"] == hd.DEFAULT_STATIC_REPO
+    assert manifest["repo"] == hd.DEFAULT_DATASETS_REPO
+    assert manifest["schema_version"] == hd.MANIFEST_SCHEMA_VERSION == 2
+    assert manifest["prefix"] == hd.STATIC_PREFIX == "static"
     for name, entry in manifest["files"].items():
         assert not name.startswith("/") and set(entry) == {"revision", "sha256", "size"}
     for name, entry in manifest.get("upstream", {}).items():

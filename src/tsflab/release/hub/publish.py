@@ -61,33 +61,66 @@ def _card(front: dict[str, object], body: str) -> str:
 _SOURCE = "https://github.com/Diaugeia/TSFLab"
 
 
-def repository_plan(owner: str = DEFAULT_OWNER) -> list[dict[str, str]]:
-    """Return the published repositories: id, type, and README card."""
-    return [
-        {"repo_id": f"{owner}/TSFLab-Static", "repo_type": "dataset", "card": _card(
-            {"license": "other", "pretty_name": "TSFLab Static Benchmarks"},
-            f"""
-# TSFLab static benchmark data
+def _track_classes() -> tuple[list[str], list[str]]:
+    """Real-time track ids split into (hosted, not redistributed) by their dataset cards."""
+    import tomllib
 
-Files behind the TSFLab dataset presets, laid out exactly as the local
+    from tsflab.core.paths import repository_root
+
+    hosted, fetched = [], []
+    for card in sorted((repository_root() / "catalog" / "datasets" / "rt").glob("*/card.toml")):
+        source = tomllib.loads(card.read_text(encoding="utf-8")).get("source", {})
+        (hosted if source.get("redistribution") == "hosted" else fetched).append(card.parent.name)
+    return hosted, fetched
+
+
+def _listed(names: list[str]) -> str:
+    return ", ".join(f"`{name}`" for name in names) or "none"
+
+
+def _datasets_card() -> str:
+    hosted, fetched = _track_classes()
+    return _card(
+        {"license": "other", "pretty_name": "TSFLab Datasets"},
+        f"""
+# TSFLab datasets
+
+Data files of [TSFLab]({_SOURCE}) in two top-level folders.
+
+## `static/`
+
+Files behind the TSFLab static benchmark presets, laid out exactly as the local
 `dataset/` root. Each file is pinned by commit and SHA-256 in
-`configs/hub/datasets.json` of [TSFLab]({_SOURCE}); fetch them with
+`configs/hub/datasets.json`; fetch them with
 
 ```bash
 tsf data download <preset>   # or --all
 ```
 
-Every dataset keeps the license of its original source; see its TSFLab
-dataset card for provenance and terms.""")},
-        {"repo_id": f"{owner}/TSFLab-RealTime", "repo_type": "dataset", "card": _card(
-            {"license": "other", "pretty_name": "TSFLab Real-Time Panels"},
-            f"""
-# TSFLab real-time panels
+Only presets whose dataset card says `redistribution = "hosted"` are here.
+Upstream-hosted presets download from their owner's URL, and script-class
+presets are fetched from the original source.
 
-Append-only panels for the weekly rolling tracks of [TSFLab]({_SOURCE})
-(PeMS traffic, CSI 300 stocks, air quality). One directory per track; each
-weekly release is one commit, so every round is reproducible from its pinned
-revision. Maintained by the `weekly` workflow.""")},
+## `realtime/`
+
+Append-only panels of the weekly rolling tracks, one folder per track
+(`realtime/<track>/`). Each weekly release is one commit, so every round is
+reproducible from its pinned revision. Maintained by the `weekly` workflow.
+
+- Hosted tracks: {_listed(hosted)}.
+- Not redistributed (vendor terms): {_listed(fetched)}. These panels are never
+  uploaded; build them from the source with
+  `tsf realtime update --bootstrap --track <track>`.
+
+Every dataset keeps the license of its original source; see its TSFLab
+dataset card for provenance and terms. Releases before TSFLab 1.0 (0.8.0) read
+the frozen `TSFLab-Static` repository instead.""")
+
+
+def repository_plan(owner: str = DEFAULT_OWNER) -> list[dict[str, str]]:
+    """Return the published repositories: id, type, and README card."""
+    return [
+        {"repo_id": f"{owner}/TSFLab-Datasets", "repo_type": "dataset", "card": _datasets_card()},
         {"repo_id": f"{owner}/TSFLab-Weights", "repo_type": "model", "card": _card(
             {"license": "mit", "library_name": "tsflab"},
             f"""
@@ -108,8 +141,8 @@ Static leaderboard auto-deployed by the `ci` workflow of
 
 
 # Former TSEval repositories; moving them keeps their old URLs redirecting here.
-LEGACY_NAMES = {"TSFLab-Static": "TSEval-Static", "TSFLab-RealTime": "TSEval-RealTime",
-                "TSFLab": "TSEval"}
+# TSFLab-Datasets has no predecessor to rename: TSFLab-Static stays frozen for 0.8.0.
+LEGACY_NAMES = {"TSFLab": "TSEval"}
 
 
 def init_repositories(owner: str = DEFAULT_OWNER, *, private: bool = False,
