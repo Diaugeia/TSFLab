@@ -1,11 +1,13 @@
 """``tsf result board``: the bar to beat on a dataset, as compact L0-style lines.
 
-Merges the committed leaderboard (``apps/web/data/leaderboard.json``) with local
+Merges the published leaderboard (``board/leaderboard.json`` of the Hub
+repository ``Diaugeia/TSFLab-Checkpoints``, or the site's fetched copy
+``apps/web/data/leaderboard.json``) with local
 run records (``<work_dir>/<dataset>/<Model>/records/*.json``, the self-describing
 ``record.json`` each run writes) so an agent sees the current best methods and
 their metrics without opening files. Local runs are averaged per (model, horizon)
-with ``tsflab.core.leaderboard.aggregate``; board rows come from the committed
-file as published. Local rows carry their protocol (``seq``, ``epochs``) because a
+with ``tsflab.core.leaderboard.aggregate``; board rows come from the published
+file as is. Local rows carry their protocol (``seq``, ``epochs``) because a
 smoke or short run is not comparable with a published row.
 """
 
@@ -29,8 +31,15 @@ def _board_path(explicit: str | None) -> Path | None:
 
         path = repository_root() / BOARD_RELATIVE
     except Exception:
+        path = None
+    if path is not None and path.is_file():
+        return path
+    try:
+        from tsflab.release.hub.results import fetch_board_file
+
+        return fetch_board_file()
+    except Exception:
         return None
-    return path if path.is_file() else None
 
 
 def _rows_from_tracks(tracks: dict, dataset: str, source: str, protocols: dict | None = None) -> list[dict]:
@@ -60,9 +69,9 @@ def _variant(model: str, snapshot: dict) -> str:
     return model
 
 
-def _local_rows(roots: list[Path], dataset: str) -> list[dict]:
-    docs: list[dict] = []
-    protocols: dict = {}
+def local_runs(roots: list[Path], dataset: str) -> list[tuple[Path, dict]]:
+    """``(record path, record)`` for every local run of ``dataset``; ``model`` is the variant name."""
+    runs: list[tuple[Path, dict]] = []
     for root in roots:
         for path in sorted(root.rglob("records/*.json")) if root.is_dir() else []:
             try:
@@ -72,13 +81,21 @@ def _local_rows(roots: list[Path], dataset: str) -> list[dict]:
             if str(doc.get("dataset_id", "")).lower() != dataset.lower() or not doc.get("results"):
                 continue
             snap = (doc.get("config") or {}).get("snapshot") or {}
-            doc = {**doc, "model": _variant(doc["model"], snap)}
-            for result in doc["results"]:
-                protocols[(doc["dataset_id"], str(result.get("horizon")), _variant(doc["model"], snap))] = {
-                    "seq": (doc.get("config") or {}).get("seq_len"),
-                    "epochs": (snap.get("training") or {}).get("epochs"),
-                }
-            docs.append(doc)
+            runs.append((path, {**doc, "model": _variant(doc["model"], snap)}))
+    return runs
+
+
+def _local_rows(roots: list[Path], dataset: str) -> list[dict]:
+    docs: list[dict] = []
+    protocols: dict = {}
+    for _, doc in local_runs(roots, dataset):
+        snap = (doc.get("config") or {}).get("snapshot") or {}
+        for result in doc["results"]:
+            protocols[(doc["dataset_id"], str(result.get("horizon")), doc["model"])] = {
+                "seq": (doc.get("config") or {}).get("seq_len"),
+                "epochs": (snap.get("training") or {}).get("epochs"),
+            }
+        docs.append(doc)
     return _rows_from_tracks(aggregate(docs), dataset, "local", protocols)
 
 
@@ -99,9 +116,10 @@ def _line(rank: int, row: dict, metric: str) -> str:
     return "  ".join(parts)
 
 
-def board(dataset: str, *, horizon: str | None, top: int, metric: str, records: list[Path], board_file: str | None) -> dict:
+def board(dataset: str, *, horizon: str | None, top: int, metric: str, records: list[Path],
+          board_file: str | None, include_board: bool = True) -> dict:
     rows: list[dict] = []
-    path = _board_path(board_file)
+    path = _board_path(board_file) if include_board else None
     generated = None
     if path is not None:
         doc = json.loads(path.read_text(encoding="utf-8"))
@@ -124,14 +142,14 @@ def board(dataset: str, *, horizon: str | None, top: int, metric: str, records: 
 def board_command(args: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="tsf result board",
-        description="Best methods and metrics on a dataset (committed leaderboard + local run records).",
+        description="Best methods and metrics on a dataset (published leaderboard + local run records).",
     )
     parser.add_argument("--dataset", required=True, help="dataset id, e.g. ETTh1 (case-insensitive)")
     parser.add_argument("--horizon", default=None, help="prediction length; default all horizons found")
     parser.add_argument("--top", type=int, default=5, help="rows per horizon (default 5)")
     parser.add_argument("--metric", default="mse", help="ranking metric, lower is better (default mse)")
     parser.add_argument("--records", action="append", default=None, help="work_dir to scan for local records (repeatable; default ./work_dirs)")
-    parser.add_argument("--board-file", default=None, help="leaderboard JSON; default is the committed apps/web/data/leaderboard.json")
+    parser.add_argument("--board-file", default=None, help="leaderboard JSON; default apps/web/data/leaderboard.json, else the published board on the Hub")
     parser.add_argument("--json", action="store_true")
     parsed = parser.parse_args(args)
     result = board(
