@@ -28,4 +28,5 @@ Other hyperparameters: preset defaults in `configs/models/Pathformer.toml`; tune
 ## Differences
 
 - Clean-room implementation from the paper's multi-scale division, dual-attention, and adaptive-pathway descriptions; the reference repository is unlicensed and no source was copied.
+- The local (intra-patch) attention over batch x channels x patches sequences runs in chunks of 32768: PyTorch's fused attention rejects more than 65535 sequences per call with dropout (220,672 on traffic at batch 16). Same function; only the dropout random stream is split.
 - Dense differentiable routing replaces hard sparse top-k dispatch because the common forecast API has no auxiliary balance-loss channel; the top-k paths stay inspectable.

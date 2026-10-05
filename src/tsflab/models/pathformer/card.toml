@@ -30,12 +30,12 @@ enc_in = { from = "channels", rule = "equal to the dataset's channel count" }
 patch_size_list = { from = "period", rule = "layer_nums * num_experts sizes matching the data's periods or sub-periods; ideally divisors of seq_len" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
+status = "pending"
+date = "2026-10-05"
+commit = ""
+device = ""
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = "re-verify: the local (intra-patch) attention runs in chunks of 32768 sequences (fused SDPA batch limit 65535 with dropout; traffic and wike2000 smoke); one chunk below that, so results are unchanged where it ran before"
 
 [[issues]]
 kind = "license"
