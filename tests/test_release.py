@@ -296,7 +296,7 @@ def test_hub_init_creates_one_datasets_repo_with_both_folders() -> None:
 
     plan = publish.repository_plan("o")
     assert [(item["repo_id"], item["repo_type"]) for item in plan] == [
-        ("o/TSFLab-Datasets", "dataset"), ("o/TSFLab-Weights", "model"), ("o/TSFLab", "space")]
+        ("o/TSFLab-Datasets", "dataset"), ("o/TSFLab-Checkpoints", "model"), ("o/TSFLab", "space")]
     card = plan[0]["card"]
     assert "## `static/`" in card and "## `realtime/`" in card
     hosted, fetched = (line for line in card.splitlines() if line.startswith(("- Hosted", "- Not redistributed")))
@@ -554,39 +554,47 @@ def _load_script(path: Path, name: str):
     return module
 
 
-def test_legacy_migration_plans_archive_and_results_paths(tmp_path: Path) -> None:
+def test_legacy_migration_moves_every_tseval_artifact_below_legacy(tmp_path: Path, capsys) -> None:
     migrate = _load_script(ROOT / "scripts" / "migrate_legacy_to_hf.py", "migrate_legacy_to_hf")
     subs, data = tmp_path / "submissions", tmp_path / "data"
-    legacy = subs / "realtime" / "stock_hs300" / "OLinear" / "OLinear_x"
-    legacy.mkdir(parents=True)
-    (legacy / "submission.json").write_text("{}")  # TSEval bundle: copied verbatim, never validated
+    stock = subs / "realtime" / "stock_hs300" / "OLinear" / "OLinear_x"
+    stock.mkdir(parents=True)
+    (stock / "submission.json").write_text("{}")  # copied verbatim, never validated
     rounds = subs / "realtime" / "stock_hs300" / "rounds" / "r1"
     rounds.mkdir(parents=True)
-    (rounds / "round.json").write_text("{}")
-    current = subs / "time_series" / "ETTh1" / "SCINet" / "SCINet_run"
-    current.mkdir(parents=True)
-    (current / "submission.json").write_text(json.dumps(_record_doc("SCINet", "ETTh1", "SCINet_run", 0.4)))
+    (rounds / "round.json").write_text("{}")  # real-time rounds stay in Git
+    static = subs / "time_series" / "ETTh1" / "SCINet" / "SCINet_run"
+    static.mkdir(parents=True)
+    (static / "submission.json").write_text(json.dumps(_record_doc("SCINet", "ETTh1", "SCINet_run", 0.4)))
+    (subs / "README.md").write_text("staging folder")
     data.mkdir()
-    (data / "leaderboard.json").write_text(json.dumps({"schema_version": "1.2", "tracks": {
-        "air_quality": {"datasets": {"Air": {}}}, "stock": {"datasets": {"Stock-HS300": {"quant": {}}}}}}))
+    (data / "leaderboard.json").write_text(json.dumps({"tracks": {"air_quality": {"datasets": {"Air": {}}}}}))
     (data / "visualization_data.json").write_text("{}")
     weights = ["realtime/stock_hs300/DLinear/a.pth", "_index.json", ".gitattributes"]
     present = {"legacy/tseval-weights/_index.json"}
     pending, done = migrate.plan(list(migrate.STEPS), subs, data, weights, present)
     assert sorted(t.dest for t in pending) == [
-        "board/curated.json",
-        "legacy/board/leaderboard-tseval.json",
+        "legacy/board/leaderboard.json",
         "legacy/board/visualization_data.json",
         "legacy/submissions/realtime/stock_hs300/OLinear/OLinear_x/submission.json",
+        "legacy/submissions/time_series/ETTh1/SCINet/SCINet_run/submission.json",
         "legacy/tseval-weights/realtime/stock_hs300/DLinear/a.pth",
-        "results/time_series/ETTh1/SCINet/SCINet_run/submission.json",
     ]
     assert [t.dest for t in done] == ["legacy/tseval-weights/_index.json"]
-    curated = json.loads(next(t for t in pending if t.dest == "board/curated.json").data)
-    assert list(curated["tracks"]) == ["air_quality"]  # the stock quant view stays in legacy/
     # The default is a dry run; without the weights step it makes no network call.
-    assert migrate.main(["--steps", "legacy", "current", "curated",
+    assert migrate.main(["--steps", "submissions", "site", "board",
                          "--submissions", str(subs), "--data", str(data)]) == 0
+    assert "dry run: nothing uploaded" in capsys.readouterr().out
+
+
+def test_empty_results_build_an_empty_board(tmp_path: Path) -> None:
+    pytest.importorskip("huggingface_hub")
+    from tsflab.release.hub import results
+
+    (tmp_path / "mirror").mkdir()
+    summary = results.publish_board("o/r", local=tmp_path / "mirror", out_dir=tmp_path / "board", upload=False)
+    board = json.loads((tmp_path / "board" / "leaderboard.json").read_text())
+    assert summary["n_submissions"] == 0 and board["tracks"] == {} and board["generated_at"]
 
 
 def test_site_fetch_installs_board_files_and_attaches_realtime(tmp_path: Path, monkeypatch) -> None:
