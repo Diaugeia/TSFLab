@@ -8,6 +8,7 @@ Every catalog model on the 27 static datasets under each dataset card's
 | `make_runs.py` | Writes the run files and dataset overlays to `../runs/<phase>/` plus `plan.json` (cells, priorities, tier-1 models, excluded cells with reasons) |
 | `watchdog.py` | Kills this user's largest run when the server's available memory drops below a floor (shared-server safety) |
 | `report.py` | Per-run status, diagnosis, last error, train time and profile metrics of a phase (`--csv`) |
+| `run_phase.py` | Runs a phase stage by stage (tier 1 light, tier 1 heavy, tier 2 light, tier 2 heavy), each to completion |
 | `enqueue.py` | Prepares every run file of a phase and adds it to one queue with its priority (`queued.json` records the sweeps) |
 | `policy-<phase>.toml`, `policy-<phase>-heavy.toml` | Execution policies for one 8-GPU server; heavy datasets run one per GPU (`enqueue.py --weight light\|heavy --tier t1\|t2`) |
 
