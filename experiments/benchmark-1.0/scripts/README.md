@@ -28,6 +28,9 @@ Phases: `pilot` (every model on ETTh1 96->96 and PEMS08 12->12), `smoke` (one ep
 longest horizon on traffic, nasdaq, ili, wike2000, pems07), `main` (first lookback, every horizon),
 `lookback` (the other lookbacks).
 
+Horizon passes (paper tables need horizon 192 first): `--long-preds 192` for pass 1, then
+`--groups long --skip-long-preds 192` for pass 2; `run_phase.py --phase main-p1 --policy-phase main`.
+
 Order: tier 1 (well-known representatives, at least one per architecture
 category) before tier 2, and light datasets before heavy ones; `plan.json`
 gives each run file a queue priority.
