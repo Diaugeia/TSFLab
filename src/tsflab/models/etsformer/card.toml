@@ -4,7 +4,7 @@ name = "ETSformer"
 tags = ["transformer", "decomposition", "frequency", "attention-variant", "exponential-smoothing"]
 fits = ["strong-seasonality", "strong-trend", "long-horizon"]
 fidelity = "reference-checked"
-issues_checked = "the card records a paper-driven implementation of the exponential-smoothing recurrence, top-amplitude Fourier seasonality, damped growth, and additive decoder, with the pinned Time-Series-Library code as reference only, and documents no paper or official-code problem."
+issues_checked = "the card records a paper-driven implementation of the multi-head exponential-smoothing recurrence, top-amplitude Fourier seasonality, multi-head damped growth, and additive decoder, with the pinned Time-Series-Library port as reference only; its calendar DataEmbedding and e_layers == d_layers assertion are recorded as differences, and no paper or official-code problem is documented."
 
 [paper]
 title = "ETSformer: Exponential Smoothing Transformers for Time-series Forecasting"
@@ -16,12 +16,12 @@ year = 2022
 url = "https://github.com/thuml/Time-Series-Library"
 revision = "230805fe9f451b61e34b96116d995b417e343ac0"
 license = "MIT"
-reference_sources = []
+reference_sources = ["https://github.com/thuml/Time-Series-Library/blob/230805fe9f451b61e34b96116d995b417e343ac0/models/ETSformer.py", "https://github.com/thuml/Time-Series-Library/blob/230805fe9f451b61e34b96116d995b417e343ac0/layers/ETSformer_EncDec.py"]
 
 [composition]
 normalization = "none"
 decomposition = "local:level-growth-seasonality-decomposition"
-temporal = "local:exponential-smoothing-attention+local:frequency-attention"
+temporal = "local:multi-head-exponential-smoothing-attention+local:frequency-attention"
 channel = "local:circular-conv-channel-embedding"
 head = "local:damped-growth-seasonality-extrapolation-with-level"
 loss = "loss:mse"
