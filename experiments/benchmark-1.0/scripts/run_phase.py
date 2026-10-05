@@ -3,7 +3,8 @@
     setsid nohup python experiments/benchmark-1.0/scripts/run_phase.py --phase main \
         --queue-root /data/cshen20/runs/TSFLab/queues > run_phase.log 2>&1 &
 
-Stages run in order, each to completion before the next starts:
+Stages start in order; the next one starts once every sweep of the current one has
+started (slow stragglers do not idle the GPUs), and the phase ends when all are done:
 tier 1 light, tier 1 heavy, tier 2 light, tier 2 heavy (coverage first; heavy
 datasets use ``policy-<phase>-heavy.toml``). A stage enqueues its run files with
 ``enqueue.py``, starts the queue worker (``tsf run --backend queue work --once``
@@ -52,6 +53,7 @@ def main() -> None:
     ap.add_argument("--policy-phase", help="phase whose policies to use (default: --phase), e.g. main for main-p1")
     args = ap.parse_args()
     py = sys.executable
+    started = []
     for stage in args.stages:
         tier, weight = stage.split("-")
         queue = args.queue_root / f"{args.phase}-{stage}"
@@ -70,15 +72,16 @@ def main() -> None:
         subprocess.run([py, "-m", "tsflab.cli.main", "run", "--backend", "queue", "work", str(queue),
                         "--slots", args.slots, "--once"], cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
         log(f"stage {stage}: started {job_states(queue)}")
-        while True:
-            states = job_states(queue)
-            if not states.get("queued") and not states.get("running"):
-                break
+        # Move on once every sweep of this stage has started (none queued): a few slow
+        # cells must not leave the GPUs idle; all stages are awaited at the end.
+        while job_states(queue).get("queued"):
             time.sleep(args.poll)
-            # jobs left queued (more sweeps than slots) start as slots free up
-            if states.get("queued"):
-                subprocess.run([py, "-m", "tsflab.cli.main", "run", "--backend", "queue", "work", str(queue),
-                                "--slots", args.slots, "--once"], cwd=ROOT, stdout=subprocess.DEVNULL)
+            subprocess.run([py, "-m", "tsflab.cli.main", "run", "--backend", "queue", "work", str(queue),
+                            "--slots", args.slots, "--once"], cwd=ROOT, stdout=subprocess.DEVNULL)
+        started.append((stage, queue))
+    for stage, queue in started:
+        while job_states(queue).get("running"):
+            time.sleep(args.poll)
         log(f"stage {stage}: done {job_states(queue)}")
     log("phase done")
 
