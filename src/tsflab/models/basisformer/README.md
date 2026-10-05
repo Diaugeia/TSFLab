@@ -35,5 +35,6 @@ Independent rewrite after inspecting the pinned official code (no license file);
 - Smoothness uses the official mean absolute second difference, not Eq. (7)'s squared norm.
 - `c_y` uses all channels also for `MS`; the official `MS` mixing layers are not implemented.
 - Unused official `MLP_x`/`MLP_sx` omitted; the modern `weight_norm` parametrization is used.
+- The timestamp MLP's two one-input layers are plain linear maps: weight-normalized, their direction gets no gradient and underflows to NaN under weight decay.
 
 Full detail in `reference.md`.

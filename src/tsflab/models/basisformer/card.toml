@@ -32,12 +32,8 @@ bottleneck = { from = "pred_len", rule = "pred_len must be >= bottleneck" }
 timestamp_origin_year = { from = "frequency", rule = "calendar origin of tau (with timestamp_span_years); choose so the dataset's time range maps to a small tau range" }
 
 [admission]
-status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
-device = "cpu"
-reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+status = "pending"
+note = "re-verify: the one-input timestamp-MLP layers are plain linear maps (weight-norm direction underflowed to NaN under weight decay)"
 
 [[issues]]
 kind = "paper-code-mismatch"
@@ -56,3 +52,9 @@ kind = "license"
 where = "repository root"
 what = "no license file at the pinned revision."
 resolution = "independent rewrite from the paper and the inspected code; license recorded as `NOASSERTION`."
+
+[[issues]]
+kind = "code-bug"
+where = "`model.py` `map_MLP = MLP_bottle(1, ...)` with `utils.py` `MLP_bottle` (`wn(nn.Linear(input_len, bottleneck))` for `linear1[0]` and `skip`, `input_len = 1`)"
+what = "weight normalization of a layer with one input feature makes each weight row `g * v / |v| = g * sign(v)`, so `v` gets no loss gradient. The official AdaBelief has no weight decay, so this is harmless there; under any weight decay `v` shrinks geometrically until `|v|` underflows and the weight becomes NaN (TSFLab ETTh1 pilot, Adam 1e-3, weight decay 1e-4: non-finite training loss)."
+resolution = "the two one-input layers are plain linear maps (the same function, initialized as `weight_norm` initializes `g = |v|`); every other projection stays weight-normalized."
