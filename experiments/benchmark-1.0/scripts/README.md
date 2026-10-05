@@ -6,6 +6,7 @@ Every catalog model on the 27 static datasets under each dataset card's
 | File | Purpose |
 | --- | --- |
 | `make_runs.py` | Writes the run files and dataset overlays to `../runs/<phase>/` plus `plan.json` (cells, priorities, tier-1 models, excluded cells with reasons) |
+| `watchdog.py` | Kills this user's largest run when the server's available memory drops below a floor (shared-server safety) |
 | `report.py` | Per-run status, diagnosis, last error, train time and profile metrics of a phase (`--csv`) |
 | `enqueue.py` | Prepares every run file of a phase and adds it to one queue with its priority (`queued.json` records the sweeps) |
 | `policy-pilot.toml`, `policy-main.toml` | Execution policies for one 8-GPU server (the smoke phase uses the pilot policy) |
@@ -39,6 +40,8 @@ uv run tsf run <file> --policy experiments/benchmark-1.0/scripts/policy-main.tom
 uv run tsf run --backend queue add <queue_dir> --run <sweep_dir> --priority <priority>
 uv run tsf run --backend queue work <queue_dir> --slots 1
 ```
+
+Run `watchdog.py` (with `setsid nohup`) next to every queue worker on a shared server.
 
 Do not change `src/`, `uv.lock` or `pyproject.toml` while a phase runs: resume
 refuses a sweep whose code fingerprint changed.
