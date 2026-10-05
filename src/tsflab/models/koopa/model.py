@@ -47,12 +47,21 @@ class MeasurementFunction(nn.Module):
         return self.decoder(states)
 
 
-def estimate_operator(states: torch.Tensor, ridge: float = 1e-4) -> torch.Tensor:
-    """Estimate a batched ridge-DMD operator from consecutive states."""
+def estimate_operator(states: torch.Tensor) -> torch.Tensor:
+    """Estimate a batched DMD operator from consecutive states by least squares.
+
+    As in the official ``KPLayer``, the operator is the least-squares solution
+    of ``left @ K = right``; fewer snapshots than latent dimensions give an
+    underdetermined system, which ``lstsq`` resolves without inverting a
+    singular Gram matrix. A non-finite solution is replaced by the identity for
+    the whole batch, as upstream does.
+    """
     left, right = states[:, :-1], states[:, 1:]
-    gram = left.transpose(1, 2) @ left
-    eye = torch.eye(gram.size(-1), device=states.device, dtype=states.dtype)[None]
-    return torch.linalg.solve(gram + ridge * eye, left.transpose(1, 2) @ right)
+    operator = torch.linalg.lstsq(left, right).solution
+    if not torch.isfinite(operator).all():
+        eye = torch.eye(operator.size(-1), device=states.device, dtype=states.dtype)
+        operator = eye.expand_as(operator).clone()
+    return operator
 
 
 class LocalKoopmanPredictor(nn.Module):

@@ -8,7 +8,7 @@ description: "Koopman forecaster: a Fourier filter splits time-invariant and tim
 ## Idea
 
 - `FourierDynamicsSplit` keeps the top `alpha` fraction of rFFT bins by batch-average energy as the time-invariant part; the remainder is time-variant.
-- `GlobalKoopmanPredictor` advances invariant latents with one learned shared transition; `LocalKoopmanPredictor` estimates a ridge-DMD operator (`estimate_operator`) from the latest `seg_len` latent states.
+- `GlobalKoopmanPredictor` advances invariant latents with one learned shared transition; `LocalKoopmanPredictor` estimates a least-squares DMD operator (`estimate_operator`, `torch.linalg.lstsq` as in the official `KPLayer`) from the latest `seg_len` latent states.
 - `MeasurementFunction` encodes the channel vector at each step to a latent and decodes after rolling the operator forward `pred_len` steps.
 - `KoopmanBlock`s are stacked residually: each subtracts its reconstructions and adds its forecast contribution.
 
@@ -31,4 +31,5 @@ Other hyperparameters: preset defaults in `configs/models/Koopa.toml`; tune gene
 - Clean-room implementation; reference-only source was not copied.
 - Mapping: Fourier Filter -> `FourierDynamicsSplit`; measurement function -> `MeasurementFunction`; time-variant operator -> `LocalKoopmanPredictor`; invariant operator -> `GlobalKoopmanPredictor`; residual hierarchy -> `KoopmanBlock`.
 - Dominant modes are chosen per batch, not from dataset-global masks.
+- A non-finite local operator falls back to the identity for the whole batch, as upstream; the check also catches `inf`, upstream only `nan`.
 - Rolling adaptation with incoming ground truth and numerical reference comparison are out of scope.
