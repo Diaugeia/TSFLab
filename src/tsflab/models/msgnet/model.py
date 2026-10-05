@@ -40,6 +40,9 @@ class AdaptiveMixHopGraph(nn.Module):
         return self.dropout(self.projection(torch.stack(states, -1)).squeeze(-1))
 
 
+_ATTENTION_CHUNK = 32768
+
+
 class ScaleGraphBranch(nn.Module):
     def __init__(self, nodes, width, heads, graph_hidden, graph_depth, alpha, dropout):
         super().__init__()
@@ -57,7 +60,10 @@ class ScaleGraphBranch(nn.Module):
         token = self.input(segments.permute(0, 1, 3, 2).unsqueeze(-1))
         shape = token.shape
         token = token.reshape(-1, period, shape[-1])
-        attended, _ = self.attention(token, token, token, need_weights=False)
+        # PyTorch's fused attention kernels reject more than 65535 sequences per call
+        # (batch x segments x nodes reaches that on wide datasets); chunk, same result.
+        attended = torch.cat([self.attention(chunk, chunk, chunk, need_weights=False)[0]
+                              for chunk in token.split(_ATTENTION_CHUNK)], dim=0)
         temporal = self.output(attended).reshape(shape[:-1]).permute(0, 1, 3, 2)
         mixed = self.graph(temporal)
         return self.norm(segments + mixed).reshape(batch, padded_length, nodes)[:, :length]

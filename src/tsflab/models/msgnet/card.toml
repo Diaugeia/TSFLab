@@ -31,11 +31,11 @@ top_k = { from = "seq_len", rule = "at most seq_len // 2 non-DC FFT bins" }
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "cba1c56f"
 device = "cpu"
 reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+note = ""
 
 [[issues]]
 kind = "license"
