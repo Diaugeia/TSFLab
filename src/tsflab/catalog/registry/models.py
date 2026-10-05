@@ -56,6 +56,9 @@ class ModelSpec:
     components: tuple[str, ...] = ()
     contract_task: dict[str, int | str] = field(default_factory=dict)
     contract_seeds: tuple[int, ...] = (0,)
+    #: The model needs the dataset adjacency (``adj_mx``, injected by the runner) and
+    #: refuses to build without it; the admission contract supplies a synthetic graph.
+    requires_graph: bool = False
     artifacts: tuple[ModelArtifact, ...] = ()
     artifact_factory: Callable | None = None
     # Opt-in paper objective used only while training; contract in
