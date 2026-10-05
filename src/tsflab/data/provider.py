@@ -62,11 +62,18 @@ def build_data_loader(
         **dataset_kwargs,
     )
     shuffle_flag = flag == "train"
+    # Training drops the incomplete final batch (the Informer/Autoformer
+    # convention, kept by many official repositories). A trailing batch of one
+    # sample breaks BatchNorm in train mode and gives one noisy update; the
+    # shuffle changes the dropped samples every epoch. A training split smaller
+    # than one batch keeps its single short batch. Validation and test never
+    # drop samples, so every evaluation window is scored.
+    drop_last = flag == "train" and len(data_set) >= batch_size
     data_loader = DataLoader(
         data_set,
         batch_size=batch_size,
         shuffle=shuffle_flag,
         num_workers=num_workers,
-        drop_last=False,
+        drop_last=drop_last,
     )
     return data_set, data_loader

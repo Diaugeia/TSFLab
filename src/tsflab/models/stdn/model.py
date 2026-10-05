@@ -71,11 +71,19 @@ class Model(nn.Module):
     def _calendar(self, marks: torch.Tensor | None, length: int, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
         if marks is None:
             tod = torch.arange(length, device=device).view(1, length) % self.slots
-            dow = torch.zeros_like(tod)
+            return tod, torch.zeros_like(tod)
+        if marks.ndim == 4:
+            # Spatiotemporal batches carry node covariates (B, T, N, F) whose
+            # first two channels are [time_in_day, day_in_week] in [0, 1). The
+            # calendar is shared by the nodes, so node 0 is read, as the
+            # official runner does (``TE[:, :, 0, :]``).
+            if marks.shape[-1] < 2:
+                raise ValueError("STDN needs [time_in_day, day_in_week] node covariates")
+            normalized = marks[:, -length:, 0, :2]
         else:
             normalized = normalized_time_features(marks[:, -length:])
-            tod = (normalized[..., 0] * self.slots).long().clamp(0, self.slots - 1)
-            dow = (normalized[..., 1] * 7).long().clamp(0, 6)
+        tod = (normalized[..., 0] * self.slots).long() % self.slots
+        dow = (normalized[..., 1] * 7).long() % 7
         return tod, dow
 
     def forward(

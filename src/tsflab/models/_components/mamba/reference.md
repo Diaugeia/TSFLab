@@ -33,14 +33,17 @@ the generated block is the authoritative list.
 
 ## Variants and options
 
-The constructor widths plus three keyword-only options, all defaulting to the
+The constructor widths plus four keyword-only options, all defaulting to the
 original block: `use_conv=False` skips the causal convolution and its SiLU (the
 scan then sees the in-projection output directly, as in MambaTS);
 `x_dropout=p` applies dropout to the joint step-size/B/C projection output, active
 only in training mode (the "selective parameter dropout" of MambaTS); and
 `reference_dt_init=True` draws `dt_proj.weight` uniformly in `+-dt_rank**-0.5` and sets
 the bias to the inverse softplus of a log-uniform step in `[1e-3, 1e-1]` (floor
-`1e-4`), as the reference Mamba does. Not covered here: bidirectional use (instantiate two
+`1e-4`), as the reference Mamba does; `checkpoint_scan=True` wraps `selective_scan` in
+`torch.utils.checkpoint` while gradients are enabled, so the `[B, L, d_inner, d_state]`
+discretized tensors and states are recomputed in backward instead of stored (the scan
+has no randomness, so values and gradients are unchanged). Not covered here: bidirectional use (instantiate two
 blocks and flip the sequence, as `bimamba` and `s_mamba` do), a gated "Mamba+"
 variant (model-local in `bimamba`), a scalar-state scan (see `hyper_state_scan`),
 parallel-scan or fused CUDA kernels, and step/cached inference.

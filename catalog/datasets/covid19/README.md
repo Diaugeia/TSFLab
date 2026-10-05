@@ -17,4 +17,4 @@ Covid-19 is TFB's (Qiu et al., 2024) country-level pandemic panel: for each of 2
 - **Zeros and corrections.** All-zero channels have zero training variance (the scaler leaves them constant) and negative daily counts are reporting corrections, not data errors; relative metrics such as MAPE are undefined on them.
 - **Scale.** Cumulative channels are monotone and span orders of magnitude across countries; raw-scale MSE is dominated by the largest countries.
 - **Target column.** `features = "S"` and `"MS"` forecast `Zimbabwe;Cumulative_deaths`, the last column (TFB itself evaluates all channels jointly); the column names contain `;` and spaces, so quote them when overriding `target`.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

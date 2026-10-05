@@ -23,7 +23,7 @@ Without marks the timestamp is 0, so every window shares one learned basis.
   spec's `training_objective` (`criterion + loss_weight_infonce * L_align +
   loss_weight_smooth * L_smooth`, both weights 1 by default as in the paper).
   Validation and test use plain `forward`.
-- Every linear map is weight-normalized, as in the official code.
+- Every linear map with more than one input feature is weight-normalized, as in the official code; the timestamp MLP's two one-input layers are plain (see Differences).
 - Constraints: `pred_len >= heads` (the projected future basis is split into
   `heads` chunks of `pred_len // heads`), `pred_len >= bottleneck`,
   `d_model >= heads`. The official scripts train with learning rate `5e-4`,
@@ -37,6 +37,7 @@ Inspected at `f2f647ec815baa6338111df0545002cc56eab1f0`: `model.py`, `utils.py`,
 - Smoothness: Eq. (7) writes a squared norm; the official trainer uses the mean absolute value of the second differences, which `smoothness_loss` follows.
 - `c_y` is computed from the full future window (all channels), also for `MS` runs, where the forecast loss uses the trailing target channel; the official `MS` channel-mixing layers are not implemented.
 - `MLP_x` and `MLP_sx`, constructed but unused in the official model, are omitted.
+- One-input layers: in the official `map_MLP`, `linear1[0]` and `skip` take the scalar timestamp, so weight normalization gives `w = g * sign(v)` and `v` gets no loss gradient. Under weight decay (TSFLab protocol: Adam, weight decay `1e-4`; official: AdaBelief, none) `v` shrinks until `|v|` underflows and the weight is NaN. These two layers are plain `nn.Linear` maps, the same function class with the same initialization.
 - `torch.nn.utils.parametrizations.weight_norm` replaces the deprecated `torch.nn.utils.weight_norm` (same reparameterization).
 - Checked: timestamp mapping, unit-norm basis, bidirectional block wiring, coefficient inner products, Eq. (5) against an explicit loop, Eq. (6) against an explicit InfoNCE sum, the second-difference operator, and the weighted objective.
 

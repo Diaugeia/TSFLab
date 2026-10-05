@@ -16,7 +16,7 @@ year = 2025
 url = "https://github.com/GestaltCogTeam/BasicTS"
 revision = "c218c07b6ce5e4cf908b147fd180c486346fed9c"
 license = "Apache-2.0"
-reference_sources = []
+reference_sources = ["https://github.com/GestaltCogTeam/BasicTS/blob/c218c07b6ce5e4cf908b147fd180c486346fed9c/baselines/STDN/arch/model.py", "https://github.com/GestaltCogTeam/BasicTS/blob/c218c07b6ce5e4cf908b147fd180c486346fed9c/baselines/STDN/runner/stdn_runner.py", "https://github.com/GestaltCogTeam/BasicTS/blob/c218c07b6ce5e4cf908b147fd180c486346fed9c/baselines/STDN/PEMS04.py"]
 
 [data_params]
 enc_in = { from = "nodes", rule = "equal to the node count" }
@@ -32,8 +32,8 @@ loss = "loss:mse"
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "b5401b2c"
 device = "cpu"
-reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+reference = "none"
+note = ""

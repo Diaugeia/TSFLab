@@ -470,9 +470,27 @@ def _run_one(
     checkpoint_dir = str(session.directory / "checkpoints")
     session.stage("training")
 
+    trainable = any(parameter.requires_grad for parameter in model.parameters())
     if inference_only:
         print("Training skipped: model declares the inference-only capability")
         train_result = TrainResult(best_model_path="", train_time_sec=0.0)
+    elif not trainable:
+        # Parameter-free baselines (e.g. historical last) have nothing to
+        # optimise, and torch optimisers reject an empty parameter list. A
+        # declared training_setup (data-fitted buffers) still runs once; the
+        # model is then evaluated as constructed.
+        print("Training skipped: model has no trainable parameters")
+        _setup_start = time.perf_counter()
+        if spec.training_setup is not None:
+            from tsflab.experiments.runner.model_io import unwrap_model
+            spec.training_setup(
+                unwrap_model(model), train_loader,
+                pred_len=config.task.pred_len, features=config.task.features,
+            )
+        train_result = TrainResult(
+            best_model_path="",
+            train_time_sec=pretrain_time_sec + time.perf_counter() - _setup_start,
+        )
     else:
         os.makedirs(checkpoint_dir, exist_ok=True)
         optimizer_cls = getattr(torch.optim, config.training.optimizer.name)

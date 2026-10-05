@@ -36,7 +36,7 @@ with an editable state is wanted (see `hyper_state_scan`).
 ## Interface
 
 `MambaBlock(d_model, d_inner, dt_rank, d_conv, d_state, *, use_conv=True,
-x_dropout=0.0, reference_dt_init=False)`, the five widths are positive ints with no
+x_dropout=0.0, reference_dt_init=False, checkpoint_scan=False)`, the five widths are positive ints with no
 defaults and are not validated (invalid values fail inside torch); `x_dropout` must lie in
 `[0, 1)`, else `ValueError`. The keyword-only options are described under Variants. `d_inner` is the expanded width (callers use `expand * d_model`),
 `dt_rank` the low-rank width of the step-size path, `d_conv` the conv kernel,
@@ -59,3 +59,6 @@ static `selective_scan(u, delta, a, b, c, d)` with `u, delta: [B, L, d_inner]`,
   zero tensor allocated on `delta`'s device with default float dtype, and computes
   `A` and `D` in float32, so half-precision inputs are not a supported contract.
   Cost is O(L) Python-loop steps; memory holds `[B, L, d_inner, d_state]` tensors.
+  `checkpoint_scan=True` stores only the scan inputs and recomputes the scan in
+  backward (same values and gradients, one extra scan per step); use it when
+  `B x L` tokens are many, as for spatio-temporal grids.

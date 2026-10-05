@@ -16,4 +16,4 @@ Electricity (ECL) holds the electricity consumption of 321 clients of a Portugue
 - **Scale heterogeneity.** Client magnitudes span several orders (maximum 764,000 versus mean 2,539), so per-channel z-scoring is essential and a few clients dominate unscaled errors.
 - **Zero blocks.** Four clients are mostly zero and one client only starts after row 160 (measured); a zero is not always a measurement.
 - **Timestamps** carry a one-second offset (`00:00:01`); calendar features are unaffected.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

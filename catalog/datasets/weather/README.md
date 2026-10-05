@@ -16,4 +16,4 @@ Weather is the 2020 record of the roof weather station of the Max Planck Institu
 - **Target.** `"S"` and `"MS"` both forecast `OT`: the loader moves the named target to the last channel in `MS` mode, so the alphabetical column order of this file does not change the target.
 - **Encoding.** Column names containing the micro and superscript characters were stored with replacement characters; do not select columns by those names.
 - **Intermittent channels.** `rain (mm)` and `raining (s)` are mostly zero, so MSE is dominated by smooth channels while MAPE-style metrics are undefined.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

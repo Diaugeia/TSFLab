@@ -181,9 +181,16 @@ class Model(nn.Module):
         if rnn_mix_temperature <= 0:
             raise ValueError("rnn_mix_temperature must be positive")
         self.seq_len, self.pred_len, self.enc_in = seq_len, pred_len, enc_in
+        # A period longer than the lookback has no complete window to convolve;
+        # the official scripts never meet this case (seq_len 660-720). Such
+        # periods are dropped and the remaining ones form the pyramid.
+        windows = tuple(window for window in conv_windows if window <= seq_len)
+        if not windows:
+            raise ValueError(f"no conv window fits in seq_len {seq_len}: {list(conv_windows)}")
+        self.conv_windows = windows
         self.revin = RevIN(enc_in, affine=True)
         self.embedding = PyramidalRNNEmbedding(
-            seq_len, tuple(conv_windows), d_model, conv_channels, rnn_mix_temperature
+            seq_len, windows, d_model, conv_channels, rnn_mix_temperature
         )
         # Eq. (5): softmax(Q K^T / sqrt(d_k)) V across the C variate tokens.
         self.encoder = Encoder(

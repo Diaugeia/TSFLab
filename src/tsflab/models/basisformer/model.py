@@ -18,7 +18,17 @@ EPSILON = 1e-5
 
 
 def _wn_linear(in_features: int, out_features: int) -> nn.Module:
-    """Weight-normalized linear map, used for every projection of the method."""
+    """Weight-normalized linear map, used for every projection of the method.
+
+    With one input feature (the timestamp MLP's first and skip layers) each
+    weight row is a scalar, so ``w = g * v / |v| = g * sign(v)``: the forecast
+    loss gives ``v`` no gradient, and any weight decay shrinks ``v`` towards
+    zero until ``|v|`` underflows and ``w`` becomes NaN. That layer is the same
+    function as a plain linear map with weight ``g * sign(v)``, so it is kept
+    plain (same initialization as ``weight_norm``, where ``g = |v|``).
+    """
+    if in_features == 1:
+        return nn.Linear(in_features, out_features)
     return weight_norm(nn.Linear(in_features, out_features))
 
 

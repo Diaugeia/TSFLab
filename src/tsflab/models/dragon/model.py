@@ -24,6 +24,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint
 
 from tsflab.models._components.dominant_periods import dominant_periods
 from tsflab.models._components.embed import DataEmbedding
@@ -355,11 +356,26 @@ class DragonEncoder(nn.Module):
         scores = self.time_queries @ self.attn_score(nodes).T / self.d_graph**0.5
         return scores.softmax(dim=-1) @ nodes
 
+    def encode_window(self, row: torch.Tensor) -> torch.Tensor:
+        """One window: sampled node inputs, GAT over the whole graph, mask, pooling."""
+        nodes = self.encode_nodes(self.sample_node_inputs()) * row.unsqueeze(-1)
+        return self.pool(nodes)
+
     def forward(self, mask: torch.Tensor) -> torch.Tensor:
+        # As in the official encoder, every window samples its own node inputs
+        # and runs the GAT over the whole graph, so stored activations grow as
+        # batch x edges x heads x width (about 1.2 GB per ETTh1 window for the
+        # three preset encoders). With gradients enabled each window is
+        # checkpointed: only its pooled output is kept and the window is
+        # recomputed in backward with the same random state, so the result and
+        # gradients are unchanged.
+        recompute = torch.is_grad_enabled() and any(p.requires_grad for p in self.parameters())
         pooled = []
         for row in mask:
-            nodes = self.encode_nodes(self.sample_node_inputs()) * row.unsqueeze(-1)
-            pooled.append(self.pool(nodes))
+            if recompute:
+                pooled.append(checkpoint(self.encode_window, row, use_reentrant=False, preserve_rng_state=True))
+            else:
+                pooled.append(self.encode_window(row))
         return torch.stack(pooled)
 
 

@@ -10,7 +10,7 @@ description: "Traffic graph network that identifies pivotal (highly connected) n
 - `PivotalNodeIdentification` scores nodes by physical plus learned-affinity degree, exposes the top-k pivotal set and a smooth sigmoid membership, and returns a learned adaptive graph added to the physical one.
 - `PivotalGraphConvolution` (Eq. 7) averages a sliding temporal window with learned weights, propagates over the graph, and is multiplied by pivotal membership.
 - `ParallelSTLayer` runs the pivotal path, an ordinary graph path (Eq. 8) and a temporal conv in parallel and fuses them linearly with a residual LayerNorm; a flatten MLP reads out the horizon.
-- Calendar marks (month, day, weekday, hour) are concatenated to each node's value at input.
+- Calendar features are concatenated to each node's value at input: (month, day, weekday, hour) fractions from raw stamps, or the dataset's per-node `[time_in_day, day_in_week]` covariates (zero-padded to four) in spatiotemporal mode.
 
 ## When to use
 
@@ -32,3 +32,4 @@ Other hyperparameters: preset defaults in `configs/models/STPGNN.toml`; tune gen
 - Clean-room implementation from the paper's pivotal-node identification, Eq. 7 pivotal graph convolution, Eq. 8 ordinary diffusion and parallel temporal branch; no official source copied.
 - Pivotal membership is a smooth sigmoid of centred scores (trainable for all nodes) rather than a hard top-k mask; the exact top-k set stays inspectable via `last_indices`.
 - The pivotal temporal window is left-padded so each output uses the previous `kernel_size` steps and the sequence length is preserved.
+- The official model (`model.py`, `util.py`) feeds only the value (`in_dim = 1`) and indexes a time-of-day slot embedding (`nodevec_p1[ind]`) to build a time-dependent adaptive graph; this rewrite uses calendar input features and a static learned affinity instead.

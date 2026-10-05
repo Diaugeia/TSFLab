@@ -14,5 +14,5 @@ NN5 is the daily cash-withdrawal history of 111 ATMs from the NN5 forecasting co
 - **Protocol.** TFB multivariate: horizons 24/36/48/60, lookback 36 or 104, split 7:1:2. The competition's own task was a 56-day horizon; results are not comparable.
 - **Imputation.** The file hides missing values by imputation, so models are scored on filled values at some timestamps.
 - **Length.** 791 steps with a 7:1:2 split leaves about 160 test rows; with lookback 104 and horizon 60 only a handful of test windows exist.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.
 - **Target column.** `features = "S"` forecasts `OT`; `"MS"` forecasts the last column.

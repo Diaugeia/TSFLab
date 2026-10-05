@@ -21,7 +21,7 @@ description: "Pyramidal recurrent embedding (strided convolutions over chains of
 ## Configure
 
 - `enc_in` follows the channel count: must equal the number of input channels.
-- `conv_windows` follows the dataset periods: strictly increasing period lengths in steps, each fitting in `seq_len`; ratios of consecutive periods form the convolution strides, and `d_model` must be large enough for the number of scales.
+- `conv_windows` follows the dataset periods: strictly increasing period lengths in steps; ratios of consecutive periods form the convolution strides, and `d_model` must be large enough for the number of scales. Periods longer than `seq_len` are dropped (preset at `seq_len` 96: 24, 48, 72; at 36: 24); at least one must fit.
 
 Other hyperparameters: preset defaults in `configs/models/PRformer.toml`; tune generically.
 
@@ -31,4 +31,5 @@ Independent rewrite of Eqs. 1-5 after reading the pinned official code (`usualhe
 
 - Scale weights follow the paper (`softmax(alpha / T)` across scales); in the official code the softmax runs over a singleton axis, so every weight is 1 and `alpha` never trains.
 - Attention is unmasked per Eq. (5); the official encoder applies a causal mask over variate order (`causal_variate_mask = true` reproduces it).
+- Periods longer than `seq_len` are dropped; the official scripts use `seq_len` 660-720, where every period fits.
 - Calendar marks are not added as extra tokens; upsampled maps are padded to any length mismatch (official: one step only); RevIN uses `sqrt(var + eps)`.

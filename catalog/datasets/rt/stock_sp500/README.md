@@ -18,4 +18,4 @@ description: "Daily log returns of about 500 S&P 500 constituents from 2019-01-0
 - **Frozen snapshot, not the live track.** No `version` is pinned, so the preset reads whatever the local panel store holds; pin a release for a reproducible study (the Hub holds no copy, so `revision` does not apply). The live track's rolling weekly rounds (`docs/en/realtime.md`) remain the contamination-free evaluation; a static split says nothing about data that arrive later.
 - **Gap filling.** Unobserved cells are forward-filled; only a series' leading gap is back-filled from its first reading. The loader fills the whole panel before splitting, so a channel that starts late carries a constant first value in training; fully empty channels become zero.
 - **Scaling.** One scalar mean and standard deviation from the training rows is shared by all channels, as in the real-time export, so large channels dominate raw-unit MSE.
-- **`drop_last`.** Loaders keep the last partial batch for every split.
+- **`drop_last`.** Training drops its last partial batch; validation and test keep it, so test metrics cover every window.

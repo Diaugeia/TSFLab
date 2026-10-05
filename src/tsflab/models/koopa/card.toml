@@ -20,7 +20,7 @@ year = 2023
 url = "https://github.com/thuml/Koopa"
 revision = "a2e0bb77ec7c1a25e8e0579ba517ffb41358b844"
 license = "MIT"
-reference_sources = []
+reference_sources = ["https://github.com/thuml/Koopa/blob/a2e0bb77ec7c1a25e8e0579ba517ffb41358b844/models/Koopa.py"]
 
 [composition]
 normalization = "local:instance-standardization"
@@ -32,8 +32,8 @@ loss = "loss:mse"
 
 [admission]
 status = "passed"
-date = "2026-10-03"
-commit = "ec1ae839"
+date = "2026-10-05"
+commit = "b5401b2c"
 device = "cpu"
-reference = "official"
-note = "tsf model verify --all on UH_Public; pre-squash commit of the 1.0 consolidation"
+reference = "none"
+note = ""
