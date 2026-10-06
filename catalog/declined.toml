@@ -242,6 +242,9 @@ issues = [
   { kind = "paper-error", what = "The abstract claims accuracy 90.96% higher than advanced deep models, but Table II gives FedGRU MAE 7.96 against centralized GRU 7.20 (FedGRU worse) and Section V-B reports 9.04% lower MAE than SVM only." },
   { kind = "underspecified", what = "Eq. 12 objective (K, d, h(w), lambda) is undefined; the public pre-training dataset, how PeMS stations are split across the 20 organizations, their coordinates for the constrained K-Means, and the ensemble selection criterion of Eq. 16 are not given; 'client C = 2' conflicts with |O_v| = 20." },
   { kind = "paper-code-mismatch", what = "Section IV-B1 describes a weighted average of client updates, while Algorithm 1 averages them uniformly (1/|O_v|)." },
+]
+
+[[paper]]
 name = "ST-MetaNet"
 title = "Urban Traffic Prediction from Spatio-Temporal Data Using Deep Meta Learning"
 paper = "https://doi.org/10.1145/3292500.3330884"
@@ -267,6 +270,9 @@ issues = [
   { kind = "unreleased", what = "No official code; the TensorFlow implementation and the Didi Beijing/Shanghai order, POI, and road data were not released. Only unofficial replications exist (underdoc-wang/ST-MGCN, yizhan42/ST-MGCN-pytorch, Chao-Jiang/ST-MGCN-keras)." },
   { kind = "underspecified", what = "The POI similarity `sim(.,.)` (Eq. 4), the RNN cell of CGRNN (Eq. 11), the Laplacian normalization and scaling for the Chebyshev filters, how the graph branches and the final fully connected layers are arranged ('3 hidden layers with 64 units'), and the output layer are not stated." },
   { kind = "paper-error", what = "Graph names are inconsistent: the functional-similarity graph is `G_F = (V, A_F)` but Eq. (4) defines `A_S`; the transportation graph is `G_T = (V, A_T)` but Eq. (5) defines `A_C`. The task `f: R^{|V| x T} -> R^{|V|}` also does not match the five non-contiguous closeness/period/trend inputs of the experiments." },
+]
+
+[[paper]]
 name = "ESRNN"
 title = "A hybrid method of exponential smoothing and recurrent neural networks for time series forecasting"
 paper = "https://doi.org/10.1016/j.ijforecast.2019.03.017"
