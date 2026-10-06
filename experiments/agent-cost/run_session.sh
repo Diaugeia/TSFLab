@@ -81,6 +81,8 @@ GPU_PID=$!
 trap 'kill $GPU_PID 2>/dev/null || true' EXIT
 
 export AGENT_COST_DIR="$RUN"
+# Each session gets its own temporary directory, so sessions cannot see each other's files.
+mkdir -p "$RUN/tmp"; export TMPDIR="$RUN/tmp"
 export PATH="$HERE/bin:$PATH"
 [[ "$AGENT" == codex ]] || export CLAUDE_CONFIG_DIR="$RUN/config"
 
