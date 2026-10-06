@@ -143,10 +143,7 @@ print(sid)' "$RUN/stream.$attempt.jsonl")"
   [[ -z "$session_id" ]] && break
 done
 
-# Package: diff against the baseline commit, then analyze.
-(cd "$RUN/workspace" && git add -A && git diff --cached --numstat HEAD > "$RUN/diff.numstat" \
-  && git diff --cached HEAD > "$RUN/diff.patch") || true
-python3 "$HERE/check_success.py" "$TASK" "$RUN/workspace" > "$RUN/success.json" || true
-python3 "$HERE/analyze.py" "$RUN" > "$RUN/metrics.json"
+# Package: diff (including hidden code files), success, metrics.
+"$HERE/package.sh" "$TASK" "$RUN" || true
 rm -f "$RUN/config/.credentials.json" "$RUN/codex/auth.json" 2>/dev/null || true
 echo "done: $RUN/metrics.json"
