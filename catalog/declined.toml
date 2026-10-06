@@ -242,3 +242,23 @@ issues = [
   { kind = "unreleased", what = "The code is a zip of C++ programs for DyNet with Windows project files and ODBC database output; no runnable PyTorch or Python reference." },
   { kind = "license", what = "No license file in the M4-methods repository or the archive." },
 ]
+
+[[paper]]
+name = "DeepGLO"
+title = "Think Globally, Act Locally: A Deep Neural Network Approach to High-Dimensional Time Series Forecasting"
+paper = "https://arxiv.org/abs/1905.03806"
+code = "https://github.com/rajatsen91/deepglo"
+revision = "525578d4bd50a9d71abbf8b51f0ce9987f449db8"
+reason = "out-of-scope"
+summary = "The global model factorizes the whole training matrix into per-series loadings F and a free basis matrix X over every training time step, trained by alternating stages (Alg. 2-3) before a separate local TCN stage (Alg. 4), and recovers X for each newly revealed window by an inner optimization at prediction time (App. B). The windowed training contract has no transductive full-matrix stage or absolute time index for X; replacing X by a per-window least-squares projection would be the paper's SVD+TCN baseline, not TCN-MF."
+issues = [
+  { kind = "code-bug", what = "LeveledInit is a no-op: `TemporalBlock.init_weights` in `DeepGLO/LocalModel.py` edits `conv.weight` of `weight_norm`-wrapped convolutions, which is recomputed from `weight_g`/`weight_v` before every forward, so the 1/k weights are discarded (verified in PyTorch); only the bias initialization survives." },
+  { kind = "code-bug", what = "`step_factF_loss`, `step_factX_loss`, `step_temporal_loss_X` and `recover_future_X` build a new Adam optimizer for every step, so each update is a fresh bias-corrected first Adam step (about lr times the gradient sign), not the mini-batch SGD of Alg. 1 and 3." },
+  { kind = "paper-code-mismatch", what = "Eq. 3 weights the TCN regularizer by lambda_T = 0.2 (App. C.3); `train_factors` has no lambda_T and instead takes a separate unit-weight step on X every fifth batch (`iter_count % mod == 1`), while the F and X guards `iter_count % mod >= 0` are always true." },
+  { kind = "paper-code-mismatch", what = "App. B recovers X for a revealed window by minimizing Eq. 3 with one-step TCN regularization; `recover_future_X` minimizes a normalized blend (alpha = 0.3) of reconstruction error and distance to the multi-step TCN forecast, from a random start, for up to 100000 steps, with a stopping test that compares against a loss stored only every 1000 steps." },
+  { kind = "paper-code-mismatch", what = "The run scripts pass `period = 24`, which adds the series lagged by one period as an extra local-TCN covariate; Alg. 4 lists only the series, the global prediction and the time covariates." },
+  { kind = "underspecified", what = "Alg. 4 trains the local TCN on 'the global model prediction in the training range' without defining it; `create_Ycov` uses in-sample one-step F*T_X(X) predictions, while test-time covariates are multi-step forecasts." },
+  { kind = "leakage", what = "`data_loader.next_batch` builds one-step-shifted targets up to `min(end_index, ...) + 1`, so F and X are fitted on column `end_index`, the first point of the first test window (X is allocated with end_index + 1 columns); early stopping of the factors validates on columns they were fitted on." },
+  { kind = "leakage", what = "With `normalize=True` the series are shifted by `abs(min(Ymat))` over the whole matrix, test windows included; the scale is std + 1 instead of std." },
+  { kind = "code-bug", what = "`predict_global`, `recover_future_X` and `create_Ycov` call `.cuda()` unconditionally, so the `cpu=True` paths fail on a CPU-only machine." },
+]
