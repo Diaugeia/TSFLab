@@ -442,6 +442,13 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("b-spline", "basis", "cox-de-boor", "kan", "kolmogorov-arnold", "knots", "spline"),
         ),
         ComponentSpec(
+            "natural_cubic_spline",
+            "tsflab.models._components.natural_cubic_spline",
+            "Natural cubic spline control path of a sampled [..., L, C] window: coefficients, X(t), and dX/dt for neural controlled differential equations.",
+            ("natural_cubic_spline_coeffs", "NaturalCubicSpline", "SplineCoeffs"),
+            ("control-path", "cubic-spline", "interpolation", "natural-spline", "ncde", "neural-cde", "spline"),
+        ),
+        ComponentSpec(
             "topk_expert_attention",
             "tsflab.models._components.topk_expert_attention",
             "Differentiable top-k local expert self-attention with an optional shared global expert.",
