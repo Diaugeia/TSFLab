@@ -34,6 +34,10 @@ experiments/**
 !experiments/*/
 !experiments/*/scripts/
 !experiments/*/scripts/**
+# The agent-cost experiment is released with the paper (prompts, tasks, runner).
+!experiments/agent-cost/**
+experiments/agent-cost/runs/
+experiments/agent-cost/**/__pycache__/
 
 # Local scratch
 tmp/

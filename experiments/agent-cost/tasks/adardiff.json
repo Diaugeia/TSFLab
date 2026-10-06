@@ -1,0 +1,33 @@
+{
+ "task": "reproduce",
+ "id": "adardiff",
+ "paper_url": "https://arxiv.org/abs/2608.28134",
+ "paper_title": "Learning to Difference: Adaptive Reversible Differencing (AdaRDiff) for Time Series Forecasting",
+ "cells": [
+  {
+   "dataset": "ETTh1",
+   "pred_len": 96,
+   "paper_mse": 0.36,
+   "paper_mae": 0.39
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 192,
+   "paper_mse": 0.402,
+   "paper_mae": 0.419
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 336,
+   "paper_mse": 0.426,
+   "paper_mae": 0.436
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 720,
+   "paper_mse": 0.423,
+   "paper_mae": 0.45
+  }
+ ],
+ "note": "paper numbers are AdaRDiff-Linear, lookback 720"
+}

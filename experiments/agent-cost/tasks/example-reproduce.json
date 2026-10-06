@@ -1,0 +1,12 @@
+{
+  "task": "reproduce",
+  "id": "example",
+  "paper_url": "https://arxiv.org/abs/XXXX.XXXXX",
+  "paper_title": "Replace with the chosen paper",
+  "cells": [
+    {"dataset": "ETTh1", "pred_len": 96,  "paper_mse": null, "paper_mae": null},
+    {"dataset": "ETTh1", "pred_len": 192, "paper_mse": null, "paper_mae": null},
+    {"dataset": "ETTh1", "pred_len": 336, "paper_mse": null, "paper_mae": null},
+    {"dataset": "ETTh1", "pred_len": 720, "paper_mse": null, "paper_mae": null}
+  ]
+}

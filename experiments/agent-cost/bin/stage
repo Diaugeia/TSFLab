@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Mark the start of a task stage: `stage <collect|read|implement|check|run|compare|done>`.
+set -euo pipefail
+: "${AGENT_COST_DIR:?AGENT_COST_DIR is not set}"
+name="${1:?usage: stage <name>}"
+printf '%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" "$name" >> "$AGENT_COST_DIR/stages.tsv"
+echo "stage $name recorded"
