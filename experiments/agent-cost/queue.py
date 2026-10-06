@@ -7,7 +7,9 @@ jobs.tsv columns (tab-separated, '#' comments): task  spec  rep  [agent]  [model
 A job whose run directory already has metrics.json is skipped, and a job whose
 session is still alive (<name>.pid) is adopted, so the queue can be restarted at any
 time. Concurrency per GPU can be changed while running by writing a number to
-<out-root>/PER_GPU. Each session runs run_session.sh with TRAIN_GPU set; logs go to
+<out-root>/PER_GPU. GPU load counts the live sessions of every queue that shares the
+parent directory (<parent>/*/*.pid), so two queues on the same GPUs never overbook
+them. Each session runs run_session.sh with TRAIN_GPU set; logs go to
 <out-root>/<name>.log. Start it detached (setsid nohup ... &); progress is printed
 to stdout with timestamps.
 """
@@ -83,7 +85,14 @@ def main() -> None:
                 per_gpu = int((root / "PER_GPU").read_text().strip())
             except ValueError:
                 pass
-        load = {g: sum(1 for _, gg in running.values() if gg == g) for g in gpus}
+        load = {g: 0 for g in gpus}
+        for pidf in root.parent.glob("*/*.pid"):  # this queue and its peers
+            try:
+                pid, g = pidf.read_text().split()
+            except ValueError:
+                continue
+            if g in load and alive(int(pid)):
+                load[g] += 1
         while todo:
             g = min(gpus, key=lambda x: load[x])
             if load[g] >= per_gpu:
