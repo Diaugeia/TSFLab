@@ -67,6 +67,8 @@ def main() -> None:
     w.writeheader()
     for root in sys.argv[1:]:
         for meta in sorted(Path(root).glob("*/meta.json")):
+            if not (meta.parent / "metrics.json").exists():
+                continue  # still running
             r = row(meta.parent)
             t = load(here / "tasks" / f"{r['task']}.json") or {}
             r["kind"] = t.get("kind", "method")

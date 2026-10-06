@@ -9,8 +9,12 @@ Answer each question from the code that produced the results (read the code,
 configurations, and logs; do not rerun training):
 
 1. split: how is each dataset split into train/validation/test, with which
-   ratios or borders? Standard: ETTh1 12/4/4 months (8640/2880/2880 hours),
-   Traffic 70/10/20 percent, both chronological.
+   ratios or borders? It is ok if the split is chronological, the three parts do
+   not overlap (apart from the input window before each border), and the borders
+   match either the standard (ETTh1 12/4/4 months = 8640/2880/2880 hours of the
+   first 14400; Traffic 70/10/20 percent) or the split that the paper states.
+   A difference from the codebase's own protocol is listed under
+   discovery_errors, not here.
 2. scaling: are normalization statistics fitted on the training split only?
 3. selection: are the checkpoint, early stopping, and any hyperparameter choice
    based on validation data only (never on test data)?
