@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "natural_cubic_spline"
+role = "Turns a sampled multichannel window into a twice-differentiable control path X(t) and its derivative dX/dt for neural controlled differential equations."
+slot = "input"
+fits = ["any"]
+category = "utility"
+tags = ["spline", "cubic-spline", "natural-spline", "interpolation", "control-path", "neural-cde", "ncde", "continuous-time", "stateless"]
+input = "times [L] strictly increasing (L >= 2); x [..., L, C]"
+output = "coeffs (a, b, 2c, 3d), each [..., L - 1, C]; NaturalCubicSpline.evaluate(t) / derivative(t) -> [..., C]"
+origin = "Natural cubic spline interpolation as the control path of neural CDEs (Kidger et al., Neural Controlled Differential Equations for Irregular Time Series, NeurIPS 2020), as used by STG-NCDE (Choi et al., AAAI 2022); checked numerically against `controldiffeq/interpolate.py` of jeongwhanchoi/STG-NCDE at 49480bdf"
+origin_models = ["stgncde"]
