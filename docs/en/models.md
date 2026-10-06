@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 313 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 314 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 313 of 313 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 314 of 314 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -259,6 +259,7 @@ TSFLab exposes 313 model and method entries through one flat public catalog. Arc
 | `STELLA` | Lightweight residual MLP over each station's history plus coordinate-based spatial and hour/day/month embeddings, no attention. | reference-checked | passed | [card](../../src/tsflab/models/stella/README.md) |
 | `StemGNN` | Learns a latent correlation graph between series, then models inter-series and temporal structure in the spectral domain with graph and DFT filters in residual blocks. | reference-checked | passed | [card](../../src/tsflab/models/stemgnn/README.md) |
 | `STGCN` | Fully convolutional spatio-temporal graph network: gated temporal convolutions sandwich Chebyshev graph convolutions over a fixed adjacency. | reference-checked | passed | [card](../../src/tsflab/models/stgcn/README.md) |
+| `STGNN` | Graph GRU whose input and state are filtered by a GCN over a learned positional relation masked to the road graph, followed by a Transformer layer over time. | inferred | passed | [card](../../src/tsflab/models/stgnn/README.md) |
 | `STGODE` | Tensor-ODE blocks that integrate graph propagation and dilated temporal convolution over a spatial and a semantic graph, fused by a gate. | reference-checked | passed | [card](../../src/tsflab/models/stgode/README.md) |
 | `STHD` | Scalable Transformer for high-dimensional series: each target attends jointly over its own patches and those of its top-K most correlated series from the training split. | reference-checked | passed | [card](../../src/tsflab/models/sthd/README.md) |
 | `STID` | Simple MLP over each node's history plus learnable node, time-of-day, and day-of-week identity embeddings, without a graph. | reference-checked | passed | [card](../../src/tsflab/models/stid/README.md) |

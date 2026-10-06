@@ -488,4 +488,5 @@ MODEL_CATALOG = ModelCatalog({
     "StaTS": "tsflab.models.stats.spec",
     "ASTGNN": "tsflab.models.astgnn.spec",
     "PDFormer": "tsflab.models.pdformer.spec",
+    "STGNN": "tsflab.models.stgnn.spec",
 })
