@@ -3,31 +3,139 @@
  "id": "adardiff",
  "paper_url": "https://arxiv.org/abs/2608.28134",
  "paper_title": "Learning to Difference: Adaptive Reversible Differencing (AdaRDiff) for Time Series Forecasting",
+ "kind": "strategy",
+ "backbones": [
+  "Linear"
+ ],
  "cells": [
   {
    "dataset": "ETTh1",
    "pred_len": 96,
    "paper_mse": 0.36,
-   "paper_mae": 0.39
+   "paper_mae": 0.39,
+   "backbone": "Linear",
+   "variant": "with"
   },
   {
    "dataset": "ETTh1",
    "pred_len": 192,
    "paper_mse": 0.402,
-   "paper_mae": 0.419
+   "paper_mae": 0.419,
+   "backbone": "Linear",
+   "variant": "with"
   },
   {
    "dataset": "ETTh1",
    "pred_len": 336,
    "paper_mse": 0.426,
-   "paper_mae": 0.436
+   "paper_mae": 0.436,
+   "backbone": "Linear",
+   "variant": "with"
   },
   {
    "dataset": "ETTh1",
    "pred_len": 720,
    "paper_mse": 0.423,
-   "paper_mae": 0.45
+   "paper_mae": 0.45,
+   "backbone": "Linear",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 96,
+   "paper_mse": 0.387,
+   "paper_mae": 0.27,
+   "backbone": "Linear",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 192,
+   "paper_mse": 0.397,
+   "paper_mae": 0.273,
+   "backbone": "Linear",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 336,
+   "paper_mse": 0.412,
+   "paper_mae": 0.28,
+   "backbone": "Linear",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 720,
+   "paper_mse": 0.449,
+   "paper_mae": 0.298,
+   "backbone": "Linear",
+   "variant": "with"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 96,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 192,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 336,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 720,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 96,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 192,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 336,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 720,
+   "paper_mse": null,
+   "paper_mae": null,
+   "backbone": "Linear",
+   "variant": "without"
   }
  ],
- "note": "paper numbers are AdaRDiff-Linear, lookback 720"
+ "note": "with = AdaRDiff-Linear, L = 720, Table 1; the paper gives no per-horizon numbers for plain Linear"
 }

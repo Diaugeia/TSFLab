@@ -29,14 +29,30 @@ def finite(x) -> bool:
     return isinstance(x, (int, float)) and math.isfinite(x)
 
 
+def key(r: dict) -> tuple:
+    """A cell is identified by dataset and horizon, plus backbone and variant for strategies."""
+    try:
+        h = int(r.get("pred_len", -1))
+    except (TypeError, ValueError):
+        h = -1
+    return (str(r.get("dataset", "")).lower(), h,
+            str(r.get("backbone", "") or "").lower(), str(r.get("variant", "") or "").lower())
+
+
 def check_reproduce(task: dict, ws: Path) -> dict:
     rows = load_results(ws)
-    got = {(str(r.get("dataset", "")).lower(), int(r.get("pred_len", -1))): r for r in rows if "pred_len" in r}
+    strategy = task.get("kind") == "strategy"
+    got = {}
+    for r in rows:
+        k = key(r)
+        got[k if strategy else k[:2] + ("", "")] = r
     cells, missing = [], []
     for c in task["cells"]:
-        r = got.get((c["dataset"].lower(), c["pred_len"]))
+        r = got.get(key(c))
         ok = bool(r) and finite(r.get("mse")) and finite(r.get("mae"))
         cell = {"dataset": c["dataset"], "pred_len": c["pred_len"], "ok": ok}
+        if strategy:
+            cell.update(backbone=c.get("backbone"), variant=c.get("variant"))
         if ok:
             cell.update(mse=r["mse"], mae=r["mae"])
             for m in ("mse", "mae"):
@@ -44,11 +60,29 @@ def check_reproduce(task: dict, ws: Path) -> dict:
                 if finite(ref) and ref:
                     cell[f"rel_err_{m}"] = (r[m] - ref) / ref
         else:
-            missing.append(f"{c['dataset']}@{c['pred_len']}")
+            missing.append(f"{c['dataset']}@{c['pred_len']}" + (f"/{c.get('backbone')}/{c.get('variant')}" if strategy else ""))
         cells.append(cell)
     report = (ws / "results" / "report.md").exists()
     errs = [abs(c["rel_err_mse"]) for c in cells if "rel_err_mse" in c]
+    gains = None
+    if strategy:
+        # Relative MSE gain of the strategy per (dataset, horizon, backbone), measured and reported.
+        gains = []
+        for c in cells:
+            if c.get("variant") != "with":
+                continue
+            base = next((b for b in cells if b.get("variant") == "without" and b["dataset"] == c["dataset"]
+                         and b["pred_len"] == c["pred_len"] and b.get("backbone") == c.get("backbone")), None)
+            ref_w = next((x for x in task["cells"] if key(x) == key(c)), {})
+            ref_b = next((x for x in task["cells"] if base and key(x) == key(base)), {})
+            g = {"dataset": c["dataset"], "pred_len": c["pred_len"], "backbone": c.get("backbone")}
+            if c.get("ok") and base and base.get("ok") and base["mse"]:
+                g["gain"] = (base["mse"] - c["mse"]) / base["mse"]
+            if finite(ref_w.get("paper_mse")) and finite(ref_b.get("paper_mse")) and ref_b["paper_mse"]:
+                g["paper_gain"] = (ref_b["paper_mse"] - ref_w["paper_mse"]) / ref_b["paper_mse"]
+            gains.append(g)
     return {
+        "gains": gains,
         "success": not missing and report,
         "missing": missing,
         "report": report,

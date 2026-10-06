@@ -1,0 +1,58 @@
+{
+ "task": "reproduce",
+ "id": "stateflow",
+ "paper_url": "https://arxiv.org/abs/2607.00197",
+ "paper_title": "StateFlow: Dual-State Recurrent Modeling for Long-Horizon Time Series Forecasting",
+ "kind": "method",
+ "cells": [
+  {
+   "dataset": "ETTh1",
+   "pred_len": 96,
+   "paper_mse": 0.364,
+   "paper_mae": 0.394
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 192,
+   "paper_mse": 0.415,
+   "paper_mae": 0.421
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 336,
+   "paper_mse": 0.452,
+   "paper_mae": 0.44
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 720,
+   "paper_mse": 0.474,
+   "paper_mae": 0.463
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 96,
+   "paper_mse": 0.569,
+   "paper_mae": 0.364
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 192,
+   "paper_mse": 0.54,
+   "paper_mae": 0.345
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 336,
+   "paper_mse": 0.537,
+   "paper_mae": 0.338
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 720,
+   "paper_mse": 0.541,
+   "paper_mae": 0.346
+  }
+ ],
+ "note": "L = 96; Table 1"
+}

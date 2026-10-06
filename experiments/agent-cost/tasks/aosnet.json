@@ -1,0 +1,58 @@
+{
+ "task": "reproduce",
+ "id": "aosnet",
+ "paper_url": "https://arxiv.org/abs/2606.06010",
+ "paper_title": "Adaptive Oscillatory-State Alignment for Time Series Forecasting",
+ "kind": "method",
+ "cells": [
+  {
+   "dataset": "ETTh1",
+   "pred_len": 96,
+   "paper_mse": 0.368,
+   "paper_mae": 0.392
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 192,
+   "paper_mse": 0.421,
+   "paper_mae": 0.421
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 336,
+   "paper_mse": 0.459,
+   "paper_mae": 0.44
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 720,
+   "paper_mse": 0.462,
+   "paper_mae": 0.461
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 96,
+   "paper_mse": 0.411,
+   "paper_mae": 0.267
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 192,
+   "paper_mse": 0.429,
+   "paper_mae": 0.276
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 336,
+   "paper_mse": 0.459,
+   "paper_mae": 0.286
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 720,
+   "paper_mse": 0.48,
+   "paper_mae": 0.304
+  }
+ ],
+ "note": "L = 96; Table II; mean of 5 runs"
+}

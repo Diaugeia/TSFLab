@@ -3,7 +3,6 @@
  "id": "rhymix",
  "paper_url": "https://arxiv.org/abs/2607.08234",
  "paper_title": "RhyMix: A Lightweight Adaptive Multi-Rhythm Network for Long-Term Time Series Forecasting",
- "kind": "method",
  "cells": [
   {
    "dataset": "ETTh1",
@@ -28,31 +27,6 @@
    "pred_len": 720,
    "paper_mse": 0.459,
    "paper_mae": 0.445
-  },
-  {
-   "dataset": "Traffic",
-   "pred_len": 96,
-   "paper_mse": 0.438,
-   "paper_mae": 0.267
-  },
-  {
-   "dataset": "Traffic",
-   "pred_len": 192,
-   "paper_mse": 0.462,
-   "paper_mae": 0.283
-  },
-  {
-   "dataset": "Traffic",
-   "pred_len": 336,
-   "paper_mse": 0.492,
-   "paper_mae": 0.306
-  },
-  {
-   "dataset": "Traffic",
-   "pred_len": 720,
-   "paper_mse": 0.551,
-   "paper_mae": 0.323
   }
- ],
- "note": "L = 96; Table 4; mean of 5 runs"
+ ]
 }

@@ -1,0 +1,141 @@
+{
+ "task": "reproduce",
+ "id": "core",
+ "paper_url": "https://arxiv.org/abs/2609.19670",
+ "paper_title": "CoRe: Coherence and Relational Alignment for Multivariate Time Series Forecasting",
+ "kind": "strategy",
+ "backbones": [
+  "iTransformer"
+ ],
+ "cells": [
+  {
+   "dataset": "ETTh1",
+   "pred_len": 96,
+   "paper_mse": 0.376,
+   "paper_mae": 0.391,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 192,
+   "paper_mse": 0.424,
+   "paper_mae": 0.425,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 336,
+   "paper_mse": 0.463,
+   "paper_mae": 0.446,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 720,
+   "paper_mse": 0.473,
+   "paper_mae": 0.471,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 96,
+   "paper_mse": 0.387,
+   "paper_mae": 0.248,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 192,
+   "paper_mse": 0.405,
+   "paper_mae": 0.269,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 336,
+   "paper_mse": 0.419,
+   "paper_mae": 0.277,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 720,
+   "paper_mse": 0.452,
+   "paper_mae": 0.292,
+   "backbone": "iTransformer",
+   "variant": "with"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 96,
+   "paper_mse": 0.39,
+   "paper_mae": 0.41,
+   "backbone": "iTransformer",
+   "variant": "without"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 192,
+   "paper_mse": 0.443,
+   "paper_mae": 0.441,
+   "backbone": "iTransformer",
+   "variant": "without"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 336,
+   "paper_mse": 0.48,
+   "paper_mae": 0.457,
+   "backbone": "iTransformer",
+   "variant": "without"
+  },
+  {
+   "dataset": "ETTh1",
+   "pred_len": 720,
+   "paper_mse": 0.484,
+   "paper_mae": 0.479,
+   "backbone": "iTransformer",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 96,
+   "paper_mse": 0.397,
+   "paper_mae": 0.272,
+   "backbone": "iTransformer",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 192,
+   "paper_mse": 0.418,
+   "paper_mae": 0.279,
+   "backbone": "iTransformer",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 336,
+   "paper_mse": 0.432,
+   "paper_mae": 0.286,
+   "backbone": "iTransformer",
+   "variant": "without"
+  },
+  {
+   "dataset": "Traffic",
+   "pred_len": 720,
+   "paper_mse": 0.467,
+   "paper_mae": 0.305,
+   "backbone": "iTransformer",
+   "variant": "without"
+  }
+ ],
+ "note": "L = 96; Table 1; without = iTransformer column of the same table"
+}

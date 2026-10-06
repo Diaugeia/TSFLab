@@ -12,8 +12,23 @@ def main() -> None:
     data_dir = sys.argv[2]
     template = (HERE / "prompts" / f"{task['task']}.md").read_text()
     if task["task"] == "reproduce":
-        cells = ", ".join(f"{c['dataset']} at {c['pred_len']}" for c in task["cells"])
-        print(template.format(paper_url=task["paper_url"], data_dir=data_dir, cells=cells))
+        seen = []
+        for c in task["cells"]:
+            s = f"{c['dataset']} at {c['pred_len']}"
+            if s not in seen:
+                seen.append(s)
+        text = template.format(paper_url=task["paper_url"], data_dir=data_dir, cells=", ".join(seen))
+        if task.get("kind") == "strategy":
+            backbones = ", ".join(task["backbones"])
+            text = text.replace(
+                "Rules:",
+                "This paper proposes a strategy that is applied to existing forecasters. Apply it\n"
+                f"to these backbones: {backbones}. Report every cell twice, once for the backbone\n"
+                "without the strategy and once with it, under the same protocol, and add the\n"
+                'fields "backbone" (str) and "variant" ("without" or "with") to each result.\n\n'
+                "Rules:",
+            )
+        print(text)
     elif task["task"] == "autoresearch":
         print(
             template.format(
