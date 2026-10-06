@@ -1,0 +1,69 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "LogTrans"
+tags = ["transformer", "probabilistic", "autoregressive", "attention-variant", "sparse-attention", "convolutional-attention", "channel-independent", "covariates"]
+fits = ["probabilistic-output", "long-lookback", "efficiency", "calendar-effects"]
+fidelity = "paper-only"
+
+[paper]
+title = "Enhancing the Locality and Breaking the Memory Bottleneck of Transformer on Time Series Forecasting"
+url = "https://arxiv.org/abs/1907.00235"
+venue = "NeurIPS 2019"
+year = 2019
+
+[composition]
+normalization = "local:deepar-mean-absolute-scaling"
+decomposition = "none"
+temporal = "component:logsparse_conv_attention+local:post-norm-decoder-only-stack"
+channel = "component:marks+local:series-id-and-position-embedding"
+head = "component:gaussian_parameter_head"
+loss = "local:teacher-forced-window-gaussian-nll"
+
+[data_params]
+enc_in = { from = "channels", rule = "must equal the dataset channel count (one series-ID embedding row per channel)" }
+restart_len = { from = "seq_len", rule = "0 disables restart attention; the paper uses (seq_len + pred_len) / 8 with local_size = ceil(log2(restart_len))" }
+e_layers = { from = "seq_len", rule = "with sparse attention and no local/restart window, floor(log2(seq_len + pred_len - 1)) + 1 layers give every cell a path to every earlier cell (Theorem 1)" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "fd5e684e"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "unreleased"
+where = "paper (arXiv 1907.00235v3) and NeurIPS 2019 proceedings page"
+what = "no official code or license was released; a web search on 2026-10-06 found only third-party reimplementations."
+resolution = "independent implementation from Secs. 3-4 and App. A.2/A.4; no `[code]` record."
+
+[[issues]]
+kind = "paper-error"
+where = "Sec. 4.2, definition of I_l^k (1-indexed cells)"
+what = "I_l = {l - 2^floor(log2 l), ..., l - 2^0, l} contains index 0 whenever l is a power of two, a cell that does not exist."
+resolution = "the set is read as distances {0, 1, 2, 4, ...} restricted to existing earlier cells (0-indexed `j >= 0`)."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 3 and App. A.2"
+what = "the input row [z_{t-1}, x_t, position + ID embedding] has width 1 + d + 20, which is not divisible by H = 8 heads; the model width, feed-forward width, LayerNorm placement and dropout are never given."
+resolution = "a Linear input projection to `d_model` (default 64), GPT-style post-norm blocks with a ReLU feed-forward (`d_ff` 256) and dropout 0.1."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 4.2 (Local and Restart Attention, Fig. 3c-d) and App. A.4"
+what = "where the exponential steps resume after the dense local window, whether restart subsequences are absolute or relative to the query, and the A.4 allowance that early cells attend densely are described only by figure and memory counts."
+resolution = "distances are reduced modulo `restart_len` (relative to the query), dense up to `local_size`, then `local_size + 2^m`; this reproduces the A.4 count of about 2 * L_loc keys per subsequence. The dense-prefix allowance is not applied."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 4.1, Fig. 1"
+what = "\"causal convolution ... with proper paddings\" does not say whether the convolution is shared across heads or how it is initialized."
+resolution = "one Conv1d over the full `d_model` for queries and one for keys, left zero padding of k - 1, PyTorch default initialization, split into heads after the convolution."
+
+[[issues]]
+kind = "underspecified"
+where = "App. A.2 (covariates, scale handling)"
+what = "covariates are \"all or part of\" year, month, day-of-week, hour, minute, age and series ID; scale handling defers to DeepAR (nu = 1 + mean z), which is undefined for standardized series with a non-positive mean."
+resolution = "time-of-day and day-of-week from the `marks` component, no age; scale nu = 1 + mean |z| over the history window."

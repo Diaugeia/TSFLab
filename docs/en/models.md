@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 311 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -152,6 +152,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `LiNo` | Recursive residual decomposition alternating a full-receptive AR linear extractor and a time-frequency nonlinear block, inside RevIN. | reference-checked | passed | [card](../../src/tsflab/models/lino/README.md) |
 | `LLM4TS` | GPT-2 aligned to patched series by next-patch training with LoRA, then LP-FT fine-tuned with a flatten head. | reference-checked | passed | [card](../../src/tsflab/models/llm4ts/README.md) |
 | `LMSAutoTSF` | Multi-scale pooled inputs split into trend and seasonal parts by learnable FFT sigmoid filters, with lag-difference-gated MLP encoders. | reference-checked | passed | [card](../../src/tsflab/models/lmsautotsf/README.md) |
+| `LogTrans` | Decoder-only probabilistic Transformer with causal-convolution queries/keys and LogSparse attention; one network shared by all channels emits a Gaussian per step autoregressively. | paper-only | passed | [card](../../src/tsflab/models/logtrans/README.md) |
 | `LSINet` | Lightweight channel-independent patch MLP that replaces attention with a shared sparse interaction matrix learned from a position-only memory table. | reference-checked | passed | [card](../../src/tsflab/models/lsinet/README.md) |
 | `LSTM` | Per-node LSTM with shared weights over value plus calendar or node covariates and a two-layer MLP horizon head. | reference-checked | passed | [card](../../src/tsflab/models/lstm/README.md) |
 | `LSTMForecasterTS` | LSTM encoder over the RevIN-normalized multichannel window with a direct linear decode of its final hidden state. | paper-only | passed | [card](../../src/tsflab/models/lstm_forecaster_ts/README.md) |

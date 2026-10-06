@@ -456,6 +456,13 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("attention", "differential", "noise-cancelling", "rmsnorm"),
         ),
         ComponentSpec(
+            "logsparse_conv_attention",
+            "tsflab.models._components.logsparse_conv_attention",
+            "Causal multi-head self-attention with causal-convolution queries/keys and a LogSparse (exponential-distance, optional local and restart) mask, plus an exact cached one-step path.",
+            ("logsparse_mask", "ConvSelfAttention"),
+            ("attention", "causal", "convolution", "logsparse", "sparse", "local", "restart", "decoder-only", "mask"),
+        ),
+        ComponentSpec(
             "gpt2_backbone",
             "tsflab.models._components.gpt2_backbone",
             "Decoder-only GPT-2 trunk over input embeddings (learned positions, causal pre-norm blocks, final LayerNorm) with an offline loader for released safetensors weights.",
