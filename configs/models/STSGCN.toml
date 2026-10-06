@@ -1,0 +1,16 @@
+[model]
+name = "STSGCN"
+
+# Official config/PEMS0X/individual_GLU_mask_emb.json (paper Sec. Experiment Settings: 4 STSGCLs,
+# [64, 64, 64] filters); enc_in follows the 8-node catalog fixture (set it to the dataset node count).
+[model.params]
+enc_in = 8
+num_layers = 4
+filters = [64, 64, 64]
+first_layer_embedding = 64
+activation = "GLU"
+individual = true
+use_mask = true
+temporal_emb = true
+spatial_emb = true
+output_hidden = 128

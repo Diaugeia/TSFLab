@@ -1,0 +1,14 @@
+[model]
+name = "GMAN"
+
+# Paper Sec. Experiments (L = 3, K = 8, d = 8) with the official METR-LA script's causal
+# temporal mask and output dropout; enc_in follows the 8-node catalog fixture (set it to
+# the dataset node count) and steps_per_day to the samples per day (288 for 5-minute data).
+[model.params]
+enc_in = 8
+num_blocks = 3
+num_heads = 8
+head_dim = 8
+steps_per_day = 288
+causal_temporal = true
+output_dropout = 0.1
