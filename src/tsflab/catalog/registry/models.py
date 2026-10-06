@@ -488,4 +488,5 @@ MODEL_CATALOG = ModelCatalog({
     "StaTS": "tsflab.models.stats.spec",
     "LogTrans": "tsflab.models.logtrans.spec",
     "TimeGrad": "tsflab.models.timegrad.spec",
+    "CoST": "tsflab.models.cost.spec",
 })

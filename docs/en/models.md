@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 313 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 314 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 313 of 313 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 314 of 314 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -51,6 +51,7 @@ TSFLab exposes 313 model and method entries through one flat public catalog. Arc
 | `CoRe` | Test-time adapter around a frozen forecaster: per-variate corrections interact through a shared-anchor low-rank bottleneck, gated by spectral entropy. | reference-checked | passed | [card](../../src/tsflab/models/core/README.md) |
 | `COSA` | Test-time output-space adapter: a context-conditioned linear residual with a bounded tanh gate corrects a frozen base forecast. | reference-checked | passed | [card](../../src/tsflab/models/cosa/README.md) |
 | `CosDir` | Direction-aware training loss on a DLinear carrier: base loss plus 1 - cosine between forecast and target horizon difference vectors, fixed or uncertainty-weighted. | reference-checked | passed | [card](../../src/tsflab/models/cosdir/README.md) |
+| `CoST` | Two-stage forecaster: a dilated-conv encoder learns disentangled trend (causal AR experts, MoCo loss) and seasonal (Fourier layer, amplitude/phase contrast) features; a closed-form ridge maps the last step's features to the horizon. | reference-checked | passed | [card](../../src/tsflab/models/cost/README.md) |
 | `CRIB` | Forecaster for partially observed multivariate series: mask-aware patch embedding, attention over all channel-patch tokens, and a Gaussian information bottleneck with a consistency loss. | reference-checked | passed | [card](../../src/tsflab/models/crib/README.md) |
 | `Crossformer` | Transformer over a channels-by-segments token array with two-stage attention (across time, then across variables via routers) and hierarchical segment merging. | reference-checked | passed | [card](../../src/tsflab/models/crossformer/README.md) |
 | `CrossGNN` | GNN over multi-resolution views: FFT-period pooling, a scale-aware temporal graph, and a signed learned variable graph, on a last-value-centered series. | reference-checked | passed | [card](../../src/tsflab/models/crossgnn/README.md) |

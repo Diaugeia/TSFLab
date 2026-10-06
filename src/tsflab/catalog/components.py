@@ -470,6 +470,13 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("diffusion", "ddpm", "denoising", "epsilon", "noise", "schedule", "sampling", "generative", "probabilistic"),
         ),
         ComponentSpec(
+            "dilated_conv_encoder",
+            "tsflab.models._components.dilated_conv_encoder",
+            "TS2Vec-style length-preserving dilated convolution encoder: pre-GELU residual blocks of two same-padded dilated Conv1d layers with dilation 2^i.",
+            ("SamePadConv", "DilatedConvBlock", "DilatedConvEncoder"),
+            ("convolution", "dilated", "encoder", "residual", "gelu", "ts2vec", "representation", "same-padding", "backbone"),
+        ),
+        ComponentSpec(
             "gpt2_backbone",
             "tsflab.models._components.gpt2_backbone",
             "Decoder-only GPT-2 trunk over input embeddings (learned positions, causal pre-norm blocks, final LayerNorm) with an offline loader for released safetensors weights.",
