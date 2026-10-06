@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 320 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 323 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 320 of 320 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 323 of 323 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -24,6 +24,7 @@ TSFLab exposes 320 model and method entries through one flat public catalog. Arc
 | `AROpt` | iTransformer patch forecaster rolled out autoregressively; discounted patch losses penalize non-monotone error. | reference-checked | passed | [card](../../src/tsflab/models/aropt/README.md) |
 | `ASGMamba` | Patch Mamba at scales 8/16/32 whose tokens are gated by patch rFFT low/mid/high band energies; softmax scale fusion. | reference-checked | passed | [card](../../src/tsflab/models/asgmamba/README.md) |
 | `ASTGCN` | Spatial and temporal attention modulating Chebyshev graph convolution plus gated temporal conv; recent branch only. | reference-checked | passed | [card](../../src/tsflab/models/astgcn/README.md) |
+| `ASTGNN` | Graph Transformer encoder-decoder: trend-aware convolutional temporal attention, attention-reweighted dynamic graph convolution, node embeddings, autoregressive decoding. | reference-checked | passed | [card](../../src/tsflab/models/astgnn/README.md) |
 | `Aurora` | Patch Transformer guided by distilled text/image tokens, decoding via prototype retrieval and flow integration. | reference-checked | passed | [card](../../src/tsflab/models/aurora/README.md) |
 | `Autoformer` | Progressive series decomposition in every layer plus FFT auto-correlation attention aggregating top-k delays. | reference-checked | passed | [card](../../src/tsflab/models/autoformer/README.md) |
 | `AutoRegressiveTS` | One shared linear map from the whole lag window to all horizons, applied to every channel independently. | paper-only | passed | [card](../../src/tsflab/models/autoregressive_ts/README.md) |
@@ -201,6 +202,7 @@ TSFLab exposes 320 model and method entries through one flat public catalog. Arc
 | `PAttn` | Minimal patch Transformer from the LLM-ablation study: one self-attention layer on patch tokens, no positional encoding or FFN, linear head. | reference-checked | passed | [card](../../src/tsflab/models/pattn/README.md) |
 | `PCATransformer` | Training-split PCA compresses the covariates to a few principal scores; a vanilla encoder-decoder Transformer forecasts the target channel. | reference-checked | passed | [card](../../src/tsflab/models/pcatransformer/README.md) |
 | `PCDCNet` | Physics-inspired air-quality surrogate: per-station local MLP dynamics, graph-Laplacian transport, and GRU accumulation, rolled out hour by hour with calendar covariates. | reference-checked | passed | [card](../../src/tsflab/models/pcdcnet/README.md) |
+| `PDFormer` | Spatial-temporal Transformer whose heads split into temporal, hop-masked geographic (keys enriched with delay-aware traffic patterns) and DTW-masked semantic attention. | reference-checked | passed | [card](../../src/tsflab/models/pdformer/README.md) |
 | `PENGUIN` | Channel-independent patch Transformer whose grouped multi-query attention carries a periodic ALiBi bias, one head group per cycle length. | reference-checked | passed | [card](../../src/tsflab/models/penguin/README.md) |
 | `PGN` | TPGN: folds each series by its period, runs a parallel gated network over rows (long-term) plus a pooled short-term branch, with per-variate linear heads. | paper-only | passed | [card](../../src/tsflab/models/pgn/README.md) |
 | `PhaseFormer` | Tiny periodicity model: tokenizes the lookback into one token per phase of the dominant period and mixes phases through a few learned routers. | reference-checked | passed | [card](../../src/tsflab/models/phaseformer/README.md) |
@@ -263,6 +265,7 @@ TSFLab exposes 320 model and method entries through one flat public catalog. Arc
 | `STFGNN` | Spatial-temporal fusion graph network: GLU graph convolutions on a 4-step graph fusing the road graph with a DTW temporal graph from the training split, plus a gated dilated convolution per layer. | reference-checked | passed | [card](../../src/tsflab/models/stfgnn/README.md) |
 | `STGCN` | Fully convolutional spatio-temporal graph network: gated temporal convolutions sandwich Chebyshev graph convolutions over a fixed adjacency. | reference-checked | passed | [card](../../src/tsflab/models/stgcn/README.md) |
 | `STGNCDE` | STG-NCDE: coupled temporal and spatial neural CDEs driven by a cubic-spline path of each node's window, with a learned node-adaptive graph, solved by RK4. | reference-checked | passed | [card](../../src/tsflab/models/stgncde/README.md) |
+| `STGNN` | Graph GRU whose input and state are filtered by a GCN over a learned positional relation masked to the road graph, followed by a Transformer layer over time. | inferred | passed | [card](../../src/tsflab/models/stgnn/README.md) |
 | `STGODE` | Tensor-ODE blocks that integrate graph propagation and dilated temporal convolution over a spatial and a semantic graph, fused by a gate. | reference-checked | passed | [card](../../src/tsflab/models/stgode/README.md) |
 | `STHD` | Scalable Transformer for high-dimensional series: each target attends jointly over its own patches and those of its top-K most correlated series from the training split. | reference-checked | passed | [card](../../src/tsflab/models/sthd/README.md) |
 | `STID` | Simple MLP over each node's history plus learnable node, time-of-day, and day-of-week identity embeddings, without a graph. | reference-checked | passed | [card](../../src/tsflab/models/stid/README.md) |
