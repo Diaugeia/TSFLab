@@ -226,3 +226,20 @@ issues = [
   { kind = "paper-error", what = "ETTh1 numbers disagree across Tables 1, 3, 4, and 5." },
   { kind = "license", what = "No license file." },
 ]
+
+[[paper]]
+name = "FedGRU"
+title = "Privacy-Preserving Traffic Flow Prediction: A Federated Learning Approach"
+paper = "https://arxiv.org/abs/2003.08725"
+code = "https://github.com/niklausliu/TF_FedGRU_demo"
+revision = "unavailable"
+reason = "out-of-scope"
+summary = "The contribution is a training protocol, not a forecaster: FedAVG rounds over 20 data-partitioned organizations, Joint-Announcement client sub-sampling, constrained K-Means over organization coordinates and an ensemble over cluster models. The training contract trains one model on one dataset, so only the plain stacked GRU (2 x 50 units, r = 12) would remain, which GRUForecasterTS already covers."
+issues = [
+  { kind = "unreleased", what = "The code URL given in Section V (github.com/niklausliu/TF_FedGRU_demo) returns 404 and is not among the author's repositories (checked 2026-10-06); the MIT FedGRU repositories found by search are third-party." },
+  { kind = "paper-error", what = "Eqs. 8-9 omit the input x_t from the update and reset gates (W^(z) and W^(r) are applied to nothing)." },
+  { kind = "paper-error", what = "Tables I and II report RMSE inconsistent with MSE (e.g. MSE 101.49, RMSE 11.04; sqrt(101.49) = 10.07)." },
+  { kind = "paper-error", what = "The abstract claims accuracy 90.96% higher than advanced deep models, but Table II gives FedGRU MAE 7.96 against centralized GRU 7.20 (FedGRU worse) and Section V-B reports 9.04% lower MAE than SVM only." },
+  { kind = "underspecified", what = "Eq. 12 objective (K, d, h(w), lambda) is undefined; the public pre-training dataset, how PeMS stations are split across the 20 organizations, their coordinates for the constrained K-Means, and the ensemble selection criterion of Eq. 16 are not given; 'client C = 2' conflicts with |O_v| = 20." },
+  { kind = "paper-code-mismatch", what = "Section IV-B1 describes a weighted average of client updates, while Algorithm 1 averages them uniformly (1/|O_v|)." },
+]
