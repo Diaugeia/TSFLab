@@ -463,6 +463,27 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("attention", "differential", "noise-cancelling", "rmsnorm"),
         ),
         ComponentSpec(
+            "logsparse_conv_attention",
+            "tsflab.models._components.logsparse_conv_attention",
+            "Causal multi-head self-attention with causal-convolution queries/keys and a LogSparse (exponential-distance, optional local and restart) mask, plus an exact cached one-step path.",
+            ("logsparse_mask", "ConvSelfAttention"),
+            ("attention", "causal", "convolution", "logsparse", "sparse", "local", "restart", "decoder-only", "mask"),
+        ),
+        ComponentSpec(
+            "ddpm_epsilon",
+            "tsflab.models._components.ddpm_epsilon",
+            "Fixed-schedule Gaussian DDPM: closed-form forward noising, epsilon-prediction MSE loss with uniform steps, and ancestral sampling with the posterior variance beta_tilde.",
+            ("GaussianDDPM", "beta_schedule"),
+            ("diffusion", "ddpm", "denoising", "epsilon", "noise", "schedule", "sampling", "generative", "probabilistic"),
+        ),
+        ComponentSpec(
+            "dilated_conv_encoder",
+            "tsflab.models._components.dilated_conv_encoder",
+            "TS2Vec-style length-preserving dilated convolution encoder: pre-GELU residual blocks of two same-padded dilated Conv1d layers with dilation 2^i.",
+            ("SamePadConv", "DilatedConvBlock", "DilatedConvEncoder"),
+            ("convolution", "dilated", "encoder", "residual", "gelu", "ts2vec", "representation", "same-padding", "backbone"),
+        ),
+        ComponentSpec(
             "gpt2_backbone",
             "tsflab.models._components.gpt2_backbone",
             "Decoder-only GPT-2 trunk over input embeddings (learned positions, causal pre-norm blocks, final LayerNorm) with an offline loader for released safetensors weights.",

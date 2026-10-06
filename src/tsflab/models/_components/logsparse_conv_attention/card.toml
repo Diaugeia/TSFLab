@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "logsparse_conv_attention"
+role = "Mixes time steps causally with attention whose queries/keys see a local causal window and whose key set grows logarithmically with distance."
+slot = "temporal"
+fits = ["long-lookback", "efficiency"]
+category = "attention"
+tags = ["attention", "causal", "convolution", "convolutional-attention", "logsparse", "sparse-attention", "local-attention", "restart-attention", "local", "restart", "sparse", "decoder-only", "incremental-decoding", "mask"]
+input = "x [batch, length, d_model]; blocked bool [length, length] from logsparse_mask (True = -inf)"
+output = "[batch, length, d_model]; forward_last: [batch, 1, d_model] for the newest position from cached keys and values"
+origin = "Convolutional self-attention and LogSparse attention of Li et al., 'Enhancing the Locality and Breaking the Memory Bottleneck of Transformer on Time Series Forecasting' (NeurIPS 2019), Secs. 4.1-4.2 and App. A.4; no official code"
+origin_models = ["logtrans"]

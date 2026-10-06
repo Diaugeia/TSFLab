@@ -1,0 +1,23 @@
+[model]
+name = "CoST"
+
+[model.params]
+enc_in = 7
+repr_dims = 320
+hidden_dims = 64
+depth = 10
+kernels = [1, 2, 4, 8, 16, 32, 64, 128]
+alpha = 0.0005
+queue_size = 256
+momentum = 0.999
+temperature = 0.07
+sigma = 0.5
+aug_prob = 0.5
+pretrain_iters = 0          # 0: 200 iterations for <= 100000 training elements, else 600
+pretrain_batch_size = 128
+pretrain_lr = 0.001
+use_marks = true
+channel_independent = false
+ridge_alphas = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
+ridge_valid_fraction = 0.25
+ridge_max_samples = 100000

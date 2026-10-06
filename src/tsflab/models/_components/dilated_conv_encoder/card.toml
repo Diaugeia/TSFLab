@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "dilated_conv_encoder"
+role = "Maps a [B, C, T] sequence to per-step representations with a deep, length-preserving stack of residual dilated convolutions."
+slot = "temporal"
+fits = ["any"]
+category = "backbone"
+tags = ["convolution", "dilated", "encoder", "residual", "gelu", "ts2vec", "representation", "same-padding", "backbone", "non-causal"]
+input = "x [batch, in_channels, time]"
+output = "[batch, channels[-1], time]"
+origin = "TS2Vec (Yue et al., AAAI 2022) encoder as used by CoST (Woo et al., ICLR 2022); checked against salesforce/CoST models/dilated_conv.py at 7bb5271c"
+origin_models = ["cost"]

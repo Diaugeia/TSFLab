@@ -1,0 +1,27 @@
+[model]
+name = "TimeGrad"
+
+[model.params]
+enc_in = 7
+cell_type = "LSTM"
+num_layers = 2
+num_cells = 40
+dropout = 0.1
+lags = [1, 24]          # official hourly lags are [1, 24, 168]; 168 needs seq_len >= context_length + 168
+context_length = 0      # 0: seq_len - max(lags)
+embed_dim = 1
+time_features = ["hour", "dayofweek"]
+conditioning_length = 100
+diff_steps = 100
+beta_start = 0.0001
+beta_end = 0.1
+beta_schedule = "linear"
+residual_layers = 8
+residual_channels = 8
+dilation_cycle_length = 2
+residual_hidden = 64
+step_emb_dim = 16
+scaling = true
+context_loss = true
+num_samples = 100
+sample_batch_size = 100

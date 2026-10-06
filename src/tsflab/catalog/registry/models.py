@@ -489,4 +489,7 @@ MODEL_CATALOG = ModelCatalog({
     "SBULSTM": "tsflab.models.sbulstm.spec",
     "STGNCDE": "tsflab.models.stgncde.spec",
     "TFT": "tsflab.models.tft.spec",
+    "LogTrans": "tsflab.models.logtrans.spec",
+    "TimeGrad": "tsflab.models.timegrad.spec",
+    "CoST": "tsflab.models.cost.spec",
 })
