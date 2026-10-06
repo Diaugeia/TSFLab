@@ -226,3 +226,17 @@ issues = [
   { kind = "paper-error", what = "ETTh1 numbers disagree across Tables 1, 3, 4, and 5." },
   { kind = "license", what = "No license file." },
 ]
+
+[[paper]]
+name = "ST-MetaNet"
+title = "Urban Traffic Prediction from Spatio-Temporal Data Using Deep Meta Learning"
+paper = "https://doi.org/10.1145/3292500.3330884"
+code = "https://github.com/panzheyi/ST-MetaNet"
+revision = "b0c2cab1890241a8c4b8d6e4101ca951c748fa9b"
+reason = "unfaithful"
+summary = "Every meta-learned weight is generated from node and edge geo-attributes (sensor GPS locations and shortest road distances to the 8 nearest in/out neighbours for METR-LA; POI and road features for the Beijing grid). TSFLab's datasets carry only an adjacency (a thresholded distance kernel for METR-LA/PEMS-BAY, binary for PEMS03/04/07/08) and no locations, and the runner has no node-attribute input, so the meta-knowledge would have to be invented (learned embeddings make it a different model). Admission needs a dataset with sensor locations and road distances plus a node-attribute input contract."
+issues = [
+  { kind = "leakage", what = "`traffic-prediction/src/data/utils.py` `fill_missing` forward-fills zero readings, then back-fills the remaining leading gaps of each split with later readings, so some inputs carry values from after the forecast time." },
+  { kind = "code-bug", what = "`traffic-prediction/src/data/dataloader.py` builds the evaluation and test loaders with `last_batch='rollover'`, so each pass omits the final partial batch (carried into the next pass) and test metrics are not computed over exactly the test set." },
+  { kind = "underspecified", what = "The METR-LA meta-knowledge is defined only in code (`get_geo_feature`, `utils.distant_matrix`): z-scored GPS plus `exp(-(d - mean) / std)` of Floyd-Warshall road distances to the 8 nearest in/out sensors from DCRNN's `distances_la_2012.csv`, which TSFLab does not ship." },
+]
