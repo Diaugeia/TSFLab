@@ -1,22 +1,13 @@
 # E3: other agents and models on TSFLab and TSLib (2 repetitions)
+# 2026-10-06 (user): other agents run TSFLab only; the environment comparison uses Codex + GPT-6 Luna.
 # task	spec	rep	agent	model	env...
 rhymix	tsflab@fd5e684e	1	claude	claude-sonnet-5-5
-rhymix	tslib	1	claude	claude-sonnet-5-5
 aosnet	tsflab@fd5e684e	1	claude	claude-sonnet-5-5
-aosnet	tslib	1	claude	claude-sonnet-5-5
 stateflow	tsflab@fd5e684e	1	claude	claude-sonnet-5-5
-stateflow	tslib	1	claude	claude-sonnet-5-5
 adardiff	tsflab@fd5e684e	1	claude	claude-sonnet-5-5
-adardiff	tslib	1	claude	claude-sonnet-5-5
 core	tsflab@fd5e684e	1	claude	claude-sonnet-5-5
-core	tslib	1	claude	claude-sonnet-5-5
 rhymix	tsflab@fd5e684e	2	claude	claude-sonnet-5-5
-rhymix	tslib	2	claude	claude-sonnet-5-5
 aosnet	tsflab@fd5e684e	2	claude	claude-sonnet-5-5
-aosnet	tslib	2	claude	claude-sonnet-5-5
 stateflow	tsflab@fd5e684e	2	claude	claude-sonnet-5-5
-stateflow	tslib	2	claude	claude-sonnet-5-5
 adardiff	tsflab@fd5e684e	2	claude	claude-sonnet-5-5
-adardiff	tslib	2	claude	claude-sonnet-5-5
 core	tsflab@fd5e684e	2	claude	claude-sonnet-5-5
-core	tslib	2	claude	claude-sonnet-5-5
