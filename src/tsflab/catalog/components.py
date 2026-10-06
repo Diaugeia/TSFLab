@@ -323,6 +323,13 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("node2vec", "graph", "spatial-embedding", "random-walk", "skip-gram", "positional-encoding"),
         ),
         ComponentSpec(
+            "synchronous_graph_conv",
+            "tsflab.models._components.synchronous_graph_conv",
+            "STSGCN localized window graph and synchronous graph-convolution module (stacked GLU/ReLU GCN, max aggregation, block cropping).",
+            ("SynchronousGraphModule", "localized_adjacency", "mxnet_xavier_uniform_"),
+            ("graph", "spatiotemporal", "localized-graph", "synchronous", "gcn", "glu", "window"),
+        ),
+        ComponentSpec(
             "last_value_center",
             "tsflab.models._components.last_value_center",
             "Detached last-observed-timestep centering and restoration for BLC histories.",

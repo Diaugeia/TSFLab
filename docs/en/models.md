@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 313 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 313 of 313 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -265,6 +265,7 @@ TSFLab exposes 312 model and method entries through one flat public catalog. Arc
 | `STNorm` | WaveNet-style gated dilated causal convolutions whose layers also see spatially and temporally normalized streams, without an adjacency. | reference-checked | passed | [card](../../src/tsflab/models/stnorm/README.md) |
 | `STOP` | Spatio-temporal MLP that routes all node interaction through a few learnable context units, with trend/residual encoders and calendar prompts. | reference-checked | passed | [card](../../src/tsflab/models/stop/README.md) |
 | `STPGNN` | Traffic graph network that identifies pivotal (highly connected) nodes and gates a temporally windowed graph convolution by pivotal membership, in parallel with ordinary graph and temporal paths. | reference-checked | passed | [card](../../src/tsflab/models/stpgnn/README.md) |
+| `STSGCN` | Spatial-temporal synchronous GCN: stacked GLU graph convolutions on a graph joining 3 adjacent steps, with a learnable edge mask, per-window modules and per-horizon heads. | reference-checked | passed | [card](../../src/tsflab/models/stsgcn/README.md) |
 | `STTN` | Spatial-temporal Transformer: per-step spatial attention across nodes gated against a fixed adjacency, then per-node temporal self-attention, stacked. | reference-checked | passed | [card](../../src/tsflab/models/sttn/README.md) |
 | `STWave` | Traffic graph model that splits each series into Haar low (trend) and high (event) bands, encodes each with temporal attention and sampled spectral graph attention, and fuses them with a calendar gate. | reference-checked | passed | [card](../../src/tsflab/models/stwave/README.md) |
 | `Sumba` | Multivariate forecaster whose per-sample dynamic channel graph is a convex combination of a few learnable low-rank matrix bases, with multi-kernel gated temporal convs. | reference-checked | passed | [card](../../src/tsflab/models/sumba/README.md) |

@@ -487,4 +487,5 @@ MODEL_CATALOG = ModelCatalog({
     "DynGDiff": "tsflab.models.dyngdiff.spec",
     "StaTS": "tsflab.models.stats.spec",
     "GMAN": "tsflab.models.gman.spec",
+    "STSGCN": "tsflab.models.stsgcn.spec",
 })
