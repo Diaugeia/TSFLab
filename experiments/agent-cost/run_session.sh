@@ -35,8 +35,21 @@ mkdir -p "$RUN/config"
 if [[ "$AGENT" == codex ]]; then
   # Link (not copy) the login so a token refresh in one session reaches the others.
   mkdir -p "$RUN/codex"
-  ln -sf "$HOME/.codex/auth.json" "$RUN/codex/auth.json"
   export CODEX_HOME="$RUN/codex"
+  if [[ -n "${CODEX_BASE_URL:-}" ]]; then
+    # A self-hosted model behind an OpenAI-compatible Responses API (vLLM): no login.
+    cat > "$CODEX_HOME/config.toml" <<TOML
+model_provider = "local"
+[model_providers.local]
+name = "local"
+base_url = "$CODEX_BASE_URL"
+wire_api = "responses"
+env_key = "CODEX_LOCAL_KEY"
+TOML
+    export CODEX_LOCAL_KEY="${CODEX_LOCAL_KEY:-none}"
+  else
+    ln -sf "$HOME/.codex/auth.json" "$CODEX_HOME/auth.json"
+  fi
   AGENT_VERSION="$(codex --version | head -1)"
 elif [[ -n "${ANTHROPIC_BASE_URL:-}" ]]; then
   # A vLLM server with the Anthropic API: ANTHROPIC_API_KEY, no login.
@@ -58,7 +71,7 @@ cat > "$RUN/meta.json" <<EOF
 {"task": "$(basename "$TASK")", "kind": "$KIND", "arm": "$ARM", "agent": "$AGENT", "model": "$MODEL",
  "started": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "host": "$(uname -n)", "gpu_sample_s": $GPU_SAMPLE_S,
  "tsflab_commit": "${TSFLAB_COMMIT:-$(git -C "$HERE/../.." rev-parse dev)}", "agent_version": "$AGENT_VERSION",
- "base_url": "${ANTHROPIC_BASE_URL:-anthropic}", "train_gpu": "${TRAIN_GPU:-all}"}
+ "base_url": "${CODEX_BASE_URL:-${ANTHROPIC_BASE_URL:-default}}", "train_gpu": "${TRAIN_GPU:-all}"}
 EOF
 
 # GPU sampler (utilization and memory every GPU_SAMPLE_S seconds).
