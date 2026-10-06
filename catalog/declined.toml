@@ -226,3 +226,19 @@ issues = [
   { kind = "paper-error", what = "ETTh1 numbers disagree across Tables 1, 3, 4, and 5." },
   { kind = "license", what = "No license file." },
 ]
+
+[[paper]]
+name = "ESRNN"
+title = "A hybrid method of exponential smoothing and recurrent neural networks for time series forecasting"
+paper = "https://doi.org/10.1016/j.ijforecast.2019.03.017"
+code = "https://github.com/M4Competition/M4-methods/tree/6c1067e5a57161249b17289a565178dc7a3fb3ca/118%20-%20slaweks17"
+revision = "6c1067e5a57161249b17289a565178dc7a3fb3ca"
+reason = "unfaithful"
+summary = "The defining multiplicative Holt-Winters normalization (level and seasonality with per-series smoothing coefficients and initial seasonality, then log) needs strictly positive raw-scale series and an exponential-smoothing state run from each series' start; TSFLab windows are z-scored, carry no series start, and pooled panels carry no series identity. Reviewed against the author's M4 method description and the C++ code in `ES_RNN.zip` (the IJF text was not open access)."
+issues = [
+  { kind = "underspecified", what = "Eq. 1a-1c divide by level and seasonality and take logs, so the method is undefined for zero or negative values; the description and code assume positive M4 series and never state a remedy." },
+  { kind = "paper-code-mismatch", what = "The point models train with pinball tau 0.45-0.49 (`TRAINING_PERCENTILE`) instead of the median, chop series to the last 20-60 seasons (`MAX_SERIES_LENGTH`), append a 6-way one-hot M4 domain, and add a level-wiggliness penalty of 50-100; results also rest on three ensembling levels (runs, specialists, last-epoch averaging)." },
+  { kind = "leakage", what = "With `USE_AUTO_LEARNING_RATE` (off by default) the learning-rate schedule in `ES_RNN.cc` reacts to the backtest loss on the held-out last horizon (`testVals`)." },
+  { kind = "unreleased", what = "The code is a zip of C++ programs for DyNet with Windows project files and ODBC database output; no runnable PyTorch or Python reference." },
+  { kind = "license", what = "No license file in the M4-methods repository or the archive." },
+]
