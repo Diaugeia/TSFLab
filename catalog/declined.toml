@@ -226,3 +226,84 @@ issues = [
   { kind = "paper-error", what = "ETTh1 numbers disagree across Tables 1, 3, 4, and 5." },
   { kind = "license", what = "No license file." },
 ]
+
+[[paper]]
+name = "FedGRU"
+title = "Privacy-Preserving Traffic Flow Prediction: A Federated Learning Approach"
+paper = "https://arxiv.org/abs/2003.08725"
+code = "https://github.com/niklausliu/TF_FedGRU_demo"
+revision = "unavailable"
+reason = "out-of-scope"
+summary = "The contribution is a training protocol, not a forecaster: FedAVG rounds over 20 data-partitioned organizations, Joint-Announcement client sub-sampling, constrained K-Means over organization coordinates and an ensemble over cluster models. The training contract trains one model on one dataset, so only the plain stacked GRU (2 x 50 units, r = 12) would remain, which GRUForecasterTS already covers."
+issues = [
+  { kind = "unreleased", what = "The code URL given in Section V (github.com/niklausliu/TF_FedGRU_demo) returns 404 and is not among the author's repositories (checked 2026-10-06); the MIT FedGRU repositories found by search are third-party." },
+  { kind = "paper-error", what = "Eqs. 8-9 omit the input x_t from the update and reset gates (W^(z) and W^(r) are applied to nothing)." },
+  { kind = "paper-error", what = "Tables I and II report RMSE inconsistent with MSE (e.g. MSE 101.49, RMSE 11.04; sqrt(101.49) = 10.07)." },
+  { kind = "paper-error", what = "The abstract claims accuracy 90.96% higher than advanced deep models, but Table II gives FedGRU MAE 7.96 against centralized GRU 7.20 (FedGRU worse) and Section V-B reports 9.04% lower MAE than SVM only." },
+  { kind = "underspecified", what = "Eq. 12 objective (K, d, h(w), lambda) is undefined; the public pre-training dataset, how PeMS stations are split across the 20 organizations, their coordinates for the constrained K-Means, and the ensemble selection criterion of Eq. 16 are not given; 'client C = 2' conflicts with |O_v| = 20." },
+  { kind = "paper-code-mismatch", what = "Section IV-B1 describes a weighted average of client updates, while Algorithm 1 averages them uniformly (1/|O_v|)." },
+]
+
+[[paper]]
+name = "ST-MetaNet"
+title = "Urban Traffic Prediction from Spatio-Temporal Data Using Deep Meta Learning"
+paper = "https://doi.org/10.1145/3292500.3330884"
+code = "https://github.com/panzheyi/ST-MetaNet"
+revision = "b0c2cab1890241a8c4b8d6e4101ca951c748fa9b"
+reason = "unfaithful"
+summary = "Every meta-learned weight is generated from node and edge geo-attributes (sensor GPS locations and shortest road distances to the 8 nearest in/out neighbours for METR-LA; POI and road features for the Beijing grid). TSFLab's datasets carry only an adjacency (a thresholded distance kernel for METR-LA/PEMS-BAY, binary for PEMS03/04/07/08) and no locations, and the runner has no node-attribute input, so the meta-knowledge would have to be invented (learned embeddings make it a different model). Admission needs a dataset with sensor locations and road distances plus a node-attribute input contract."
+issues = [
+  { kind = "leakage", what = "`traffic-prediction/src/data/utils.py` `fill_missing` forward-fills zero readings, then back-fills the remaining leading gaps of each split with later readings, so some inputs carry values from after the forecast time." },
+  { kind = "code-bug", what = "`traffic-prediction/src/data/dataloader.py` builds the evaluation and test loaders with `last_batch='rollover'`, so each pass omits the final partial batch (carried into the next pass) and test metrics are not computed over exactly the test set." },
+  { kind = "underspecified", what = "The METR-LA meta-knowledge is defined only in code (`get_geo_feature`, `utils.distant_matrix`): z-scored GPS plus `exp(-(d - mean) / std)` of Floyd-Warshall road distances to the 8 nearest in/out sensors from DCRNN's `distances_la_2012.csv`, which TSFLab does not ship." },
+]
+
+[[paper]]
+name = "ST-MGCN"
+title = "Spatiotemporal Multi-Graph Convolution Network for Ride-Hailing Demand Forecasting"
+paper = "https://ojs.aaai.org/index.php/AAAI/article/view/4247"
+code = ""
+revision = ""
+reason = "unfaithful"
+summary = "The method is defined by three region graphs over a 1 km city grid (3x3 neighbourhood, POI-vector similarity over 13 categories, OpenStreetMap motorway/highway/subway connectivity) whose ablation (Table 2) shows each one matters, fed by ST-ResNet closeness/period/trend samples for single-step prediction. TSFLab's spatiotemporal datasets are sensor graphs with one adjacency and no POIs, grid, or transport network, and the runner supplies one contiguous window; substituting data-derived graphs (e.g. series correlation for POI similarity) would invent defining inputs, and with one graph the model reduces to a CGRNN plus ChebNet that is not ST-MGCN."
+issues = [
+  { kind = "unreleased", what = "No official code; the TensorFlow implementation and the Didi Beijing/Shanghai order, POI, and road data were not released. Only unofficial replications exist (underdoc-wang/ST-MGCN, yizhan42/ST-MGCN-pytorch, Chao-Jiang/ST-MGCN-keras)." },
+  { kind = "underspecified", what = "The POI similarity `sim(.,.)` (Eq. 4), the RNN cell of CGRNN (Eq. 11), the Laplacian normalization and scaling for the Chebyshev filters, how the graph branches and the final fully connected layers are arranged ('3 hidden layers with 64 units'), and the output layer are not stated." },
+  { kind = "paper-error", what = "Graph names are inconsistent: the functional-similarity graph is `G_F = (V, A_F)` but Eq. (4) defines `A_S`; the transportation graph is `G_T = (V, A_T)` but Eq. (5) defines `A_C`. The task `f: R^{|V| x T} -> R^{|V|}` also does not match the five non-contiguous closeness/period/trend inputs of the experiments." },
+]
+
+[[paper]]
+name = "ESRNN"
+title = "A hybrid method of exponential smoothing and recurrent neural networks for time series forecasting"
+paper = "https://doi.org/10.1016/j.ijforecast.2019.03.017"
+code = "https://github.com/M4Competition/M4-methods/tree/6c1067e5a57161249b17289a565178dc7a3fb3ca/118%20-%20slaweks17"
+revision = "6c1067e5a57161249b17289a565178dc7a3fb3ca"
+reason = "unfaithful"
+summary = "The defining multiplicative Holt-Winters normalization (level and seasonality with per-series smoothing coefficients and initial seasonality, then log) needs strictly positive raw-scale series and an exponential-smoothing state run from each series' start; TSFLab windows are z-scored, carry no series start, and pooled panels carry no series identity. Reviewed against the author's M4 method description and the C++ code in `ES_RNN.zip` (the IJF text was not open access)."
+issues = [
+  { kind = "underspecified", what = "Eq. 1a-1c divide by level and seasonality and take logs, so the method is undefined for zero or negative values; the description and code assume positive M4 series and never state a remedy." },
+  { kind = "paper-code-mismatch", what = "The point models train with pinball tau 0.45-0.49 (`TRAINING_PERCENTILE`) instead of the median, chop series to the last 20-60 seasons (`MAX_SERIES_LENGTH`), append a 6-way one-hot M4 domain, and add a level-wiggliness penalty of 50-100; results also rest on three ensembling levels (runs, specialists, last-epoch averaging)." },
+  { kind = "leakage", what = "With `USE_AUTO_LEARNING_RATE` (off by default) the learning-rate schedule in `ES_RNN.cc` reacts to the backtest loss on the held-out last horizon (`testVals`)." },
+  { kind = "unreleased", what = "The code is a zip of C++ programs for DyNet with Windows project files and ODBC database output; no runnable PyTorch or Python reference." },
+  { kind = "license", what = "No license file in the M4-methods repository or the archive." },
+]
+
+[[paper]]
+name = "DeepGLO"
+title = "Think Globally, Act Locally: A Deep Neural Network Approach to High-Dimensional Time Series Forecasting"
+paper = "https://arxiv.org/abs/1905.03806"
+code = "https://github.com/rajatsen91/deepglo"
+revision = "525578d4bd50a9d71abbf8b51f0ce9987f449db8"
+reason = "out-of-scope"
+summary = "The global model factorizes the whole training matrix into per-series loadings F and a free basis matrix X over every training time step, trained by alternating stages (Alg. 2-3) before a separate local TCN stage (Alg. 4), and recovers X for each newly revealed window by an inner optimization at prediction time (App. B). The windowed training contract has no transductive full-matrix stage or absolute time index for X; replacing X by a per-window least-squares projection would be the paper's SVD+TCN baseline, not TCN-MF."
+issues = [
+  { kind = "code-bug", what = "LeveledInit is a no-op: `TemporalBlock.init_weights` in `DeepGLO/LocalModel.py` edits `conv.weight` of `weight_norm`-wrapped convolutions, which is recomputed from `weight_g`/`weight_v` before every forward, so the 1/k weights are discarded (verified in PyTorch); only the bias initialization survives." },
+  { kind = "code-bug", what = "`step_factF_loss`, `step_factX_loss`, `step_temporal_loss_X` and `recover_future_X` build a new Adam optimizer for every step, so each update is a fresh bias-corrected first Adam step (about lr times the gradient sign), not the mini-batch SGD of Alg. 1 and 3." },
+  { kind = "paper-code-mismatch", what = "Eq. 3 weights the TCN regularizer by lambda_T = 0.2 (App. C.3); `train_factors` has no lambda_T and instead takes a separate unit-weight step on X every fifth batch (`iter_count % mod == 1`), while the F and X guards `iter_count % mod >= 0` are always true." },
+  { kind = "paper-code-mismatch", what = "App. B recovers X for a revealed window by minimizing Eq. 3 with one-step TCN regularization; `recover_future_X` minimizes a normalized blend (alpha = 0.3) of reconstruction error and distance to the multi-step TCN forecast, from a random start, for up to 100000 steps, with a stopping test that compares against a loss stored only every 1000 steps." },
+  { kind = "paper-code-mismatch", what = "The run scripts pass `period = 24`, which adds the series lagged by one period as an extra local-TCN covariate; Alg. 4 lists only the series, the global prediction and the time covariates." },
+  { kind = "underspecified", what = "Alg. 4 trains the local TCN on 'the global model prediction in the training range' without defining it; `create_Ycov` uses in-sample one-step F*T_X(X) predictions, while test-time covariates are multi-step forecasts." },
+  { kind = "leakage", what = "`data_loader.next_batch` builds one-step-shifted targets up to `min(end_index, ...) + 1`, so F and X are fitted on column `end_index`, the first point of the first test window (X is allocated with end_index + 1 columns); early stopping of the factors validates on columns they were fitted on." },
+  { kind = "leakage", what = "With `normalize=True` the series are shifted by `abs(min(Ymat))` over the whole matrix, test windows included; the scale is std + 1 instead of std." },
+  { kind = "code-bug", what = "`predict_global`, `recover_future_X` and `create_Ycov` call `.cuda()` unconditionally, so the `cpu=True` paths fail on a CPU-only machine." },
+]

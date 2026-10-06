@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "interpretable_attention"
+role = "Temporal self-attention whose heads share values, so the head-averaged attention map reads as position importance."
+slot = "temporal"
+fits = ["any"]
+category = "attention"
+tags = ["attention", "interpretable", "shared-value", "multi-head", "causal", "head-average", "tft"]
+input = "q [B, Tq, d_model]; k, v [B, Tk, d_model]; optional bool mask [Tq, Tk] or [B, Tq, Tk]"
+output = "([B, Tq, d_model], attention [B, heads, Tq, Tk])"
+origin = "Temporal Fusion Transformer, Lim et al., IJF 2021 (arXiv 1912.09363), Sec. 4.4, Eq. 9-16"
+origin_models = ["tft"]

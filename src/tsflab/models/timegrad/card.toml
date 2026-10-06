@@ -1,0 +1,82 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "TimeGrad"
+tags = ["diffusion", "probabilistic", "rnn", "autoregressive", "generative", "channel-mixing", "covariates"]
+fits = ["probabilistic-output", "high-cross-correlation", "calendar-effects"]
+fidelity = "reference-checked"
+
+[paper]
+title = "Autoregressive Denoising Diffusion Models for Multivariate Probabilistic Time Series Forecasting"
+url = "https://arxiv.org/abs/2101.12072"
+venue = "ICML 2021"
+year = 2021
+
+[code]
+url = "https://github.com/zalandoresearch/pytorch-ts"
+revision = "7860c9693d55b5c086867477cc33c89485ed0167"
+license = "MIT"
+reference_sources = ["pts/model/time_grad/epsilon_theta.py", "pts/model/time_grad/time_grad_network.py", "pts/model/time_grad/time_grad_estimator.py", "pts/modules/gaussian_diffusion.py", "pts/modules/scaler.py", "pts/feature/fourier_date_feature.py", "pts/feature/lags.py", "examples/Time-Grad-Electricity.ipynb"]
+
+[composition]
+normalization = "local:context-mean-absolute-scaling"
+decomposition = "none"
+temporal = "local:lagged-rnn-conditioner"
+channel = "local:joint-variate-wavenet-denoiser"
+head = "component:ddpm_epsilon+component:empirical_quantiles"
+loss = "local:teacher-forced-epsilon-mse"
+
+[data_params]
+enc_in = { from = "channels", rule = "must equal the dataset channel count; the diffusion is joint over all channels" }
+lags = { from = "period", rule = "1 plus the dominant seasonal lags (official: hourly [1, 24, 168], daily [1, 7, 14], minutely [1, 4, 12, 24, 48]); max(lags) + context_length <= seq_len" }
+time_features = { from = "frequency", rule = "calendar fields finer than or equal to a cycle of the sampling interval (official: hourly hour+dayofweek, minutely minute+hour+dayofweek, daily dayofweek)" }
+context_length = { from = "seq_len", rule = "0 uses seq_len - max(lags); official default is pred_len" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "72e34a95"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "`pts/model/time_grad/time_grad_network.py` `TimeGradTrainingNetwork.forward`"
+what = "the paper's objective sums only the prediction interval t0..T (Sec. 3.1), but the code takes the denoising loss over context_length + prediction_length steps."
+resolution = "`context_loss = true` (default) follows the code; `false` gives the paper's horizon-only loss with the context used for warm-up only."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. 3.3 vs `pts/modules/scaler.py` `MeanScaler.compute_scale`"
+what = "the paper divides by the context-window mean (1 if zero); the code uses the mean absolute value, a 1e-10 floor and the batch mean for all-zero series."
+resolution = "the code's mean-absolute scale (also well defined for standardized, signed data)."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Fig. 2 and Sec. 4.2 vs `pts/model/time_grad/epsilon_theta.py`, `examples/Time-Grad-Electricity.ipynb`"
+what = "Fig. 2 draws ReLU activations; the code uses LeakyReLU(0.4) in the denoiser and SiLU in the step embedding. The paper uses a 2-layer LSTM, the released example a GRU."
+resolution = "activations follow the code; `cell_type` defaults to the paper's LSTM, GRU selectable."
+
+[[issues]]
+kind = "code-bug"
+where = "`pts/feature/fourier_date_feature.py` `FourierDateFeatures.__call__`"
+what = "the period is `max(values) + 1` of the index passed in, so it depends on which hours or weekdays a series contains (e.g. 23 instead of 24 for a series missing hour 23)."
+resolution = "fixed periods: minute 60, hour 24, day-of-week 7, month 12."
+
+[[issues]]
+kind = "code-bug"
+where = "`pts/model/time_grad/time_grad_network.py` `TimeGradTrainingNetwork.__init__`"
+what = "the estimator's `embedding_dimension` (default 5) is ignored: the variate embedding width is hard-coded to 1."
+resolution = "`embed_dim` parameter, default 1 as the code effectively runs."
+
+[[issues]]
+kind = "code-bug"
+where = "`pts/modules/gaussian_diffusion.py` `GaussianDiffusion.log_prob` with `TimeGradTrainingNetwork.forward`"
+what = "`log_prob` returns an already averaged scalar, so the observed-value `loss_weights` passed to `weighted_average` cannot mask missing targets; `log_prob` also rescales its input in place (`x /= self.scale`)."
+resolution = "plain mean over all steps and variates (TSFLab windows carry no missing mask); no in-place rescaling."
+
+[[issues]]
+kind = "code-bug"
+where = "`pts/model/time_grad/epsilon_theta.py` `CondUpsampler`, `EpsilonTheta.input_projection`"
+what = "with one target series the upsampler gets width `target_dim // 2 = 0` and circular padding of 2 on a length-1 axis raises, so univariate TimeGrad cannot run."
+resolution = "hidden width `max(1, D // 2)` and modular circular indexing, identical to the code for D >= 2."

@@ -1,0 +1,75 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "CoST"
+tags = ["cnn", "contrastive", "self-supervised", "representation-learning", "decomposition", "frequency", "ridge-regression", "two-stage", "covariates"]
+fits = ["strong-seasonality", "strong-trend", "calendar-effects", "efficiency"]
+fidelity = "reference-checked"
+
+[paper]
+title = "CoST: Contrastive Learning of Disentangled Seasonal-Trend Representations for Time Series Forecasting"
+url = "https://arxiv.org/abs/2202.01575"
+venue = "ICLR 2022"
+year = 2022
+
+[code]
+url = "https://github.com/salesforce/CoST"
+revision = "7bb5271c2b66cd5a1d634c27f5df308f190b50ec"
+license = "BSD-3-Clause"
+reference_sources = ["cost.py", "models/encoder.py", "models/dilated_conv.py", "tasks/forecasting.py", "tasks/_eval_protocols.py", "datautils.py", "train.py", "scripts/ETT_CoST.sh", "scripts/Electricity_CoST.sh"]
+
+[composition]
+normalization = "none"
+decomposition = "local:trend-ar-experts+local:seasonal-fourier-layer"
+temporal = "component:dilated_conv_encoder"
+channel = "component:marks+local:joint-channel-input-projection"
+head = "local:closed-form-ridge-on-last-step"
+loss = "local:moco-trend-and-frequency-contrastive+local:ridge-least-squares"
+
+[data_params]
+enc_in = { from = "channels", rule = "must equal the dataset channel count" }
+kernels = { from = "seq_len", rule = "paper: 2^i for i = 0 .. floor(log2(seq_len / 2)); official scripts use 1 .. 128 for a 201-step lookback" }
+channel_independent = { from = "channels", rule = "official electricity runs (321 channels) encode each channel as its own instance; ETT and Weather encode all channels jointly" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "72e34a95"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "App. C vs `cost.py` `PretrainDataset.scale` / `shift`"
+what = "the paper scales by one scalar eps ~ N(0, 0.5) and shifts by one scalar; the code scales by eps ~ N(1, 0.5^2) and shifts with an independent draw per input column, and also augments the calendar covariate columns concatenated into the data."
+resolution = "follows the code (per-column N(1, sigma^2) scale and N(0, sigma^2) shift over values and covariates)."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. 3.1 vs `cost.py` `CoSTModel.__init__` (`head_q`)"
+what = "the paper's projection head is a one-layer MLP; the code uses Linear-ReLU-Linear."
+resolution = "follows the code."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. 3.2 (L_amp, L_phase) vs `cost.py` `CoSTModel.forward` / `instance_contrastive_loss`"
+what = "the paper contrasts the pre-iFFT spectrum F of the seasonal layer with negatives from the other samples; the code re-applies rfft to the dropout-applied, L2-normalized time-domain seasonal output (second view from the query encoder) and uses a two-view loss with all 2B - 1 other views as negatives."
+resolution = "follows the code; the loss equals the official one exactly on shared inputs."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. 3.1 (L = floor(log2(h/2))) and Sec. 4.1 (batch 256) vs `scripts/*_CoST.sh`"
+what = "the scripts fix kernels 1 .. 128 for a 201-step lookback (the paper's rule gives 1 .. 64) and use batch size 128 (README default 8)."
+resolution = "preset kernels 1 .. 128 and pre-training batch 128 as in the scripts; both are parameters."
+
+[[issues]]
+kind = "code-bug"
+where = "`cost.py` `CoSTModel.compute_loss`"
+what = "the contrastive labels are created with `.cuda()`, so pre-training fails on CPU or another device."
+resolution = "labels are created on the device of the logits."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 4.1 vs `datautils.py` `load_forecast_csv`"
+what = "the multivariate setting treats Electricity's 321 series as independent instances but encodes ETT and Weather channels jointly; the paper does not say so."
+resolution = "`channel_independent` switch, default joint (ETT setting)."

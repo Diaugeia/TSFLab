@@ -1,0 +1,63 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "STSGCN"
+tags = ["gnn", "spatiotemporal", "graph-given", "localized-graph", "glu", "traffic", "training-objective"]
+fits = ["spatial-graph"]
+fidelity = "reference-checked"
+
+[paper]
+title = "Spatial-Temporal Synchronous Graph Convolutional Networks: A New Framework for Spatial-Temporal Network Data Forecasting"
+url = "https://ojs.aaai.org/index.php/AAAI/article/view/5438"
+venue = "AAAI 2020"
+year = 2020
+
+[code]
+url = "https://github.com/Davidham3/STSGCN"
+revision = "3f825f6421afb84fb69ef560179bf799fbf4481c"
+license = "NOASSERTION"
+reference_sources = ["https://github.com/Davidham3/STSGCN/blob/3f825f6421afb84fb69ef560179bf799fbf4481c/models/stsgcn.py", "https://github.com/Davidham3/STSGCN/blob/3f825f6421afb84fb69ef560179bf799fbf4481c/utils.py", "https://github.com/Davidham3/STSGCN/blob/3f825f6421afb84fb69ef560179bf799fbf4481c/main.py", "https://github.com/Davidham3/STSGCN/blob/3f825f6421afb84fb69ef560179bf799fbf4481c/config/PEMS08/individual_GLU_mask_emb.json", "https://github.com/Davidham3/STSGCN/blob/3f825f6421afb84fb69ef560179bf799fbf4481c/config/PEMS03/individual_GLU_mask_emb.json"]
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "local:sliding-3-step-windows+local:temporal-position-embedding"
+channel = "component:synchronous_graph_conv+local:learnable-adjacency-mask+local:spatial-position-embedding"
+head = "local:per-horizon-two-layer-fc"
+loss = "local:huber"
+
+[data_params]
+enc_in = { from = "nodes", rule = "number of graph nodes (sensors)" }
+adj_mx = { from = "graph", rule = "[enc_in, enc_in] road graph; binarized and symmetrized into the 3N localized graph at construction; required" }
+num_layers = { from = "seq_len", rule = "each STSGCL shortens the sequence by 2, so seq_len must exceed 2 * num_layers (12 with 4 layers in the paper)" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "72e34a95"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "license"
+where = "repository root at `3f825f6421afb84fb69ef560179bf799fbf4481c`"
+what = "no license file."
+resolution = "recorded as `NOASSERTION`; independent rewrite from the paper with the code read for omissions, nothing copied."
+
+[[issues]]
+kind = "code-bug"
+where = "`utils.py` `get_adjacency_matrix`"
+what = "the distance branch tests the builtin `type == 'distance'` instead of `type_`, so a distance-weighted graph is unreachable and raises `ValueError`; only the 0/1 connectivity graph works."
+resolution = "the 0/1 connectivity graph, as used for all reported results."
+
+[[issues]]
+kind = "code-bug"
+where = "`utils.py` `mask_np`"
+what = "for a NaN null value it returns `~isnan(null_val)` (a scalar) instead of a mask over the array; `main.py` passes `0`, so reported metrics are unaffected."
+resolution = "not applicable (catalog metrics)."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. Extra Components (input and output layers) and Sec. Experiment Settings"
+what = "the paper gives no activation for the input layer, no width C' for the output layer, no initialization and no learning-rate schedule; the code uses ReLU, C' = 128, MXNet `Xavier(magnitude = 0.0003)` for every weight and embedding (about 100 times smaller than standard Xavier), and Adam with a squared polynomial decay after a one-epoch warm-up."
+resolution = "ReLU, 128 and the MXNet initializer as in the code; the learning-rate schedule is a runner setting."

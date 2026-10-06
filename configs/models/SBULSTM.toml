@@ -1,0 +1,17 @@
+[model]
+name = "SBULSTM"
+
+[model.params]
+# enc_in MUST equal the dataset's channel/node count (the network-wide sensor vector).
+enc_in = 7
+# Paper's SBU-LSTM: a BDLSTM-I first layer stacked with an LSTM layer. The paper's
+# best variant on data with missing values is ["bidirectional", "bidirectional"].
+layers = ["bidirectional", "unidirectional"]
+# hidden_dim: width of every layer except the last; omitted = enc_in (paper default).
+# imputation adds the LSTM-I unit and its Eq. 22 regularizer (NaNs mark missing inputs).
+imputation = true
+# lambda of Eq. 22; the paper does not report its value.
+imputation_weight = 1.0
+# TSFLab standardizes data, so the preset uses the unbounded readout; "unit" is the
+# paper's bounded output and sigmoid imputation for data scaled into [0, 1].
+value_range = "unbounded"

@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "synchronous_graph_conv"
+role = "Captures spatial and temporal neighbors in one propagation by convolving over a graph that joins several adjacent time steps (STSGCM)."
+slot = "channel"
+fits = ["spatial-graph"]
+category = "graph"
+tags = ["graph", "spatiotemporal", "localized-graph", "synchronous", "gcn", "glu", "max-aggregation", "cropping", "window"]
+input = "SynchronousGraphModule: x [batch, windows, steps * nodes, features], adjacency [steps * nodes, steps * nodes]; localized_adjacency(adj_mx [nodes, nodes], steps)"
+output = "SynchronousGraphModule: [batch, windows, nodes, filters[-1]]; localized_adjacency: [steps * nodes, steps * nodes] float32 torch tensor"
+origin = "Spatial-Temporal Synchronous Graph Convolutional Module of STSGCN (Song et al., AAAI 2020), reused unchanged by STFGNN (Li and Zhu, AAAI 2021); repository-written"
+origin_models = ["stsgcn"]

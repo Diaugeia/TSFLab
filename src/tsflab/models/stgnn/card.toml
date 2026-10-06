@@ -1,0 +1,69 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "STGNN"
+tags = ["gnn", "rnn", "transformer", "spatiotemporal", "graph-given", "graph-learning"]
+fits = ["spatial-graph"]
+fidelity = "inferred"
+inspected_sources = ["https://github.com/LMissher/STGNN@12966c717c35e018c872259b3a6d77cd76ce5b9e (third-party, MIT; not by the authors and not used: it derives the relation from the inputs, ignores the adjacency mask, and uses per-step weights)"]
+
+[paper]
+title = "Traffic Flow Prediction via Spatial Temporal Graph Neural Network"
+url = "https://doi.org/10.1145/3366423.3380186"
+venue = "WWW 2020"
+year = 2020
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "component:graph_conv_gru+component:embed+local:post-norm-transformer-layer"
+channel = "local:masked-positional-relation-gcn"
+head = "local:flatten-mlp-horizon-head"
+loss = "loss:mae"
+
+[data_params]
+enc_in = { from = "nodes", rule = "number of graph nodes (sensors)" }
+adj_mx = { from = "graph", rule = "[enc_in, enc_in] road adjacency; only its sparsity pattern (A + I > 0) masks the learned relation; required" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "72e34a95"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "unreleased"
+where = "paper"
+what = "no official code was released; the most-starred public implementation (LMissher/STGNN) is third-party and departs from Eq. 3-7 (relation from the inputs, no adjacency mask, per-step weights)."
+resolution = "implemented from the paper equations only."
+
+[[issues]]
+kind = "underspecified"
+where = "Eq. 3-4"
+what = "the activation `phi` in Eq. 3 is never defined, and the text names transformation matrices `W1`, `W2` that do not appear in Eq. 4; the positional vector size is not given."
+resolution = "`phi` = identity and `Score(p_i, p_j) = p_i^T p_j` as written in Eq. 4; `p_i` has `hidden_dim` entries, Xavier-initialized."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 3.1-3.2 (Eq. 6-8)"
+what = "whether the input and state filters share the positional relation and the weight `W` is not stated."
+resolution = "one positional relation shared by both filters; separate `W` for input and state."
+
+[[issues]]
+kind = "paper-error"
+where = "Eq. 9"
+what = "the candidate state reads `U_h(r_t * U_h H~_{t-1})` (`U_h` applied twice) and the update mixes `H~_{t-1}` with an undefined `H~_t`."
+resolution = "standard GRU of the cited Cho et al.: candidate `tanh(W_h X~ + U_h(r * H~_{t-1}) + b_h)`, update between `H~_{t-1}` and the candidate (`graph_conv_gru`)."
+
+[[issues]]
+kind = "paper-error"
+where = "Sec. 3.2 (Transformer layer) and Eq. 15"
+what = "the layer is described with batch normalization and, a few lines later, with layer normalization; Eq. 15 indexes sine/cosine by the time step instead of the feature index."
+resolution = "post-norm layer normalization as in the cited Transformer, and the standard sinusoidal table."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 3.3"
+what = "the prediction layer is only \"a multi-layer feed-forward network\" on the Transformer outputs; its depth, width and how the T x d sequence maps to T' steps are not given; the feed-forward width of the Transformer is not given."
+resolution = "flatten each node's `seq_len x hidden_dim` outputs, then Linear-ReLU-Linear to `pred_len`; Transformer feed-forward width `4 * hidden_dim`."

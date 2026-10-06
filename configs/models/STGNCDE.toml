@@ -1,0 +1,14 @@
+[model]
+name = "STGNCDE"
+
+# Official run.sh / Run_cde.py defaults (PEMSD4, 12 -> 12, rk4, adjoint); enc_in follows the 8-node catalog fixture (set it to the dataset node count).
+[model.params]
+enc_in = 8
+input_dim = 1
+hidden_dim = 64
+hidden_hidden_dim = 64
+num_layers = 2
+embed_dim = 10
+cheb_k = 2
+solver = "rk4"
+adjoint = true

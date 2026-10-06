@@ -1,0 +1,104 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "SBULSTM"
+tags = ["rnn", "bidirectional", "imputation", "missing-values", "channel-mixing", "traffic"]
+fits = ["missing-values", "high-cross-correlation"]
+fidelity = "paper-only"
+
+[paper]
+title = "Stacked Bidirectional and Unidirectional LSTM Recurrent Neural Network for Forecasting Network-wide Traffic State with Missing Values"
+url = "https://arxiv.org/abs/2005.11627"
+venue = "Transportation Research Part C 2020"
+year = 2020
+
+[code]
+url = "https://github.com/zhiyongc/Stacked_Bidirectional_Unidirectional_LSTM"
+revision = "b5f291b09a9f832b0901f86fc566502574d96826"
+license = "NOASSERTION"
+reference_sources = ["https://github.com/zhiyongc/Stacked_Bidirectional_Unidirectional_LSTM/blob/b5f291b09a9f832b0901f86fc566502574d96826/PyTorch/Models.py", "https://github.com/zhiyongc/Stacked_Bidirectional_Unidirectional_LSTM/blob/b5f291b09a9f832b0901f86fc566502574d96826/PyTorch/TrainModel.py", "https://github.com/zhiyongc/Stacked_Bidirectional_Unidirectional_LSTM/blob/b5f291b09a9f832b0901f86fc566502574d96826/PyTorch/Main.py", "https://github.com/zhiyongc/Graph-Markov-Network/blob/8e29e58c8fe7879e53605485615d09356b990a85/Python%20Scripts/models.py", "https://github.com/zhiyongc/Graph-Markov-Network/blob/8e29e58c8fe7879e53605485615d09356b990a85/Python%20Scripts/utils.py"]
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "local:bdlstm-i-imputation-layer+local:stacked-lstm-bdlstm-layers"
+channel = "local:network-wide-sensor-vector-state"
+head = "local:last-hidden-state-readout-recursive-rollout"
+loss = "loss:mse+local:observed-imputation-l1-regularizer"
+
+[data_params]
+enc_in = { from = "channels", rule = "must equal the channel (sensor/node) count; the last layer is enc_in wide" }
+hidden_dim = { from = "channels", rule = "omit for the paper default (= enc_in); the paper's Table 3 scales it from enc_in/4 to 4*enc_in" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "72e34a95"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "license"
+where = "repository root"
+what = "no license file at the pinned revision (the Graph-Markov-Network repository read for the LSTM-I baseline is MIT)."
+resolution = "independent rewrite from the paper; both repositories used as reference only; license recorded as NOASSERTION."
+
+[[issues]]
+kind = "unreleased"
+where = "README.md"
+what = "the repository implements the 2018 arXiv 1801.02143 version (plain LSTM/BDLSTM stacks); the LSTM-I imputation unit (Eq. 10), mask gates (Eqs. 13-16) and imputation regularizer (Eqs. 19-22) of the 2020 paper are not released ('will soon be released')."
+resolution = "LSTM-I, BDLSTM-I and the regularizer are implemented from the paper alone, hence fidelity paper-only."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Graph-Markov-Network 8e29e58, Python Scripts/models.py (LSTM, imputation=True)"
+what = "the authors' later 'LSTM-I' baseline fills a missing input with the previous hidden state h_{t-1}; it has no imputation unit (W_I, U_I, b_I, sigmoid), no mask inputs to the gates and no imputation loss."
+resolution = "follows the paper's Eqs. 10-22."
+
+[[issues]]
+kind = "code-bug"
+where = "PyTorch/Models.py, LSTM.forward"
+what = "each new hidden state is prepended (torch.cat((h_t, outputs), 1)), so the unidirectional layer emits its sequence time-reversed; TrainModel.py then scores it against chronological next-step targets, and in nn.Sequential(BiLSTM, LSTM) the reversed order is what is trained."
+resolution = "outputs are kept in time order; only the last-step output forms the forecast."
+
+[[issues]]
+kind = "leakage"
+where = "PyTorch/TrainModel.py (full_labels = cat(inputs[:, 1:], labels))"
+what = "the official loss is next-step MSE at every window position, but a bidirectional layer's backward state at position t has already read x_{t+1}, the target of that position; the paper's Eq. 9 scores only x_{T+1}."
+resolution = "the loss scores only the forecast after the window, as in Eq. 9; no intermediate positions are trained."
+
+[[issues]]
+kind = "leakage"
+where = "PyTorch/Main.py, PrepareDataset; paper Section 4.2.3"
+what = "overlapping windows are shuffled before the train/validation/test split (paper 6:2:2, code 0.7/0.2/0.1), so test windows share time steps with training windows; the max-scaling constant is taken over the whole series including the test period."
+resolution = "TSFLab uses chronological splits and train-split scaling; reported paper numbers are not comparable."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "PyTorch/TrainModel.py, Main.py"
+what = "the code trains with RMSprop at learning rate 1e-5 and batch 40; the paper reports Adam at 1e-3 decayed to 1e-5, batch 64, and early stopping with threshold 1e-5 over 5 epochs."
+resolution = "optimizer and schedule are left to the experiment config; the model fixes none of them."
+
+[[issues]]
+kind = "paper-error"
+where = "Section 3.3, text after Eq. 18"
+what = "states that with no missing values all mask entries are zero and LSTM-I equals LSTM, which contradicts Eq. 1 (m = 1 for observed); with m = 1 the V m terms act as an extra bias."
+resolution = "Eq. 1 is followed (observed = 1); NaN inputs are missing."
+
+[[issues]]
+kind = "paper-error"
+where = "Tables 1 and 3"
+what = "Table 1, 2-layer BDLSTM on LOOP-SEA, lists MAPE 3.631 and RMSE 5.723 (columns apparently swapped); Table 3 row D lists MAPE 3.507, a copy of its RMSE, while Table 1 gives 5.475 for the same model."
+resolution = "noted for result comparison only."
+
+[[issues]]
+kind = "underspecified"
+where = "Eqs. 9, 10, 19-22; Section 4.2.3"
+what = "the penalty lambda is not reported, Eq. 19 sums absolute errors without normalization, and the bounded output (x^ = h_T in (-1, 1)) and sigmoid imputation assume data scaled into [0, 1] (the code divides by the maximum speed); the paper forecasts one step only."
+resolution = "imputation_weight (default 1.0) scales the mean absolute error over observed entries; value_range='unit' keeps the paper's bounded form, 'unbounded' adds a linear readout and linear imputation for standardized data; longer horizons roll the one-step forecast forward recursively."
+
+[[issues]]
+kind = "code-bug"
+where = "Graph-Markov-Network 8e29e58, Python Scripts/utils.py, PrepareDataset"
+what = "the mask is rebuilt from values equal to 0, so a genuine zero reading is treated as missing and missing entries must be encoded as 0."
+resolution = "missing entries are NaNs in x_enc; zeros stay observed values."

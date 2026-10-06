@@ -1,0 +1,79 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "PDFormer"
+tags = ["transformer", "attention-variant", "spatiotemporal", "graph-given", "dtw-graph", "covariates", "training-objective"]
+fits = ["spatial-graph", "calendar-effects"]
+fidelity = "reference-checked"
+
+[paper]
+title = "PDFormer: Propagation Delay-aware Dynamic Long-range Transformer for Traffic Flow Prediction"
+url = "https://arxiv.org/abs/2301.07945"
+venue = "AAAI 2023"
+year = 2023
+
+[code]
+url = "https://github.com/BUAABIGSCity/PDFormer"
+revision = "f8c8f6ad007a04fad3baee958b89504711852ce9"
+license = "MIT"
+reference_sources = []
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "component:embed+component:marks+local:temporal-attention-heads"
+channel = "component:adj_norm+local:hop-masked-geo-attention-with-delay-aware-keys+local:dtw-masked-semantic-attention"
+head = "local:skip-sum-time-and-feature-1x1-convs"
+loss = "local:huber+local:horizon-curriculum"
+
+[data_params]
+enc_in = { from = "nodes", rule = "number of graph nodes (sensors)" }
+adj_mx = { from = "graph", rule = "[enc_in, enc_in] road adjacency; Laplacian eigenvectors (symmetrized) and hop-count geographic mask; required" }
+far_mask_delta = { from = "graph", rule = "nodes at >= this many hops are masked in geographic heads (official 7 for PeMS04/07/08)" }
+steps_per_day = { from = "frequency", rule = "samples per day for the DTW daily profiles and the pattern-candidate span (288 for 5-minute data)" }
+cand_key_days = { from = "train-split", rule = "days at the start of the training split whose S-step windows are k-Shape clustered into the pattern set (official 14 PeMS04/08, 21 PeMS07)" }
+dtw_delta = { from = "train-split", rule = "semantic neighbours per node: the dtw_delta smallest DTW distances between training-split daily mean profiles (self included)" }
+curriculum_step = { from = "train-split", rule = "training batches per added horizon step; official 1274/4232/2776 (PeMS04/07/08) at batch 16/8/16; 0 disables" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "72e34a95"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "leakage"
+where = "libcity/data/dataset/pdformer_dataset.py `_get_dtw`"
+what = "the daily mean profiles behind the DTW semantic neighbours average every day of the full series, including the validation and test periods, so the semantic mask is built with test data."
+resolution = "DTW profiles are computed from the training split only (`training_setup`)."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Eq. 2 and the Spatial-Temporal Encoder section vs `PeMS04.json` / `PeMS07.json` / `PeMS08.json` (`type_ln = pre`)"
+what = "the paper says layer normalization and residuals follow the original Transformer (post-norm); the released PeMS configurations use pre-norm (the model default config says post)."
+resolution = "`pre_norm = true` as released for PeMS; `pre_norm = false` gives the paper's post-norm."
+
+[[issues]]
+kind = "underspecified"
+where = "paper (loss, training schedule) vs `PDFormer.py` `calculate_loss_without_predict`, `pdformer_executor.py`"
+what = "the paper states no loss; the code trains a Huber loss (delta 2 for PeMS) on de-normalized values, adds horizon curriculum learning (one more step every `step_size` batches), stochastic depth (`drop_path` 0.3), random sign flips of the Laplacian eigenvectors, AdamW with weight decay 0.05, warm-up and cosine decay."
+resolution = "Huber, curriculum (`curriculum_step`), stochastic depth and sign flips are implemented in the model; optimizer and schedule are run settings; the loss uses the model's input scale."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Eq. 7-10 vs `STSelfAttention.forward`"
+what = "the code embeds both the recent window and the pattern centroids with one shared linear layer before the separate query/key/value maps (Eq. 7-8 use distinct `W_u` and `W_m`), and scales the pattern scores by `head_dim^-1/2`."
+resolution = "follow the code."
+
+[[issues]]
+kind = "underspecified"
+where = "Delay-aware Feature Transformation section; `pdformer_dataset.py` `get_data`"
+what = "the pattern set clusters the S-step windows of the first `cand_key_days` days of the training split with tslearn 0.5.2 `KShape` (16 clusters, 5 iterations), which does not z-normalize its inputs although the paper calls k-Shape scale- and shift-invariant; the window source, day count and cluster count are not in the paper."
+resolution = "local k-Shape matching tslearn 0.5.2 (random-series initialization, inputs not z-normalized per series, z-normalized centroids, inertia stop, restart on an empty cluster), fitted on training windows standardized with the training-split mean and std as in the official pipeline."
+
+[[issues]]
+kind = "underspecified"
+where = "Spatial Self-Attention section vs `pdformer_dataset.py` `_get_dtw`"
+what = "\"historical traffic flow\" for DTW is the mean daily profile, and the distance is `fastdtw` (radius 6), an approximation of DTW."
+resolution = "exact DTW (absolute-difference cost) between training-split daily mean profiles."

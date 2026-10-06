@@ -316,6 +316,20 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("adjacency", "chebyshev", "degenerate", "graph", "laplacian", "spectral"),
         ),
         ComponentSpec(
+            "node2vec_embedding",
+            "tsflab.models._components.node2vec_embedding",
+            "Seeded node2vec (biased second-order walks + skip-gram negative sampling) vertex embedding of a fixed weighted graph.",
+            ("node2vec_embedding",),
+            ("node2vec", "graph", "spatial-embedding", "random-walk", "skip-gram", "positional-encoding"),
+        ),
+        ComponentSpec(
+            "synchronous_graph_conv",
+            "tsflab.models._components.synchronous_graph_conv",
+            "STSGCN localized window graph and synchronous graph-convolution module (stacked GLU/ReLU GCN, max aggregation, block cropping).",
+            ("SynchronousGraphModule", "localized_adjacency", "mxnet_xavier_uniform_"),
+            ("graph", "spatiotemporal", "localized-graph", "synchronous", "gcn", "glu", "window"),
+        ),
+        ComponentSpec(
             "last_value_center",
             "tsflab.models._components.last_value_center",
             "Detached last-observed-timestep centering and restoration for BLC histories.",
@@ -442,6 +456,13 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("b-spline", "basis", "cox-de-boor", "kan", "kolmogorov-arnold", "knots", "spline"),
         ),
         ComponentSpec(
+            "natural_cubic_spline",
+            "tsflab.models._components.natural_cubic_spline",
+            "Natural cubic spline control path of a sampled [..., L, C] window: coefficients, X(t), and dX/dt for neural controlled differential equations.",
+            ("natural_cubic_spline_coeffs", "NaturalCubicSpline", "SplineCoeffs"),
+            ("control-path", "cubic-spline", "interpolation", "natural-spline", "ncde", "neural-cde", "spline"),
+        ),
+        ComponentSpec(
             "topk_expert_attention",
             "tsflab.models._components.topk_expert_attention",
             "Differentiable top-k local expert self-attention with an optional shared global expert.",
@@ -456,6 +477,27 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("attention", "differential", "noise-cancelling", "rmsnorm"),
         ),
         ComponentSpec(
+            "logsparse_conv_attention",
+            "tsflab.models._components.logsparse_conv_attention",
+            "Causal multi-head self-attention with causal-convolution queries/keys and a LogSparse (exponential-distance, optional local and restart) mask, plus an exact cached one-step path.",
+            ("logsparse_mask", "ConvSelfAttention"),
+            ("attention", "causal", "convolution", "logsparse", "sparse", "local", "restart", "decoder-only", "mask"),
+        ),
+        ComponentSpec(
+            "ddpm_epsilon",
+            "tsflab.models._components.ddpm_epsilon",
+            "Fixed-schedule Gaussian DDPM: closed-form forward noising, epsilon-prediction MSE loss with uniform steps, and ancestral sampling with the posterior variance beta_tilde.",
+            ("GaussianDDPM", "beta_schedule"),
+            ("diffusion", "ddpm", "denoising", "epsilon", "noise", "schedule", "sampling", "generative", "probabilistic"),
+        ),
+        ComponentSpec(
+            "dilated_conv_encoder",
+            "tsflab.models._components.dilated_conv_encoder",
+            "TS2Vec-style length-preserving dilated convolution encoder: pre-GELU residual blocks of two same-padded dilated Conv1d layers with dilation 2^i.",
+            ("SamePadConv", "DilatedConvBlock", "DilatedConvEncoder"),
+            ("convolution", "dilated", "encoder", "residual", "gelu", "ts2vec", "representation", "same-padding", "backbone"),
+        ),
+        ComponentSpec(
             "gpt2_backbone",
             "tsflab.models._components.gpt2_backbone",
             "Decoder-only GPT-2 trunk over input embeddings (learned positions, causal pre-norm blocks, final LayerNorm) with an offline loader for released safetensors weights.",
@@ -468,6 +510,20 @@ COMPONENT_CATALOG = ComponentCatalog(
             "Segment-to-token or token-to-segment map: one Linear, or n >= 2 Linear layers with activation and dropout between them.",
             ("SegmentMLP", "ACTIVATIONS"),
             ("segment", "token", "mlp", "projection", "embedding", "llm", "linear"),
+        ),
+        ComponentSpec(
+            "gated_residual_network",
+            "tsflab.models._components.gated_residual_network",
+            "Gated residual network LayerNorm(skip(a) + GLU(W1 ELU(W2 a + W3 c))), its GLU gate and gated add-norm, and a softmax variable-selection network over per-variable GRNs (TFT).",
+            ("GatedLinearUnit", "GateAddNorm", "GatedResidualNetwork", "VariableSelectionNetwork"),
+            ("grn", "glu", "gated", "residual", "variable-selection", "context", "static-covariates", "tft", "gate"),
+        ),
+        ComponentSpec(
+            "interpretable_attention",
+            "tsflab.models._components.interpretable_attention",
+            "Multi-head attention whose heads share one value projection and are averaged before the output map (TFT interpretable multi-head attention), plus a causal mask helper.",
+            ("InterpretableMultiHeadAttention", "causal_mask"),
+            ("attention", "interpretable", "shared-value", "multi-head", "causal", "tft", "head-average"),
         ),
     )
 )

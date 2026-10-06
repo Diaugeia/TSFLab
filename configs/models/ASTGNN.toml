@@ -1,0 +1,12 @@
+[model]
+name = "ASTGNN"
+
+[model.params]
+enc_in = 8
+d_model = 64
+n_heads = 8
+num_layers = 4
+kernel_size = 3
+dropout = 0.0
+smooth_layer_num = 0
+teacher_forcing = true

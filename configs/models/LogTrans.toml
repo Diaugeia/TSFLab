@@ -1,0 +1,18 @@
+[model]
+name = "LogTrans"
+
+[model.params]
+enc_in = 7
+d_model = 64
+n_heads = 8
+e_layers = 3
+d_ff = 256
+dropout = 0.1
+kernel_size = 6
+sparse = true
+local_size = 0
+restart_len = 0
+embed_dim = 20
+use_marks = true
+scaling = true
+history_likelihood = true

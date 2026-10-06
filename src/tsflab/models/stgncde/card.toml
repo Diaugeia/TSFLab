@@ -1,0 +1,98 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "STGNCDE"
+tags = ["neural-ode", "gnn", "graph-learning", "spatiotemporal", "neural-cde", "continuous-time", "traffic"]
+fits = ["spatial-graph"]
+fidelity = "reference-checked"
+
+[paper]
+title = "Graph Neural Controlled Differential Equations for Traffic Forecasting"
+url = "https://arxiv.org/abs/2112.03558"
+venue = "AAAI 2022"
+year = 2022
+
+[code]
+url = "https://github.com/jeongwhanchoi/STG-NCDE"
+revision = "49480bdff8448416892cd7ab9652984eec88fa9f"
+license = "MIT"
+reference_sources = ["https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/model/GCDE.py", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/model/vector_fields.py", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/model/Make_model.py", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/model/Run_cde.py", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/model/PEMSD4_GCDE.conf", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/run.sh", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/controldiffeq/cdeint_module.py", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/controldiffeq/interpolate.py", "https://github.com/jeongwhanchoi/STG-NCDE/blob/49480bdff8448416892cd7ab9652984eec88fa9f/lib/dataloader.py"]
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "component:natural_cubic_spline+local:coupled-temporal-spatial-ncde"
+channel = "component:node_adaptive_graph_conv"
+head = "local:linear-horizon-head"
+loss = "loss:mae"
+
+[data_params]
+enc_in = { from = "nodes", rule = "number of graph nodes (sensors); sizes the node embeddings of g" }
+input_dim = { from = "covariates", rule = "data channels of the control path: 1 = value only (official); 1 + F appends F node covariates or the time-of-day/day-of-week marks" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "72e34a95"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Eq. (10) vs `model/vector_fields.py` `VectorField_g.agc`"
+what = "the paper's spatial step is `(I + softmax(relu(E E^T))) B0 W_spatial` with one shared weight; the code uses AGCRN's node-adaptive filter, `sum_k T_k(A) B0 W_{n,k} + b_n` with per-node weights and bias generated from E, a separate weight per Chebyshev term, and `cheb_k` terms (2 in the released runs)."
+resolution = "follow the code (cataloged `node_adaptive_graph_conv`)."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. 'Initial value generation' vs `model/GCDE.py` `NeuralGCDE.forward`"
+what = "the paper sets `Z(0) = FC(H(0))`; the code computes `z0 = initial_z(X(t0))` from the first path value, in parallel with `h0 = initial_h(X(t0))`."
+resolution = "follow the code."
+
+[[issues]]
+kind = "paper-error"
+where = "Eqs. (7)-(9)"
+what = "f and g are declared as maps to `|V| x dim(h)` and `|V| x dim(z)`, but Eq. (7) needs per node a `dim(h) x D` matrix from f and a `dim(z) x dim(h)` matrix from g; the code's output layers emit `hidden x input_dim` and `hidden x hidden` (marked `#FIXME`), which forces `dim(h) = dim(z)`."
+resolution = "the code shapes; one `hidden_dim` for h and z."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 'Overall design' vs `lib/dataloader.py` `get_dataloader_cde`"
+what = "the paper interpolates the input features only; the code prepends the time index `linspace(0, 11, 12)` as an extra path channel (`input_dim = 2` for one flow feature) and hard-codes 12 steps for traffic data."
+resolution = "prepend the time index `0 .. seq_len-1`; window length is a task setting."
+
+[[issues]]
+kind = "underspecified"
+where = "`controldiffeq/cdeint_module.py` `cdeint_gde_dev` (`adjoint=True`) with `--solver rk4` in `model/Run_cde.py`"
+what = "the paper does not say how gradients are computed; the code backpropagates with the adjoint method over the fixed RK4 grid, whose gradients are not those of the computed forward solve (about 5.6% relative L2 error on a float64 check in TSFLab)."
+resolution = "`adjoint = true` by default as in the code; `adjoint = false` gives exact gradients of the discretized solve."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Appendix 'Best Hyperparameters' (PeMSD4: K = 2, C = 8, hidden 64) vs `model/PEMSD4_GCDE.conf` and `run.sh`"
+what = "the config sets embed 10, hidden 128, hidden-hidden 128, 3 layers and `run.sh` overrides embed 10, hidden 64, hidden-hidden 64, 2 layers; the appendix 'number of K' is ambiguous between the FC depth of f (Eq. 8) and the Chebyshev order `cheb_order` of the code."
+resolution = "the preset follows `run.sh` (embed 10, hidden 64, 2 layers, `cheb_k = 2`)."
+
+[[issues]]
+kind = "leakage"
+where = "`lib/dataloader.py` `normalize_dataset` called before `split_data_by_ratio`"
+what = "the z-score mean and standard deviation are computed over the whole series, validation and test periods included."
+resolution = "the catalog runner's training-split scaling."
+
+[[issues]]
+kind = "underspecified"
+where = "`model/Run_cde.py` (initialization loop)"
+what = "the paper gives no initialization; the script re-initializes every matrix with Xavier-uniform and every vector, including all biases, with U(0, 1)."
+resolution = "follow the code."
+
+[[issues]]
+kind = "code-bug"
+where = "`model/GCDE.py` `NeuralGCDE.__init__` and `model/vector_fields.py` `VectorField_g`"
+what = "`NeuralGCDE.node_embeddings` is created, re-initialized and weight-decayed but never used (g owns the embeddings that build the graph); `initial`, `device`, `default_graph` and g's `num_hidden_layers` are ignored."
+resolution = "unused parameters omitted."
+
+[[issues]]
+kind = "code-bug"
+where = "`lib/dataloader.py` `get_dataloader_cde` (`val_dataloader` with `drop_last=True`)"
+what = "the last partial validation batch is dropped, so early stopping and model selection skip up to 63 validation windows."
+resolution = "the catalog runner's full validation pass."
