@@ -1,0 +1,80 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "ASTGNN"
+tags = ["transformer", "gnn", "attention-variant", "encoder-decoder", "autoregressive", "spatiotemporal", "graph-given"]
+fits = ["spatial-graph"]
+fidelity = "reference-checked"
+
+[paper]
+title = "Learning Dynamics and Heterogeneity of Spatial-Temporal Graph Data for Traffic Forecasting"
+url = "https://doi.org/10.1109/TKDE.2021.3056502"
+venue = "IEEE TKDE"
+year = 2022
+
+[code]
+url = "https://github.com/guoshnBJTU/ASTGNN"
+revision = "9c2e19b98c4cedf1f35214d8789685b6381b3aad"
+license = "NOASSERTION"
+reference_sources = []
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "component:embed+local:trend-aware-conv-self-attention+local:autoregressive-transformer-decoder"
+channel = "component:adj_norm+local:attention-reweighted-dynamic-gcn+local:node-heterogeneity-embedding"
+head = "local:linear-generator"
+loss = "loss:mae"
+
+[data_params]
+enc_in = { from = "nodes", rule = "number of graph nodes (sensors)" }
+adj_mx = { from = "graph", rule = "[enc_in, enc_in] road-network adjacency (binary in the paper); self-loops set to 1 then row-normalized D^-1(A+I); required, construction fails without it" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "b382cc30"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "license"
+where = "repository root"
+what = "no license file at the pinned revision."
+resolution = "independent rewrite; the official code was read only to resolve omissions (tensor order, residual placement, decoding, initialization); license recorded as `NOASSERTION`."
+
+[[issues]]
+kind = "code-bug"
+where = "model/ASTGNN.py TemporalPositionalEncoding.forward"
+what = "returns `dropout(x.detach())`, where `x` is the projected input plus the position table, so the encoder input projection (`src_dense`) and the decoder input projection (`trg_dense`) never receive a gradient and stay at their Xavier initialization."
+resolution = "the position table is added without detaching; both projections train."
+
+[[issues]]
+kind = "code-bug"
+where = "model/ASTGNN.py TemporalPositionalEncoding.__init__"
+what = "the sinusoid uses `pos / 10000^(2i/d)` with `i` already the even column index (and `2(i+1)/d` for cosine), so frequencies decay twice as fast as the Transformer encoding and sine/cosine pairs use different frequencies."
+resolution = "standard Transformer sinusoid table, `sin/cos(pos / 10000^(2k/d))` for column pair k."
+
+[[issues]]
+kind = "code-bug"
+where = "model/ASTGNN.py MultiHeadAttentionAwareTemporalContex_qc_k1d.forward (single-segment branch)"
+what = "the key is convolved from `query` instead of `key`; the branch is unreachable in the released configurations because encoder-decoder attention always takes the multi-segment path."
+resolution = "keys are always convolved from the encoder memory."
+
+[[issues]]
+kind = "code-bug"
+where = "model/ASTGNN.py SpatialPositionalEncoding.__init__"
+what = "`nn.ModuleList([gcn for _ in range(smooth_layer_num)])` repeats one GCN instance, so all embedding-smoothing layers share weights (inactive in the released configs, `smooth_layer_num = 0`)."
+resolution = "`smooth_layer_num` independent graph-convolution layers; default 0 as released."
+
+[[issues]]
+kind = "underspecified"
+where = "model/ASTGNN.py spatialAttentionScaledGCN.forward"
+what = "the spatial attention is softmax(Z Z^T / sqrt(d)) and is divided by sqrt(d) a second time after the softmax before it reweights the adjacency; the extra constant is not explained."
+resolution = "kept as in the official code (it only rescales the propagated features before ReLU and Theta)."
+
+[[issues]]
+kind = "underspecified"
+where = "train_ASTGNN.py"
+what = "training is two-stage: teacher-forced decoding for `epochs`, then autoregressive fine-tuning at 0.1x learning rate for `fine_tune_epochs`; validation and test always decode autoregressively."
+resolution = "`teacher_forcing = true` (default) trains the first stage; `teacher_forcing = false` trains autoregressively, so the fine-tune stage is a second run resumed from the first; evaluation is always autoregressive."

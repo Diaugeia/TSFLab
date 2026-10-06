@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 311 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -24,6 +24,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `AROpt` | iTransformer patch forecaster rolled out autoregressively; discounted patch losses penalize non-monotone error. | reference-checked | passed | [card](../../src/tsflab/models/aropt/README.md) |
 | `ASGMamba` | Patch Mamba at scales 8/16/32 whose tokens are gated by patch rFFT low/mid/high band energies; softmax scale fusion. | reference-checked | passed | [card](../../src/tsflab/models/asgmamba/README.md) |
 | `ASTGCN` | Spatial and temporal attention modulating Chebyshev graph convolution plus gated temporal conv; recent branch only. | reference-checked | passed | [card](../../src/tsflab/models/astgcn/README.md) |
+| `ASTGNN` | Graph Transformer encoder-decoder: trend-aware convolutional temporal attention, attention-reweighted dynamic graph convolution, node embeddings, autoregressive decoding. | reference-checked | passed | [card](../../src/tsflab/models/astgnn/README.md) |
 | `Aurora` | Patch Transformer guided by distilled text/image tokens, decoding via prototype retrieval and flow integration. | reference-checked | passed | [card](../../src/tsflab/models/aurora/README.md) |
 | `Autoformer` | Progressive series decomposition in every layer plus FFT auto-correlation attention aggregating top-k delays. | reference-checked | passed | [card](../../src/tsflab/models/autoformer/README.md) |
 | `AutoRegressiveTS` | One shared linear map from the whole lag window to all horizons, applied to every channel independently. | paper-only | passed | [card](../../src/tsflab/models/autoregressive_ts/README.md) |
