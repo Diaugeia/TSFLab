@@ -1,0 +1,79 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "TFT"
+tags = ["transformer", "lstm", "probabilistic", "quantile", "covariates", "interpretable", "multi-horizon", "variable-selection", "gating"]
+fits = ["probabilistic-output", "calendar-effects"]
+fidelity = "reference-checked"
+
+[paper]
+title = "Temporal Fusion Transformers for Interpretable Multi-horizon Time Series Forecasting"
+url = "https://arxiv.org/abs/1912.09363"
+venue = "International Journal of Forecasting"
+year = 2021
+
+[code]
+url = "https://github.com/google-research/google-research/tree/e49bbfe381c9c0e564b937f1c4e163a2273c65cc/tft"
+revision = "e49bbfe381c9c0e564b937f1c4e163a2273c65cc"
+license = "Apache-2.0"
+reference_sources = ["https://github.com/google-research/google-research/blob/e49bbfe381c9c0e564b937f1c4e163a2273c65cc/tft/libs/tft_model.py", "https://github.com/google-research/google-research/blob/e49bbfe381c9c0e564b937f1c4e163a2273c65cc/tft/libs/utils.py", "https://github.com/google-research/google-research/blob/e49bbfe381c9c0e564b937f1c4e163a2273c65cc/tft/data_formatters/base.py", "https://github.com/google-research/google-research/blob/e49bbfe381c9c0e564b937f1c4e163a2273c65cc/tft/data_formatters/electricity.py", "https://github.com/google-research/google-research/blob/e49bbfe381c9c0e564b937f1c4e163a2273c65cc/tft/data_formatters/favorita.py"]
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "local:lstm-seq2seq+component:interpretable_attention+component:gated_residual_network"
+channel = "local:channel-independent-entity-embedding"
+head = "local:linear-per-quantile"
+loss = "loss:quantile"
+
+[data_params]
+enc_in = { from = "channels", rule = "equal to the dataset's channel count; in MS mode all channels are observed inputs and the last is the target" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "fd5e684e"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "code-bug"
+where = "tft/libs/tft_model.py (TemporalFusionTransformer.__init__)"
+what = "`stack_size` is read into `self.num_stacks` and searched over in the hyperparameter grid, but the graph never uses it: one self-attention layer is always built."
+resolution = "TSFLab builds the single attention layer of the paper's architecture and exposes no stack parameter."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 3 and 4.3; tft/libs/tft_model.py (static_combine_and_mask)"
+what = "The paper does not say what the four static contexts are when an entity has no static covariates; the official graph dereferences the static tensor and cannot be built without at least one static input."
+resolution = "The entity identifier is the static input, as in the official Electricity and Traffic formatters (`categorical_id`): channel index in M/S mode, one learned vector in MS mode."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 4.5.3 (decoder masking)"
+what = "The paper says each position attends only to features preceding it; the official mask (`cumsum` of an identity) also lets each position attend to itself."
+resolution = "Follows the official code: causal mask with the diagonal (a strictly-preceding mask leaves the first position with no keys)."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. 4.1 and 4.4; tft/libs/tft_model.py (InterpretableMultiHeadAttention)"
+what = "The paper places dropout only on eta1 inside GRNs; the official attention also drops out every head output and the projected output, and every gated skip (GLU) applies dropout to its input."
+resolution = "Follows the official code."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Eq. 22; tft/libs/tft_model.py (_build_base_graph, final apply_gating_layer)"
+what = "The final gated skip connection over the transformer block is called without `dropout_rate`, so it is the only gate without dropout."
+resolution = "Follows the official code (`output_gate` has no dropout)."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. 4 and Appendix A"
+what = "The paper gives no initialization; the official Keras layers use Glorot-uniform kernels, zero biases, orthogonal recurrent kernels, forget-gate bias 1 and U(-0.05, 0.05) embeddings."
+resolution = "TSFLab reproduces these Keras defaults in `_reset_parameters`."
+
+[[issues]]
+kind = "paper-error"
+where = "Eq. 15-16 and Eq. 18"
+what = "Eq. 15-16 average heads with 1/H although the head count is m_H, and the text after Eq. 18 names the enrichment weights GRN_phi while the equation uses GRN_theta."
+resolution = "Read as 1/m_H and one shared enrichment GRN, matching the official code."

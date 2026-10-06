@@ -267,4 +267,37 @@ issues = [
   { kind = "unreleased", what = "No official code; the TensorFlow implementation and the Didi Beijing/Shanghai order, POI, and road data were not released. Only unofficial replications exist (underdoc-wang/ST-MGCN, yizhan42/ST-MGCN-pytorch, Chao-Jiang/ST-MGCN-keras)." },
   { kind = "underspecified", what = "The POI similarity `sim(.,.)` (Eq. 4), the RNN cell of CGRNN (Eq. 11), the Laplacian normalization and scaling for the Chebyshev filters, how the graph branches and the final fully connected layers are arranged ('3 hidden layers with 64 units'), and the output layer are not stated." },
   { kind = "paper-error", what = "Graph names are inconsistent: the functional-similarity graph is `G_F = (V, A_F)` but Eq. (4) defines `A_S`; the transportation graph is `G_T = (V, A_T)` but Eq. (5) defines `A_C`. The task `f: R^{|V| x T} -> R^{|V|}` also does not match the five non-contiguous closeness/period/trend inputs of the experiments." },
+name = "ESRNN"
+title = "A hybrid method of exponential smoothing and recurrent neural networks for time series forecasting"
+paper = "https://doi.org/10.1016/j.ijforecast.2019.03.017"
+code = "https://github.com/M4Competition/M4-methods/tree/6c1067e5a57161249b17289a565178dc7a3fb3ca/118%20-%20slaweks17"
+revision = "6c1067e5a57161249b17289a565178dc7a3fb3ca"
+reason = "unfaithful"
+summary = "The defining multiplicative Holt-Winters normalization (level and seasonality with per-series smoothing coefficients and initial seasonality, then log) needs strictly positive raw-scale series and an exponential-smoothing state run from each series' start; TSFLab windows are z-scored, carry no series start, and pooled panels carry no series identity. Reviewed against the author's M4 method description and the C++ code in `ES_RNN.zip` (the IJF text was not open access)."
+issues = [
+  { kind = "underspecified", what = "Eq. 1a-1c divide by level and seasonality and take logs, so the method is undefined for zero or negative values; the description and code assume positive M4 series and never state a remedy." },
+  { kind = "paper-code-mismatch", what = "The point models train with pinball tau 0.45-0.49 (`TRAINING_PERCENTILE`) instead of the median, chop series to the last 20-60 seasons (`MAX_SERIES_LENGTH`), append a 6-way one-hot M4 domain, and add a level-wiggliness penalty of 50-100; results also rest on three ensembling levels (runs, specialists, last-epoch averaging)." },
+  { kind = "leakage", what = "With `USE_AUTO_LEARNING_RATE` (off by default) the learning-rate schedule in `ES_RNN.cc` reacts to the backtest loss on the held-out last horizon (`testVals`)." },
+  { kind = "unreleased", what = "The code is a zip of C++ programs for DyNet with Windows project files and ODBC database output; no runnable PyTorch or Python reference." },
+  { kind = "license", what = "No license file in the M4-methods repository or the archive." },
+]
+
+[[paper]]
+name = "DeepGLO"
+title = "Think Globally, Act Locally: A Deep Neural Network Approach to High-Dimensional Time Series Forecasting"
+paper = "https://arxiv.org/abs/1905.03806"
+code = "https://github.com/rajatsen91/deepglo"
+revision = "525578d4bd50a9d71abbf8b51f0ce9987f449db8"
+reason = "out-of-scope"
+summary = "The global model factorizes the whole training matrix into per-series loadings F and a free basis matrix X over every training time step, trained by alternating stages (Alg. 2-3) before a separate local TCN stage (Alg. 4), and recovers X for each newly revealed window by an inner optimization at prediction time (App. B). The windowed training contract has no transductive full-matrix stage or absolute time index for X; replacing X by a per-window least-squares projection would be the paper's SVD+TCN baseline, not TCN-MF."
+issues = [
+  { kind = "code-bug", what = "LeveledInit is a no-op: `TemporalBlock.init_weights` in `DeepGLO/LocalModel.py` edits `conv.weight` of `weight_norm`-wrapped convolutions, which is recomputed from `weight_g`/`weight_v` before every forward, so the 1/k weights are discarded (verified in PyTorch); only the bias initialization survives." },
+  { kind = "code-bug", what = "`step_factF_loss`, `step_factX_loss`, `step_temporal_loss_X` and `recover_future_X` build a new Adam optimizer for every step, so each update is a fresh bias-corrected first Adam step (about lr times the gradient sign), not the mini-batch SGD of Alg. 1 and 3." },
+  { kind = "paper-code-mismatch", what = "Eq. 3 weights the TCN regularizer by lambda_T = 0.2 (App. C.3); `train_factors` has no lambda_T and instead takes a separate unit-weight step on X every fifth batch (`iter_count % mod == 1`), while the F and X guards `iter_count % mod >= 0` are always true." },
+  { kind = "paper-code-mismatch", what = "App. B recovers X for a revealed window by minimizing Eq. 3 with one-step TCN regularization; `recover_future_X` minimizes a normalized blend (alpha = 0.3) of reconstruction error and distance to the multi-step TCN forecast, from a random start, for up to 100000 steps, with a stopping test that compares against a loss stored only every 1000 steps." },
+  { kind = "paper-code-mismatch", what = "The run scripts pass `period = 24`, which adds the series lagged by one period as an extra local-TCN covariate; Alg. 4 lists only the series, the global prediction and the time covariates." },
+  { kind = "underspecified", what = "Alg. 4 trains the local TCN on 'the global model prediction in the training range' without defining it; `create_Ycov` uses in-sample one-step F*T_X(X) predictions, while test-time covariates are multi-step forecasts." },
+  { kind = "leakage", what = "`data_loader.next_batch` builds one-step-shifted targets up to `min(end_index, ...) + 1`, so F and X are fitted on column `end_index`, the first point of the first test window (X is allocated with end_index + 1 columns); early stopping of the factors validates on columns they were fitted on." },
+  { kind = "leakage", what = "With `normalize=True` the series are shifted by `abs(min(Ymat))` over the whole matrix, test windows included; the scale is std + 1 instead of std." },
+  { kind = "code-bug", what = "`predict_global`, `recover_future_X` and `create_Ycov` call `.cuda()` unconditionally, so the `cpu=True` paths fail on a CPU-only machine." },
 ]
