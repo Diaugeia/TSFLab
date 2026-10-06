@@ -1,0 +1,15 @@
+{
+ "task": "autoresearch",
+ "id": "ar-solar",
+ "kind": "autoresearch",
+ "dataset": "Solar",
+ "target_method": "Crossformer",
+ "pred_lens": [
+  96,
+  192,
+  336,
+  720
+ ],
+ "split": "the dataset's standard chronological split, lookback 96",
+ "budget": "8 GPU-hours"
+}

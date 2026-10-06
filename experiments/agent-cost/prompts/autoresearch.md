@@ -5,8 +5,11 @@ build on it and follow its structure, naming, and conventions instead of
 starting from scratch. If it is empty, write everything yourself.
 
 Raw data files are in {data_dir} (read-only). A GPU is available.
-Target: {target_method} reaches validation MSE {target_val_mse} on {dataset}
-at prediction lengths {pred_lens} under this split: {split}.
+Target: {target_method}, the best method on the current leaderboard for
+{dataset}. First run it under the codebase's protocol ({split}) at prediction
+lengths {pred_lens} and record its validation MSE (method name
+"{target_method}", one row per seed) in results/results.json; that is the
+target to beat.
 
 Rules:
 - Work without asking questions. Record every hypothesis, decision, and run in

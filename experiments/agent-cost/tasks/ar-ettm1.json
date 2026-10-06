@@ -1,0 +1,15 @@
+{
+ "task": "autoresearch",
+ "id": "ar-ettm1",
+ "kind": "autoresearch",
+ "dataset": "ETTm1",
+ "target_method": "AdaMamba",
+ "pred_lens": [
+  96,
+  192,
+  336,
+  720
+ ],
+ "split": "the dataset's standard chronological split, lookback 96",
+ "budget": "8 GPU-hours"
+}

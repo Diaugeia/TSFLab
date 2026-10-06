@@ -35,7 +35,7 @@ def main() -> None:
                 target_method=task["target_method"],
                 dataset=task["dataset"],
                 data_dir=data_dir,
-                target_val_mse=task["target_val_mse"],
+                target_val_mse=task.get("target_val_mse"),
                 pred_lens=", ".join(str(p) for p in task["pred_lens"]),
                 split=task["split"],
                 budget=task["budget"],

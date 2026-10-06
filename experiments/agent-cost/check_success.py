@@ -93,11 +93,19 @@ def check_reproduce(task: dict, ws: Path) -> dict:
 
 def check_autoresearch(task: dict, ws: Path) -> dict:
     rows = load_results(ws)
-    target = task["target_val_mse"]
-    targets = target if isinstance(target, dict) else {str(p): target for p in task["pred_lens"]}
     by_method: dict[str, list[dict]] = {}
     for r in rows:
         by_method.setdefault(str(r.get("method")), []).append(r)
+    target = task.get("target_val_mse")
+    if target is None:
+        # The agent measures the target itself: mean validation MSE of the target method.
+        tr = by_method.pop(task["target_method"], [])
+        targets = {}
+        for p in task["pred_lens"]:
+            v = [r["mse"] for r in tr if r.get("split") == "val" and int(r.get("pred_len", -1)) == p and finite(r.get("mse"))]
+            targets[str(p)] = sum(v) / len(v) if v else -math.inf
+    else:
+        targets = target if isinstance(target, dict) else {str(p): target for p in task["pred_lens"]}
     best = None
     for method, rs in by_method.items():
         ok = True
@@ -110,7 +118,7 @@ def check_autoresearch(task: dict, ws: Path) -> dict:
                 ok = False
         if ok:
             best = method
-    return {"success": best is not None, "method": best, "n_candidates": len(by_method)}
+    return {"success": best is not None, "method": best, "n_candidates": len(by_method), "targets": targets}
 
 
 def main() -> None:
