@@ -32,7 +32,8 @@ def row(run: Path) -> dict:
     s = (m.get("success") or load(run / "success.json")) or {}
     cells = s.get("cells") or []
     ra, rb = load(run / "review.a.json") or {}, load(run / "review.b.json") or {}
-    va, vb = ra.get("valid"), rb.get("valid")
+    rc = load(run / "review.c.json") or {}
+    va, vb, vc = ra.get("valid"), rb.get("valid"), rc.get("valid")
     gains = [g for g in (s.get("gains") or []) if "gain" in g]
     pg = [g for g in (s.get("gains") or []) if "paper_gain" in g]
     tok = sum(sum(v.values()) for v in (m.get("tokens_by_action") or {}).values())
@@ -46,7 +47,8 @@ def row(run: Path) -> dict:
         "completion": round(sum(c.get("ok", False) for c in cells) / len(cells), 3) if cells else 0.0,
         "success": s.get("success"), "valid_a": va, "valid_b": vb,
         "agree": (va == vb) if va is not None and vb is not None else None,
-        "valid": (va and vb) if va is not None and vb is not None else va,
+        # Two reviewers decide; a third breaks a disagreement.
+        "valid": (va if va == vb else vc) if va is not None and vb is not None else va,
         "mean_abs_rel_err_mse": s.get("mean_abs_rel_err_mse"),
         "gain": round(sum(g["gain"] for g in gains) / len(gains), 4) if gains else None,
         "paper_gain": round(sum(g["paper_gain"] for g in pg) / len(pg), 4) if pg else None,
