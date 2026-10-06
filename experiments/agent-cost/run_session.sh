@@ -70,7 +70,7 @@ printf '%s\n' "$PROMPT" > "$RUN/prompt.txt"
 cat > "$RUN/meta.json" <<EOF
 {"task": "$(basename "$TASK")", "kind": "$KIND", "arm": "$ARM", "agent": "$AGENT", "model": "$MODEL",
  "started": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "host": "$(uname -n)", "gpu_sample_s": $GPU_SAMPLE_S,
- "tsflab_commit": "${TSFLAB_COMMIT:-$(git -C "$HERE/../.." rev-parse dev)}", "agent_version": "$AGENT_VERSION",
+ "tsflab_commit": "${TSFLAB_COMMIT:-$(git -C "$HERE/../.." rev-parse dev)}", "agent_version": "$AGENT_VERSION", "reasoning_effort": "${REASONING_EFFORT:-default}",
  "base_url": "${CODEX_BASE_URL:-${ANTHROPIC_BASE_URL:-default}}", "train_gpu": "${TRAIN_GPU:-all}"}
 EOF
 
@@ -116,6 +116,7 @@ for attempt in $(seq 0 "$MAX_RESUMES"); do
   if [[ "$AGENT" == codex ]]; then
     if [[ $attempt -eq 0 ]]; then CMD=(codex exec); else CMD=(codex exec resume "$session_id"); fi
     (cd "$RUN/workspace" && timeout "${TIMEOUT_H}h" "${CMD[@]}" --json -m "$MODEL" \
+        -c model_reasoning_effort="${REASONING_EFFORT:-medium}" \
         --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "$MSG" \
         < /dev/null 2> "$RUN/stderr.$attempt.txt" | stamp > "$RUN/stream.$attempt.jsonl") || true
     session_id="$(python3 -c '
