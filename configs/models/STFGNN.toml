@@ -1,0 +1,19 @@
+[model]
+name = "STFGNN"
+
+# Paper Sec. Experiments and official config/PEMS0X/individual_3layer_12T.json: 3 layers,
+# [64, 64, 64] filters, fusion graph size K = 4, DTW search length 12 and sparsity 0.01;
+# enc_in follows the 8-node catalog fixture (set it to the dataset node count) and
+# steps_per_day to the samples per day of the data (288 for 5-minute data).
+[model.params]
+enc_in = 8
+num_layers = 3
+filters = [64, 64, 64]
+first_layer_embedding = 64
+use_mask = true
+gated_conv = true
+output_hidden = 128
+steps_per_day = 288
+dtw_band = 12
+dtw_order = 1
+dtw_sparsity = 0.01

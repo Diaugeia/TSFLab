@@ -488,4 +488,5 @@ MODEL_CATALOG = ModelCatalog({
     "StaTS": "tsflab.models.stats.spec",
     "GMAN": "tsflab.models.gman.spec",
     "STSGCN": "tsflab.models.stsgcn.spec",
+    "STFGNN": "tsflab.models.stfgnn.spec",
 })
