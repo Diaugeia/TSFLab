@@ -463,6 +463,13 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("attention", "causal", "convolution", "logsparse", "sparse", "local", "restart", "decoder-only", "mask"),
         ),
         ComponentSpec(
+            "ddpm_epsilon",
+            "tsflab.models._components.ddpm_epsilon",
+            "Fixed-schedule Gaussian DDPM: closed-form forward noising, epsilon-prediction MSE loss with uniform steps, and ancestral sampling with the posterior variance beta_tilde.",
+            ("GaussianDDPM", "beta_schedule"),
+            ("diffusion", "ddpm", "denoising", "epsilon", "noise", "schedule", "sampling", "generative", "probabilistic"),
+        ),
+        ComponentSpec(
             "gpt2_backbone",
             "tsflab.models._components.gpt2_backbone",
             "Decoder-only GPT-2 trunk over input embeddings (learned positions, causal pre-norm blocks, final LayerNorm) with an offline loader for released safetensors weights.",

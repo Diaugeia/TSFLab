@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "ddpm_epsilon"
+role = "Turns a caller-owned noise-prediction network into a conditional generative head: noising, epsilon-MSE training and ancestral sampling."
+slot = "head"
+fits = ["probabilistic-output"]
+category = "head"
+tags = ["diffusion", "ddpm", "denoising", "epsilon", "noise", "schedule", "sampling", "generative", "probabilistic", "ancestral-sampling", "posterior-variance"]
+input = "x0 [S, ...] (any trailing shape); denoiser(x_n [S, ...], n [S] long) -> eps [S, ...]"
+output = "loss: scalar; p_sample: x_{n-1} [S, ...]; sample: x_0 of the requested shape"
+origin = "Ho, Jain, Abbeel, 'Denoising Diffusion Probabilistic Models' (NeurIPS 2020), as used by TimeGrad (Rasul et al., ICML 2021); checked against pytorch-ts GaussianDiffusion at 7860c969"
+origin_models = ["timegrad"]

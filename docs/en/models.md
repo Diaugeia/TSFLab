@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 313 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 313 of 313 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -285,6 +285,7 @@ TSFLab exposes 312 model and method entries through one flat public catalog. Arc
 | `TimeEmb` | Static-dynamic disentanglement: a learned per-hour (and optionally per-weekday) complex spectrum bank is the static part, an input-conditioned full-spectrum filter handles the dynamic rest, then an MLP. | reference-checked | passed | [card](../../src/tsflab/models/timeemb/README.md) |
 | `TimeExpert` | Channel-independent patch Transformer whose attention is a temporal mixture of experts: each query patch attends only to its top-k most relevant patch positions, optionally plus a shared global expert. | reference-checked | passed | [card](../../src/tsflab/models/timeexpert/README.md) |
 | `TimeFilter` | Graph forecaster over (channel, patch) nodes: a dense spatial-temporal affinity is filtered per node to its top-p strongest links and passed through a mixture of graph experts. | reference-checked | passed | [card](../../src/tsflab/models/timefilter/README.md) |
+| `TimeGrad` | Autoregressive multivariate diffusion forecaster: an RNN over lags and calendar features conditions a DDPM that samples each step's vector of all channels; sample paths give quantiles. | reference-checked | passed | [card](../../src/tsflab/models/timegrad/README.md) |
 | `TimeGS` | Forecasting as rendering: a UNet on the period-folded history selects and weights fixed 2D Gaussian basis kernels that are splatted onto the horizon so vertical neighbours land one period apart. | reference-checked | passed | [card](../../src/tsflab/models/timegs/README.md) |
 | `TimeKAN` | Lightweight frequency-decomposition forecaster: pyramid bands, each learned by a Chebyshev KAN of band-specific order plus a depthwise conv, remixed coarse to fine. | reference-checked | passed | [card](../../src/tsflab/models/timekan/README.md) |
 | `TimeMachine` | Four Mamba state-space blocks over two embedding scales of the lookback, with global/local context pairs, residual links and two projections. | reference-checked | passed | [card](../../src/tsflab/models/timemachine/README.md) |

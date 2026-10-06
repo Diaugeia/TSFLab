@@ -1,0 +1,30 @@
+# Smoke run for TimeGrad on the tiny built-in smoke dataset (CPU, 1 epoch).
+extends = ["../base.toml", "../fixtures/smoke.toml", "../models/TimeGrad.toml"]
+
+[experiment]
+description = "Smoke: TimeGrad"
+
+[experiment.runtime]
+device = "cpu"
+num_workers = 0
+
+[task]
+mode = "time_series"
+seq_len = 96
+label_len = 0
+pred_len = 12
+features = "M"
+
+[training]
+epochs = 1
+batch_size = 8
+loss = "quantile"
+patience = 1
+
+[evaluation]
+metrics = ["crps", "wql", "coverage_80", "width_80", "mae", "mse"]
+
+[model.params]
+enc_in = 6
+diff_steps = 10
+num_samples = 8
