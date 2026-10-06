@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 311 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -115,6 +115,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `GCformer` | Global convolution over the whole lookback plus a local channel-independent PatchTST, fused by cross-attention. | reference-checked | passed | [card](../../src/tsflab/models/gcformer/README.md) |
 | `GCLSTM` | LSTM whose four gates are Chebyshev spectral graph convolutions of node input and state, with a direct node-wise horizon readout. | inferred | passed | [card](../../src/tsflab/models/gclstm/README.md) |
 | `GlocalIB` | Forecasting adaptation of the Glocal Information Bottleneck imputation method: a variational per-step encoder regularized by KL and masked-view latent alignment, with a linear forecaster. | reference-checked | passed | [card](../../src/tsflab/models/glocalib/README.md) |
+| `GMAN` | Graph multi-attention encoder-decoder: gated spatial and temporal attention conditioned on a node2vec road-graph embedding and calendar one-hots, plus history-to-horizon transform attention. | reference-checked | passed | [card](../../src/tsflab/models/gman/README.md) |
 | `GMRL` | Tensor time-series model: per-channel Gaussian-mixture Cluster Norm before gated source-spanning dilated convolutions, plus a memory-bank augmenter. | reference-checked | passed | [card](../../src/tsflab/models/gmrl/README.md) |
 | `GOTSF` | Goal-oriented forecasting: interval-conditioned predictions with membership confidences, reweighted at inference to emphasize a chosen value range without retraining. | reference-checked | passed | [card](../../src/tsflab/models/gotsf/README.md) |
 | `GPHT` | Auto-regressive token forecaster: max-pooled causal patch-Transformer stages chained by residuals, outputs summed, rolled out token by token. | reference-checked | passed | [card](../../src/tsflab/models/gpht/README.md) |

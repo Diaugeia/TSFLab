@@ -1,0 +1,87 @@
+schema = "tsflab.card/1"
+kind = "model"
+name = "GMAN"
+tags = ["transformer", "attention-variant", "spatiotemporal", "encoder-decoder", "graph-given", "node2vec", "covariates", "traffic"]
+fits = ["spatial-graph", "calendar-effects"]
+fidelity = "reference-checked"
+
+[paper]
+title = "GMAN: A Graph Multi-Attention Network for Traffic Prediction"
+url = "https://arxiv.org/abs/1911.08415"
+venue = "AAAI 2020"
+year = 2020
+
+[code]
+url = "https://github.com/zhengchuanpan/GMAN"
+revision = "45ed232f4ee6a7ee9dd248d07f4952b697ecf320"
+license = "Apache-2.0"
+reference_sources = ["https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/METR/model.py", "https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/PeMS/model.py", "https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/METR/tf_utils.py", "https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/METR/utils.py", "https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/METR/train.py", "https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/PeMS/train.py", "https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/METR/node2vec/generateSE.py", "https://github.com/zhengchuanpan/GMAN/blob/45ed232f4ee6a7ee9dd248d07f4952b697ecf320/METR/node2vec/node2vec.py"]
+
+[composition]
+normalization = "none"
+decomposition = "none"
+temporal = "local:temporal-attention+local:transform-attention"
+channel = "component:node2vec_embedding+local:spatial-attention+component:gated_fusion"
+head = "local:two-layer-fc"
+loss = "loss:mae"
+
+[data_params]
+enc_in = { from = "nodes", rule = "number of graph nodes (sensors)" }
+adj_mx = { from = "graph", rule = "[enc_in, enc_in] road adjacency (edge i -> j weight); its node2vec embedding is computed at construction; required" }
+steps_per_day = { from = "frequency", rule = "samples per day for the one-hot time-of-day embedding (288 for 5-minute data)" }
+
+[admission]
+status = "passed"
+date = "2026-10-06"
+commit = "fd5e684e"
+device = "cpu"
+reference = "none"
+note = ""
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. Spatial Attention (group spatial attention, G = 37 on PeMS) vs `METR/model.py` and `PeMS/model.py` `spatialAttention`"
+what = "the code computes full N x N spatial attention at every step; the intra-/inter-group attention with random vertex groups and max-pooling is not implemented."
+resolution = "full spatial attention as in the code; the group variant is not provided."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. Spatial Attention (group spatial attention)"
+what = "whether the random vertex partition is fixed or redrawn, how groups are padded, whether the inter-group attention uses the STE, and how pooled features enter it are not stated."
+resolution = "not implemented (see the mismatch above)."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Eq. 9 (attention only to steps before t_j) vs `PeMS/model.py` `STAttBlock(mask = False)` and `METR/model.py` `STAttBlock(mask = True)`"
+what = "the PeMS script, the dataset of the paper's results, uses non-causal temporal attention; the METR-LA script masks with a lower-triangular matrix that includes step t_j itself."
+resolution = "`causal_temporal = true` (lower-triangular mask including the current step, masked score -2^15 + 1) by default; `false` gives the PeMS script."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Sec. Experiments (L = 3) vs `METR/train.py` (`L = 5`, batch 16) and `PeMS/train.py` (`L = 1`, batch 32)"
+what = "neither script uses the paper's L = 3."
+resolution = "paper value L = 3 (`num_blocks`) in the preset."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Eqs. 1-15 vs `METR/model.py` `FC`, `spatialAttention`, `temporalAttention`, `transformAttention`, `gatedFusion` and `METR/tf_utils.py` `conv2d`"
+what = "every nonlinear FC carries batch normalization (eps 1e-3, EMA decay scheduled from 0.5 to 0.99), each attention and the gated fusion are followed by an extra two-layer FC [D, D], and the METR-LA output FCs apply dropout 0.1; the paper describes none of these."
+resolution = "follow the code; the batch-norm momentum is fixed (`bn_momentum = 0.01`, the schedule's final value) and output dropout is `output_dropout`."
+
+[[issues]]
+kind = "paper-code-mismatch"
+where = "Eq. 16 (MAE) vs `METR/model.py` `mae_loss`"
+what = "the loss ignores zero labels (masked MAE) and is computed on de-normalized predictions."
+resolution = "the runner's configured loss on scaled targets."
+
+[[issues]]
+kind = "underspecified"
+where = "Sec. Spatio-Temporal Embedding (node2vec)"
+what = "node2vec settings are not given; `node2vec/generateSE.py` uses a directed graph, p = 2, q = 1, 100 walks of length 80, 64 dimensions, window 10 and 1000 gensim epochs."
+resolution = "the same walk settings through `node2vec_embedding`; skip-gram is fitted with Adam on 1000 sampled minibatches instead of 1000 gensim epochs."
+
+[[issues]]
+kind = "code-bug"
+where = "`METR/data/Adj(METR).txt`, `PeMS/data/Adj(PeMS).txt` with `node2vec/node2vec.py` `get_alias_edge`"
+what = "the edge lists hold every N x N pair, including zero weights, so `G.has_edge(x, t)` is always true and the in-out parameter q never applies; harmless only because q = 1."
+resolution = "an edge exists only for a positive weight."

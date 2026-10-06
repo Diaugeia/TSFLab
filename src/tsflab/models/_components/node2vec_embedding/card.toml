@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "node2vec_embedding"
+role = "Learns fixed per-node vectors that preserve a weighted graph's neighborhood structure (node2vec), for use as a spatial embedding."
+slot = "support"
+fits = ["spatial-graph"]
+category = "embedding"
+tags = ["node2vec", "graph", "spatial-embedding", "random-walk", "skip-gram", "negative-sampling", "positional-encoding", "deterministic"]
+input = "node2vec_embedding(adj_mx [nodes, nodes] non-negative weights, dim, *, p, q, num_walks, walk_length, window, negative, steps, batch_size, lr, seed)"
+output = "[nodes, dim] float32 torch tensor on CPU (skip-gram input vectors)"
+origin = "node2vec (Grover and Leskovec, KDD 2016) as the spatial embedding of GMAN (Zheng et al., AAAI 2020); repository-written torch implementation"
+origin_models = ["gman"]

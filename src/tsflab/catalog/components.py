@@ -316,6 +316,13 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("adjacency", "chebyshev", "degenerate", "graph", "laplacian", "spectral"),
         ),
         ComponentSpec(
+            "node2vec_embedding",
+            "tsflab.models._components.node2vec_embedding",
+            "Seeded node2vec (biased second-order walks + skip-gram negative sampling) vertex embedding of a fixed weighted graph.",
+            ("node2vec_embedding",),
+            ("node2vec", "graph", "spatial-embedding", "random-walk", "skip-gram", "positional-encoding"),
+        ),
+        ComponentSpec(
             "last_value_center",
             "tsflab.models._components.last_value_center",
             "Detached last-observed-timestep centering and restoration for BLC histories.",
