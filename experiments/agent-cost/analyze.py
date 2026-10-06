@@ -304,8 +304,17 @@ def main() -> None:
     success = json.loads((run / "success.json").read_text()) if (run / "success.json").exists() else None
     meta = json.loads((run / "meta.json").read_text()) if (run / "meta.json").exists() else {}
 
+    # Commands that point CUDA_VISIBLE_DEVICES at another GPU than the assigned one.
+    own = str(meta.get("train_gpu", ""))
+    overrides = 0
+    for _, d in events:
+        txt = json.dumps(d)
+        for m in re.finditer(r"CUDA_VISIBLE_DEVICES=([0-9,]+)", txt):
+            if m.group(1) != own:
+                overrides += 1
     out = {
         "meta": meta,
+        "gpu_overrides": overrides,
         "success": success,
         "wall_seconds": wall,
         "cost_usd_reported": cost,

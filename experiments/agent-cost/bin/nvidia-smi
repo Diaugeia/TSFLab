@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Show only the GPU assigned to this session (TRAIN_GPU), so the agent works on one GPU.
+real="$(PATH="$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$(realpath "$0")")" | paste -sd:)" command -v nvidia-smi)"
+if [[ -n "${TRAIN_GPU:-}" ]]; then exec "$real" -i "$TRAIN_GPU" "$@"; else exec "$real" "$@"; fi

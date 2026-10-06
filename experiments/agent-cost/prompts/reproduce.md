@@ -5,7 +5,9 @@ build on it and follow its structure, naming, and conventions instead of
 starting from scratch. If it is empty, write everything yourself.
 
 Raw data files for the datasets are in {data_dir} (read-only). You may also
-download data if you need to. A GPU is available.
+download data if you need to. One GPU is available to you: the one already
+selected by CUDA_VISIBLE_DEVICES. Use only that GPU and do not change
+CUDA_VISIBLE_DEVICES.
 
 Scope: reproduce the paper's main results table for these datasets and
 prediction lengths: {cells}. Report MSE and MAE for each cell, using the

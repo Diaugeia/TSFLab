@@ -16,7 +16,7 @@ from pathlib import Path
 COLS = ["session", "task", "kind", "arm", "version", "agent", "model", "completion", "success", "valid_a",
         "valid_b", "agree", "valid", "mean_abs_rel_err_mse", "gain", "paper_gain", "wall_h", "gpu_busy_h",
         "tokens_m", "cost_usd_luna", "discovery_share", "read_calls", "write_calls", "run_calls",
-        "interventions", "code_lines_added", "discovery_errors"]
+        "interventions", "code_lines_added", "discovery_errors", "gpu_overrides"]
 
 
 def load(p: Path):
@@ -58,6 +58,7 @@ def row(run: Path) -> dict:
         "read_calls": calls.get("read", 0), "write_calls": calls.get("write", 0), "run_calls": calls.get("run", 0),
         "interventions": m.get("interventions"), "code_lines_added": code.get("added", 0),
         "discovery_errors": len(errs),
+        "gpu_overrides": m.get("gpu_overrides"),
     }
 
 

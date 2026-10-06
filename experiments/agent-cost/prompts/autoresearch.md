@@ -4,7 +4,9 @@ The current directory is your working directory. If it contains a codebase,
 build on it and follow its structure, naming, and conventions instead of
 starting from scratch. If it is empty, write everything yourself.
 
-Raw data files are in {data_dir} (read-only). A GPU is available.
+Raw data files are in {data_dir} (read-only). One GPU is available to you: the one
+already selected by CUDA_VISIBLE_DEVICES. Use only that GPU and do not change
+CUDA_VISIBLE_DEVICES.
 Target: {target_method}, the best method on the current leaderboard for
 {dataset}. First run it under the codebase's protocol ({split}) at prediction
 lengths {pred_lens} and record its validation MSE (method name
