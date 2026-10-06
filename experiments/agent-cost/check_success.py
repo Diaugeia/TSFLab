@@ -59,6 +59,10 @@ def check_reproduce(task: dict, ws: Path) -> dict:
                 ref = c.get(f"paper_{m}")
                 if finite(ref) and ref:
                     cell[f"rel_err_{m}"] = (r[m] - ref) / ref
+            ref = c.get("paper_mse")
+            # More than 3x off the paper usually means another scale (e.g. unnormalized data).
+            if finite(ref) and ref and not (ref / 3 <= r["mse"] <= ref * 3):
+                cell["scale_suspect"] = True
         else:
             missing.append(f"{c['dataset']}@{c['pred_len']}" + (f"/{c.get('backbone')}/{c.get('variant')}" if strategy else ""))
         cells.append(cell)
@@ -87,6 +91,7 @@ def check_reproduce(task: dict, ws: Path) -> dict:
         "missing": missing,
         "report": report,
         "mean_abs_rel_err_mse": sum(errs) / len(errs) if errs else None,
+        "scale_suspect": sum(1 for c in cells if c.get("scale_suspect")),
         "cells": cells,
     }
 
