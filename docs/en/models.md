@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 311 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -232,6 +232,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `SAMBA` | SDE-Mamba: patch-embedded series encoded by two parallel simplified Mamba stacks, one across time per variate and one across variates per patch, fused by an MLP. | reference-checked | passed | [card](../../src/tsflab/models/samba/README.md) |
 | `SAMformer` | One channel-wise attention block plus a shared linear head under RevIN, trained with sharpness-aware minimization. | reference-checked | passed | [card](../../src/tsflab/models/samformer/README.md) |
 | `SARAF` | Linear forecaster fused with training-set futures retrieved by Pearson and calendar similarity, tuned to dataset stationarity. | reference-checked | passed | [card](../../src/tsflab/models/saraf/README.md) |
+| `SBULSTM` | Stacked bidirectional and unidirectional LSTMs over the whole sensor vector; the first layer (BDLSTM-I) imputes missing inputs from its recurrent state. | paper-only | passed | [card](../../src/tsflab/models/sbulstm/README.md) |
 | `SCAM` | Training method that co-trains a conv reconstruction net to relabel targets and masks overfitted label points, over an ensemble of channel-independent MLP predictors. | reference-checked | passed | [card](../../src/tsflab/models/scam/README.md) |
 | `SCFormer` | Channel-token Transformer with triangular-masked temporal maps, fed a HiPPO-LegS summary of history beyond the look-back window. | reference-checked | passed | [card](../../src/tsflab/models/scformer/README.md) |
 | `SCINet` | Recursive even/odd downsample-convolve-interact tree over the window, then a linear forecaster; convolutions mix all channels. | reference-checked | passed | [card](../../src/tsflab/models/scinet/README.md) |
