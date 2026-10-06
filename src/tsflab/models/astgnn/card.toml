@@ -32,7 +32,7 @@ adj_mx = { from = "graph", rule = "[enc_in, enc_in] road-network adjacency (bina
 [admission]
 status = "passed"
 date = "2026-10-06"
-commit = "b382cc30"
+commit = "72e34a95"
 device = "cpu"
 reference = "none"
 note = ""

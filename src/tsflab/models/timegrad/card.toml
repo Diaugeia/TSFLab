@@ -34,7 +34,7 @@ context_length = { from = "seq_len", rule = "0 uses seq_len - max(lags); officia
 [admission]
 status = "passed"
 date = "2026-10-06"
-commit = "b43d44c3"
+commit = "72e34a95"
 device = "cpu"
 reference = "none"
 note = ""

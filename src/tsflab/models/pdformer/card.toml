@@ -37,7 +37,7 @@ curriculum_step = { from = "train-split", rule = "training batches per added hor
 [admission]
 status = "passed"
 date = "2026-10-06"
-commit = "9de45f8c"
+commit = "72e34a95"
 device = "cpu"
 reference = "none"
 note = ""

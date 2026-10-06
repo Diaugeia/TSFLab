@@ -32,7 +32,7 @@ hidden_dim = { from = "channels", rule = "omit for the paper default (= enc_in);
 [admission]
 status = "passed"
 date = "2026-10-06"
-commit = "fd5e684e"
+commit = "72e34a95"
 device = "cpu"
 reference = "none"
 note = ""

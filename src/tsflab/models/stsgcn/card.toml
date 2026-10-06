@@ -33,7 +33,7 @@ num_layers = { from = "seq_len", rule = "each STSGCL shortens the sequence by 2,
 [admission]
 status = "passed"
 date = "2026-10-06"
-commit = "40ec9333"
+commit = "72e34a95"
 device = "cpu"
 reference = "none"
 note = ""

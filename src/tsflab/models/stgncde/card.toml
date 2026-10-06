@@ -32,7 +32,7 @@ input_dim = { from = "covariates", rule = "data channels of the control path: 1 
 [admission]
 status = "passed"
 date = "2026-10-06"
-commit = "fd5e684e"
+commit = "72e34a95"
 device = "cpu"
 reference = "none"
 note = ""
