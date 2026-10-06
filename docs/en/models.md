@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 313 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 313 of 313 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -199,6 +199,7 @@ TSFLab exposes 312 model and method entries through one flat public catalog. Arc
 | `PAttn` | Minimal patch Transformer from the LLM-ablation study: one self-attention layer on patch tokens, no positional encoding or FFN, linear head. | reference-checked | passed | [card](../../src/tsflab/models/pattn/README.md) |
 | `PCATransformer` | Training-split PCA compresses the covariates to a few principal scores; a vanilla encoder-decoder Transformer forecasts the target channel. | reference-checked | passed | [card](../../src/tsflab/models/pcatransformer/README.md) |
 | `PCDCNet` | Physics-inspired air-quality surrogate: per-station local MLP dynamics, graph-Laplacian transport, and GRU accumulation, rolled out hour by hour with calendar covariates. | reference-checked | passed | [card](../../src/tsflab/models/pcdcnet/README.md) |
+| `PDFormer` | Spatial-temporal Transformer whose heads split into temporal, hop-masked geographic (keys enriched with delay-aware traffic patterns) and DTW-masked semantic attention. | reference-checked | passed | [card](../../src/tsflab/models/pdformer/README.md) |
 | `PENGUIN` | Channel-independent patch Transformer whose grouped multi-query attention carries a periodic ALiBi bias, one head group per cycle length. | reference-checked | passed | [card](../../src/tsflab/models/penguin/README.md) |
 | `PGN` | TPGN: folds each series by its period, runs a parallel gated network over rows (long-term) plus a pooled short-term branch, with per-variate linear heads. | paper-only | passed | [card](../../src/tsflab/models/pgn/README.md) |
 | `PhaseFormer` | Tiny periodicity model: tokenizes the lookback into one token per phase of the dominant period and mixes phases through a few learned routers. | reference-checked | passed | [card](../../src/tsflab/models/phaseformer/README.md) |
