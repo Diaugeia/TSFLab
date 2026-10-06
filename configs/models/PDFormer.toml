@@ -1,0 +1,26 @@
+[model]
+name = "PDFormer"
+
+[model.params]
+enc_in = 8
+embed_dim = 64
+skip_dim = 256
+lape_dim = 8
+geo_num_heads = 4
+sem_num_heads = 2
+t_num_heads = 2
+mlp_ratio = 4.0
+drop = 0.0
+attn_drop = 0.0
+drop_path = 0.3
+enc_depth = 6
+pre_norm = true
+s_attn_size = 3
+far_mask_delta = 7
+dtw_delta = 5
+n_cluster = 16
+cluster_max_iter = 5
+cand_key_days = 14
+steps_per_day = 288
+huber_delta = 2.0
+curriculum_step = 0
