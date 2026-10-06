@@ -14,6 +14,10 @@ paper's own evaluation protocol as far as the paper describes it.
 Rules:
 - Work without asking questions. When the paper leaves a detail open, choose a
   reasonable value and record the choice in results/decisions.md.
+- Train as the paper specifies (epochs, early stopping, batch size, learning
+  rate, number of runs where given). Do not shorten training to save time: you
+  have up to four hours and a dedicated GPU, and results from cut-down training
+  do not count as a reproduction.
 - At the start of each stage, run the shell command `stage <name>` with one of:
   collect (get the paper, data, and settings), read (understand the method),
   implement, check (make sure the code runs end to end), run (the experiments),
