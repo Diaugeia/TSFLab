@@ -20,15 +20,5 @@ PY
 mkdir -p "$RUN/review-$ID"; ln -sf "$HOME/.codex/auth.json" "$RUN/review-$ID/auth.json"
 (cd "$RUN/workspace" && CODEX_HOME="$RUN/review-$ID" timeout 1h codex exec --json -m "${REVIEW_MODEL:-gpt-6-luna}" \
    -s read-only --skip-git-repo-check -o "$RUN/review.$ID.raw" "$PROMPT" < /dev/null > "$RUN/review-$ID/stream.jsonl" 2>&1) || true
-python3 - "$RUN/review.$ID.raw" "$RUN/review.$ID.json" <<'PY'
-import json, re, sys
-raw = open(sys.argv[1]).read() if __import__("os").path.exists(sys.argv[1]) else ""
-m = re.search(r"\{.*\}", raw, re.S)
-try:
-    out = json.loads(m.group(0)) if m else {"error": "no JSON", "raw": raw[-2000:]}
-except ValueError:
-    out = {"error": "bad JSON", "raw": raw[-2000:]}
-json.dump(out, open(sys.argv[2], "w"), indent=1)
-print(sys.argv[2], "valid=", out.get("valid"))
-PY
+python3 "$HERE/parse_review.py" "$RUN/review.$ID.raw" "$RUN/review.$ID.json"
 rm -f "$RUN/review-$ID/auth.json"
