@@ -240,3 +240,17 @@ issues = [
   { kind = "code-bug", what = "`traffic-prediction/src/data/dataloader.py` builds the evaluation and test loaders with `last_batch='rollover'`, so each pass omits the final partial batch (carried into the next pass) and test metrics are not computed over exactly the test set." },
   { kind = "underspecified", what = "The METR-LA meta-knowledge is defined only in code (`get_geo_feature`, `utils.distant_matrix`): z-scored GPS plus `exp(-(d - mean) / std)` of Floyd-Warshall road distances to the 8 nearest in/out sensors from DCRNN's `distances_la_2012.csv`, which TSFLab does not ship." },
 ]
+
+[[paper]]
+name = "ST-MGCN"
+title = "Spatiotemporal Multi-Graph Convolution Network for Ride-Hailing Demand Forecasting"
+paper = "https://ojs.aaai.org/index.php/AAAI/article/view/4247"
+code = ""
+revision = ""
+reason = "unfaithful"
+summary = "The method is defined by three region graphs over a 1 km city grid (3x3 neighbourhood, POI-vector similarity over 13 categories, OpenStreetMap motorway/highway/subway connectivity) whose ablation (Table 2) shows each one matters, fed by ST-ResNet closeness/period/trend samples for single-step prediction. TSFLab's spatiotemporal datasets are sensor graphs with one adjacency and no POIs, grid, or transport network, and the runner supplies one contiguous window; substituting data-derived graphs (e.g. series correlation for POI similarity) would invent defining inputs, and with one graph the model reduces to a CGRNN plus ChebNet that is not ST-MGCN."
+issues = [
+  { kind = "unreleased", what = "No official code; the TensorFlow implementation and the Didi Beijing/Shanghai order, POI, and road data were not released. Only unofficial replications exist (underdoc-wang/ST-MGCN, yizhan42/ST-MGCN-pytorch, Chao-Jiang/ST-MGCN-keras)." },
+  { kind = "underspecified", what = "The POI similarity `sim(.,.)` (Eq. 4), the RNN cell of CGRNN (Eq. 11), the Laplacian normalization and scaling for the Chebyshev filters, how the graph branches and the final fully connected layers are arranged ('3 hidden layers with 64 units'), and the output layer are not stated." },
+  { kind = "paper-error", what = "Graph names are inconsistent: the functional-similarity graph is `G_F = (V, A_F)` but Eq. (4) defines `A_S`; the transportation graph is `G_T = (V, A_T)` but Eq. (5) defines `A_C`. The task `f: R^{|V| x T} -> R^{|V|}` also does not match the five non-contiguous closeness/period/trend inputs of the experiments." },
+]
