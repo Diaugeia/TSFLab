@@ -1,0 +1,8 @@
+[model]
+name = "TFT"
+
+[model.params]
+enc_in = 7
+d_model = 160
+num_heads = 4
+dropout = 0.1

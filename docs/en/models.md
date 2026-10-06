@@ -1,8 +1,8 @@
 # Models and methods
 
-TSFLab exposes 311 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
+TSFLab exposes 312 model and method entries through one flat public catalog. Architecture families are retrieval tags on each card, not directories or categories. Presets configure runs and do not create additional entries. This page is generated from the model cards; search and open them with `tsf catalog search` and `tsf catalog show <name>`.
 
-**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 311 of 311 entries have passed.
+**Fidelity** says how the implementation was checked: `reference-checked` (paper and pinned official code), `paper-only`, `inferred` (the paper leaves material details open), or `composed` (assembled from catalog components). **Admission** is the recorded result of the executable contract (`tsf model verify`); 312 of 312 entries have passed.
 
 | Name | Description | Fidelity | Admission | Card |
 |---|---|---|---|---|
@@ -276,6 +276,7 @@ TSFLab exposes 311 model and method entries through one flat public catalog. Arc
 | `TexFilter` | FilterNet contextual shaping filter: a learned complex map embeds each channel's spectrum, ReLU-gated complex gains build an input-dependent filter, then inverse FFT and an MLP. | reference-checked | passed | [card](../../src/tsflab/models/texfilter/README.md) |
 | `TFKAN` | Dual-branch Kolmogorov-Arnold network: a shared spline KAN on the rFFT of each lifted channel, a KAN along time, and a KAN predictor to the horizon. | reference-checked | passed | [card](../../src/tsflab/models/tfkan/README.md) |
 | `TFPS` | Patch model for patch-level distribution shift: time and Fourier patch encoders, subspace clustering of cross-variate patch features, and pattern-specific MLP experts per cluster. | reference-checked | passed | [card](../../src/tsflab/models/tfps/README.md) |
+| `TFT` | Temporal Fusion Transformer: static-context variable selection, LSTM encoder-decoder, static enrichment and causal interpretable attention give multi-horizon quantiles. | reference-checked | passed | [card](../../src/tsflab/models/tft/README.md) |
 | `TiDE` | Time-series Dense Encoder: residual MLP encoder-decoder over the normalized lookback plus projected past/future calendar features, a per-step temporal decoder, and a global linear skip. | reference-checked | passed | [card](../../src/tsflab/models/tide/README.md) |
 | `TimeAlign` | Patch-MLP forecaster trained with a future-reconstruction branch and local/global alignment of history to future representations; inference is a plain patch MLP. | reference-checked | passed | [card](../../src/tsflab/models/timealign/README.md) |
 | `TimeBase` | Ultra-lightweight segment-level forecaster: folds the lookback into period-length segments, compresses them to a few basis components and maps those to future segments. | reference-checked | passed | [card](../../src/tsflab/models/timebase/README.md) |

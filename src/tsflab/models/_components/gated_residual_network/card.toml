@@ -1,0 +1,12 @@
+schema = "tsflab.card/1"
+kind = "component"
+name = "gated_residual_network"
+role = "Context-conditioned gated nonlinear block that can skip itself, plus softmax selection of per-variable embeddings."
+slot = "support"
+fits = ["any"]
+category = "mixer"
+tags = ["grn", "glu", "gated", "residual", "variable-selection", "context", "static-covariates", "layernorm", "gate", "tft"]
+input = "a [..., in_dim]; optional context broadcastable to [..., context_dim]; selection network: xi [..., num_vars, dim]"
+output = "GRN: [..., out_dim]; selection network: ([..., dim], weights [..., num_vars])"
+origin = "Temporal Fusion Transformer, Lim et al., IJF 2021 (arXiv 1912.09363), Sec. 4.1-4.2, Eq. 2-8"
+origin_models = ["tft"]

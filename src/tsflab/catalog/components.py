@@ -469,5 +469,19 @@ COMPONENT_CATALOG = ComponentCatalog(
             ("SegmentMLP", "ACTIVATIONS"),
             ("segment", "token", "mlp", "projection", "embedding", "llm", "linear"),
         ),
+        ComponentSpec(
+            "gated_residual_network",
+            "tsflab.models._components.gated_residual_network",
+            "Gated residual network LayerNorm(skip(a) + GLU(W1 ELU(W2 a + W3 c))), its GLU gate and gated add-norm, and a softmax variable-selection network over per-variable GRNs (TFT).",
+            ("GatedLinearUnit", "GateAddNorm", "GatedResidualNetwork", "VariableSelectionNetwork"),
+            ("grn", "glu", "gated", "residual", "variable-selection", "context", "static-covariates", "tft", "gate"),
+        ),
+        ComponentSpec(
+            "interpretable_attention",
+            "tsflab.models._components.interpretable_attention",
+            "Multi-head attention whose heads share one value projection and are averaged before the output map (TFT interpretable multi-head attention), plus a causal mask helper.",
+            ("InterpretableMultiHeadAttention", "causal_mask"),
+            ("attention", "interpretable", "shared-value", "multi-head", "causal", "tft", "head-average"),
+        ),
     )
 )
