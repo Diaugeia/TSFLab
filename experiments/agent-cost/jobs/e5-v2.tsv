@@ -1,0 +1,10 @@
+# E5: autoresearch in TSFLab (2 runs per dataset); TIMEOUT_H=10 so the 8 GPU-hour budget fits
+# 2026-10-07: rerun on dev 79e3583b, the version of the main TSFLab row.
+ar-etth1	tsflab@79e3583b	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-ettm1	tsflab@79e3583b	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tsflab@79e3583b	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-solar	tsflab@79e3583b	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tsflab@79e3583b	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-ettm1	tsflab@79e3583b	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tsflab@79e3583b	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-solar	tsflab@79e3583b	2	codex	gpt-6-luna	TIMEOUT_H=10

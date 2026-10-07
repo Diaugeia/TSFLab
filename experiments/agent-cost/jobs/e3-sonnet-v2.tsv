@@ -1,0 +1,14 @@
+# E3: other agents and models on TSFLab and TSLib (2 repetitions)
+# 2026-10-07: rerun on dev 79e3583b, the version of the main TSFLab row.
+# 2026-10-06 (user): other agents run TSFLab only; the environment comparison uses Codex + GPT-6 Luna.
+# task	spec	rep	agent	model	env...
+rhymix	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+aosnet	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+stateflow	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+adardiff	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+core	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+rhymix	tsflab@79e3583b	2	claude	claude-sonnet-5-5
+aosnet	tsflab@79e3583b	2	claude	claude-sonnet-5-5
+stateflow	tsflab@79e3583b	2	claude	claude-sonnet-5-5
+adardiff	tsflab@79e3583b	2	claude	claude-sonnet-5-5
+core	tsflab@79e3583b	2	claude	claude-sonnet-5-5

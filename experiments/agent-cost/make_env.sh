@@ -106,6 +106,9 @@ case "$ARM" in
     for s in run-experiment diagnose-experiment reproduce-paper-results analyze-results submit-results run-autoresearch; do
       rm -rf "$WS/.agents/skills/$s" "$WS/.claude/skills/$s"
     done
+    # From dev 79e3583b, AGENTS.md points to `tsf data splits`, which is disabled here; point to the
+    # dataset knowledge page, which states the same split facts. The data loaders stay.
+    sed -i 's/`tsf data splits <dataset>`; never re-derive them\./the dataset knowledge page (README.md); never re-derive them./' "$WS/AGENTS.md"
     ;;
   tfb)
     git clone --quiet "$TFB_URL" "$WS"
