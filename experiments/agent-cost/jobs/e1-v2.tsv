@@ -1,0 +1,16 @@
+# E1 rerun in TSFLab after the protocol write-back (PR #70, dev 79e3583b): 5 tasks x 3 runs, Codex + gpt-6-luna
+rhymix	tsflab@79e3583b	1	codex	gpt-6-luna
+aosnet	tsflab@79e3583b	1	codex	gpt-6-luna
+stateflow	tsflab@79e3583b	1	codex	gpt-6-luna
+adardiff	tsflab@79e3583b	1	codex	gpt-6-luna
+core	tsflab@79e3583b	1	codex	gpt-6-luna
+rhymix	tsflab@79e3583b	2	codex	gpt-6-luna
+aosnet	tsflab@79e3583b	2	codex	gpt-6-luna
+stateflow	tsflab@79e3583b	2	codex	gpt-6-luna
+adardiff	tsflab@79e3583b	2	codex	gpt-6-luna
+core	tsflab@79e3583b	2	codex	gpt-6-luna
+rhymix	tsflab@79e3583b	3	codex	gpt-6-luna
+aosnet	tsflab@79e3583b	3	codex	gpt-6-luna
+stateflow	tsflab@79e3583b	3	codex	gpt-6-luna
+adardiff	tsflab@79e3583b	3	codex	gpt-6-luna
+core	tsflab@79e3583b	3	codex	gpt-6-luna
