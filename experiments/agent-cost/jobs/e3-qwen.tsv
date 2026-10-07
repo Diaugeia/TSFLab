@@ -2,13 +2,13 @@
 # Run after the main experiments. Codex reaches vLLM's Responses API through a request-rewriting proxy
 # (vLLM 0.20.2 rejects Codex's tool-result input items); CODEX_BASE_URL points at that proxy.
 # task	spec	rep	agent	model	env...
-rhymix	tsflab@79e3583b	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-aosnet	tsflab@79e3583b	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-stateflow	tsflab@79e3583b	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-adardiff	tsflab@79e3583b	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-core	tsflab@79e3583b	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-rhymix	tsflab@79e3583b	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-aosnet	tsflab@79e3583b	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-stateflow	tsflab@79e3583b	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-adardiff	tsflab@79e3583b	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
-core	tsflab@79e3583b	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+rhymix	tsflab@fd5e684e	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+aosnet	tsflab@fd5e684e	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+stateflow	tsflab@fd5e684e	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+adardiff	tsflab@fd5e684e	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+core	tsflab@fd5e684e	1	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+rhymix	tsflab@fd5e684e	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+aosnet	tsflab@fd5e684e	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+stateflow	tsflab@fd5e684e	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+adardiff	tsflab@fd5e684e	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
+core	tsflab@fd5e684e	2	codex	qwen3.8-27b	CODEX_BASE_URL=http://127.0.0.1:8034/v1	TIMEOUT_H=8
