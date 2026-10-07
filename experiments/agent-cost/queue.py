@@ -85,15 +85,16 @@ def main() -> None:
                 per_gpu = int((root / "PER_GPU").read_text().strip())
             except ValueError:
                 pass
-        load = {g: 0 for g in gpus}
-        for pidf in root.parent.glob("*/*.pid"):  # this queue and its peers
-            try:
-                pid, g = pidf.read_text().split()
-            except ValueError:
-                continue
-            if g in load and alive(int(pid)):
-                load[g] += 1
         while todo:
+            # Re-read the load before every start: peer queues may have started sessions meanwhile.
+            load = {g: 0 for g in gpus}
+            for pidf in root.parent.glob("*/*.pid"):  # this queue and its peers
+                try:
+                    pid, g = pidf.read_text().split()
+                except ValueError:
+                    continue
+                if g in load and alive(int(pid)):
+                    load[g] += 1
             g = min(gpus, key=lambda x: load[x])
             if load[g] >= per_gpu:
                 break
@@ -107,7 +108,6 @@ def main() -> None:
                                  stdin=subprocess.DEVNULL, start_new_session=True)
             (root / f"{j['name']}.pid").write_text(f"{p.pid} {g}")
             running[j["name"]] = (p, g)
-            load[g] += 1
             log(f"start {j['name']} gpu {g}")
             time.sleep(20)  # stagger installs and API sessions
         time.sleep(30)
