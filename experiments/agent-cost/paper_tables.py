@@ -55,8 +55,7 @@ def session(run: Path) -> dict | None:
     task = load(HERE / "tasks" / f"{meta.get('task', '').removesuffix('.json')}.json") or {}
     kind = task.get("kind", "method")
     cells = s.get("cells") or []
-    required = len(task.get("cells") or []) * (2 * len(task.get("backbones") or [1]) if kind == "strategy" else 1)
-    required = max(required, len(cells), 1)
+    required = max(len(task.get("cells") or []), 1)  # strategy tasks list the cells with and without it
     produced = verdict(run, "reported") is not False
     ok = [c for c in cells if c.get("ok")] if produced else []
     valid = verdict(run) is True
