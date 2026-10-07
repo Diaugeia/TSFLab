@@ -258,6 +258,8 @@ def test_progressive_disclosure_depths(kind: str, name: str) -> None:
     assert "README.md" in _run("catalog", "show", name, "--kind", kind, "--depth", "3")
     payload = json.loads(_run("catalog", "show", name, "--kind", kind, "--depth", "2", "--json"))
     assert payload["depth"] == 2 and payload["card"]["name"] == name and payload["sections"]
+    if kind == "dataset":  # split borders are a generated fact on the L1 page
+        assert "- split borders: train [0, 8640), val [8640, 11520), test [11520, 14400)" in l1
 
 
 def test_model_audit_reports_cards_and_admission() -> None:

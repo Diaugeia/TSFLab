@@ -16,7 +16,7 @@ Skills:
 - [`add-dataset`](skills/add-dataset/SKILL.md): Register a new dataset in TSFLab, from a standard CSV, a custom loader, or a traffic bundle, including fetching or converting its files into loader-ready data.
 - [`inspect-dataset`](skills/inspect-dataset/SKILL.md): Inspect, profile, or visualize an existing TSFLab dataset.
 
-Entry commands: `tsf data inspect`, `tsf data analyze`, `tsf data prepare`, `tsf data add`.
+Entry commands: `tsf data inspect`, `tsf data analyze`, `tsf data splits`, `tsf data prepare`, `tsf data add`.
 
 Context produced: dataset cards (characteristics, protocol) and presets; train-only profile `work_dirs/profiles/<name>/profile.{json,md}`.
 

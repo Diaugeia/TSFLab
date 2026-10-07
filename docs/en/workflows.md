@@ -324,6 +324,19 @@ comparable across models. Where the literature uses a different protocol, the ca
 records it separately as `[protocol].literature`. `configs/fixtures/` holds smoke and
 synthetic test inputs; they are not datasets and have no cards.
 
+The loader code, not a ratio alone, defines the split. ETT, for example, uses only the
+first 14,400 (hourly) or 57,600 (15-minute) rows, and the traffic bundles split
+fixed window centres. `tsf data splits` prints the exact rows used, the train,
+validation, and test row ranges (validation and test inputs start `seq_len` rows
+early), and the scaling rule; `tsf catalog show <dataset>` lists the same borders.
+A custom training loop gets identical arrays from `tsflab.data.protocol.load_splits`:
+
+```bash
+uv run tsf data splits etth1                        # default lookback from the card
+uv run tsf data splits etth1 --seq-len 336 --json
+uv run tsf data splits etth1 --path /data/raw/ETTh1.csv   # same rule on another copy
+```
+
 Fetch a published preset's files, pinned and checksum-verified, into `dataset/`
 (see [the Hub page](hub.md#benchmark-data)):
 

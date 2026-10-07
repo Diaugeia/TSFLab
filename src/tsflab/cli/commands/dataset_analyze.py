@@ -136,9 +136,9 @@ def load_path(
         raise SystemExit(f"unsupported file type {p.suffix!r}; use csv, txt, parquet, npy, npz, or a store directory")
     if values.ndim == 1:
         values = values[:, None]
-    cuts = np.cumsum(ratio) / sum(ratio)
-    a, b = int(cuts[0] * len(values)), int(cuts[1] * len(values))
-    splits = {"train": values[:a], "val": values[a:b], "test": values[b:]}
+    from tsflab.data.protocol import split_borders
+
+    splits = {flag: values[start:end] for flag, (start, end) in split_borders(len(values), ratio).items()}
     freq_info = _freq_override(freq) or prof.infer_frequency(stamps)
     return splits, {"name": p.stem or p.name, "source": str(p), "split_ratio": list(ratio), "frequency": freq_info}
 

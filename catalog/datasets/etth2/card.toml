@@ -30,7 +30,7 @@ missing_values = "none (measured: no empty cells, no duplicate or missing timest
 stats_basis = "mixed"
 
 [protocol]
-protocol = "TSFLab: chronological 6:2:2 split, scaling fitted on the training split only; lookback 96/336/512, horizons 96/192/336/720"
+protocol = "TSFLab: chronological 6:2:2 split of the first 14,400 rows only (12/4/4 months; the remaining rows of the 17,420-row CSV are never used), scaling fitted on the training rows 0 to 8,639 only; lookback 96/336/512, horizons 96/192/336/720"
 literature = "LTSF: lookback 96 (336 and 512 also searched), horizons 96/192/336/720, chronological 6:2:2 (12/4/4 months), MSE/MAE on z-scored data"
 split = "6:2:2"
 seq_lens = [96, 336, 512]

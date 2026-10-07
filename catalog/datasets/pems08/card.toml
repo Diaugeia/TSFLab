@@ -29,7 +29,7 @@ missing_values = "not stated in the papers"
 stats_basis = "source-reported"
 
 [protocol]
-protocol = "TSFLab: chronological 7:1:2 split, values unscaled by default (scale = false, calendar covariates kept raw); lookback 12, horizons 12"
+protocol = "TSFLab: chronological 7:1:2 split of the 12-in/12-out windows, not of the rows (window centres fixed in idx_*.npy; adjacent splits share up to 11 target rows), values unscaled by default (scale = false, calendar covariates kept raw); lookback 12, horizons 12"
 literature = "STSGCN: 12 steps in, 12 steps out (one hour), chronological 6:2:2, MAE/RMSE/MAPE"
 split = "7:1:2"
 seq_lens = [12]
