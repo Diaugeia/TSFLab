@@ -100,8 +100,9 @@ def main() -> None:
         model = s["model"] or s["agent"]
         groups[(s["agent"], model, env, s["kind"])].append(s)
         groups[(s["agent"], model, env, "all")].append(s)
-        groups[(s["agent"], model, env, "tasks:" + ",".join(sorted({"rhymix", "aosnet"} & {s["task"]})) or "-")].append(s)
-    out = {" | ".join(k): summarize(v) for k, v in sorted(groups.items()) if not k[3].endswith(":")}
+        if s["task"] in ("rhymix", "aosnet"):  # the tasks of the version comparison
+            groups[(s["agent"], model, env, "rhymix+aosnet")].append(s)
+    out = {" | ".join(k): summarize(v) for k, v in sorted(groups.items())}
     print(json.dumps({"sessions": len(ss), "groups": out}, indent=1))
 
 
