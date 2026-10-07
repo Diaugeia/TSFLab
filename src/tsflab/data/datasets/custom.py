@@ -63,7 +63,7 @@ class Dataset_Custom(ForecastingDataset):
         scale: bool,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Read custom CSV data and return split series and timestamps."""
-        df_raw = pd.read_csv(self.file_path)
+        df_raw = self._limit_rows(pd.read_csv(self.file_path))
         num_samples = len(df_raw)
         border1, border2 = self._get_borders(flag, split_ratio, num_samples)
 
@@ -85,7 +85,7 @@ class Dataset_Custom(ForecastingDataset):
             df_data = self._impute_sentinels(df_data)
 
         if scale:
-            train_len = int(split_ratio[0] / sum(split_ratio) * num_samples)
+            train_len = self._train_len(split_ratio, num_samples)
             data = self._apply_scaling(df_data.to_numpy(), train_len)
         else:
             data = df_data.to_numpy()

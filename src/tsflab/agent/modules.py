@@ -25,7 +25,7 @@ MODULES: dict[str, dict[str, object]] = {
         "tasks": [],
         "extras": ["data"],
         "purpose": "register, prepare, profile, and publish datasets",
-        "commands": ["tsf data inspect", "tsf data analyze", "tsf data prepare", "tsf data add"],
+        "commands": ["tsf data inspect", "tsf data analyze", "tsf data splits", "tsf data prepare", "tsf data add"],
         "context": "dataset cards (characteristics, protocol) and presets; train-only profile `work_dirs/profiles/<name>/profile.{json,md}`",
     },
     "models": {

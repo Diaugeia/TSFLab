@@ -4,7 +4,7 @@ One depth model serves every catalog resource, so an agent can spend context
 only as needed:
 
 * L0 - one line: ``name``, ``kind``, the README ``description``, ``tags``.
-* L1 - ``card.toml`` facts, runtime facts derived from code, and the README body.
+* L1 - runtime facts derived from code, ``card.toml`` facts, and the README body.
 * L2 - L1 plus ``reference.md`` when the card has one.
 * L3 - the source, config, and card paths to open next.
 
@@ -174,8 +174,9 @@ def render_text(
 ) -> str:
     """Render ``card`` at ``depth`` as text.
 
-    ``facts`` are runtime facts (for example config or smoke-config paths) that
-    live outside the card; they are listed after the front matter at L1.
+    ``facts`` are runtime facts (for example config paths or dataset split
+    borders) that live outside the card; they are listed before the front
+    matter at L1.
     ``paths`` are the files to open at L3.
     """
     line = l0_line(card_l0(card))
@@ -183,12 +184,13 @@ def render_text(
         return line
     if depth == 3:
         return "\n".join([line, "", *(f"- {path}" for path in (paths or []))])
-    parts = [line, "", front_matter_text(card)]
-    if facts:
+    parts = [line]
+    if facts:  # generated from code, so they lead the page
         parts.append(
             "Runtime facts:\n"
             + "\n".join(f"- {key}: {_format_fact(value)}" for key, value in facts.items())
         )
+    parts.append(front_matter_text(card))
     parts.append(card.body.rstrip())
     if depth == 2 and card.reference:
         parts.append(card.reference.rstrip())

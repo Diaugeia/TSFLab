@@ -19,6 +19,8 @@ class Dataset_Solar(ForecastingDataset):
     in which case timestamps are synthesised as ``start + i * freq``.
     """
 
+    has_header = False
+
     def __init__(
         self,
         root_path: str,
@@ -67,6 +69,7 @@ class Dataset_Solar(ForecastingDataset):
         df_raw = np.stack(df_rows, 0)
         df_raw = pd.DataFrame(df_raw)
         df_raw.columns = df_raw.columns.map(str)
+        df_raw = self._limit_rows(df_raw)
 
         num_samples = len(df_raw)
         border1, border2 = self._get_borders(flag, split_ratio, num_samples)
@@ -77,7 +80,7 @@ class Dataset_Solar(ForecastingDataset):
             df_data = cast(pd.DataFrame, df_raw.loc[:, [str(target)]].copy())
 
         if scale:
-            train_len = int(split_ratio[0] / sum(split_ratio) * num_samples)
+            train_len = self._train_len(split_ratio, num_samples)
             data = self._apply_scaling(df_data.to_numpy(), train_len)
         else:
             data = df_data.to_numpy()

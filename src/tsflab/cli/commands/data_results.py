@@ -77,7 +77,7 @@ def dataset_read(action: str, rest: list[str]) -> int:
             selected, dataset_facts(ROOT, [selected.name]).get(selected.name, {})
         )
         # config, loader, and task modes are already in the card header.
-        facts = {"path": selected.path or "(loader-defined)"}
+        facts = {"path": selected.path or "(loader-defined)", **_split_facts(selected.name)}
         card_path = dataset_card_path(ROOT, selected.name)
         paths = existing(
             ROOT,
@@ -108,11 +108,22 @@ def dataset_read(action: str, rest: list[str]) -> int:
     return 1 if failures else 0
 
 
+def _split_facts(name: str) -> dict[str, str]:
+    """Generated split facts of one preset for its L1 page; never fails the page."""
+    from tsflab.data.protocol import split_protocol
+
+    try:
+        return split_protocol(name, root=ROOT).facts()
+    except Exception as exc:  # noqa: BLE001 - a missing file must not hide the card
+        return {"split": f"unavailable here ({exc}); run `tsf data splits {name}` where the data exists"}
+
+
 def data_command(args: list[str]) -> int:
     """Route dataset scaffolding, preparation, inspection, plotting, and publishing."""
     usage = (
-        "usage: tsf data {add,prepare,inspect,analyze,plot,download,publish,audit} [args...]\n"
+        "usage: tsf data {add,prepare,inspect,analyze,splits,plot,download,publish,audit} [args...]\n"
         "       tsf data prepare [--from traffic|ultratraffic|gift-eval|tfb|dcrnn] [args...]\n"
+        "       tsf data splits <dataset> [--seq-len N] [--path FILE] [--json]   official split borders\n"
         "Find and read datasets with `tsf catalog search|show --kind dataset`."
     )
     if not args or args[0] in {"-h", "--help", "help"}:
@@ -121,6 +132,8 @@ def data_command(args: list[str]) -> int:
     action, rest = args[0], args[1:]
     if action == "audit":
         return dataset_read("audit", rest)
+    if action == "splits":
+        return splits_command(rest)
     scripts = {
         "add": "new_dataset.py",
         "prepare": "pre_process.py",
@@ -157,6 +170,38 @@ def data_command(args: list[str]) -> int:
         print(usage, file=sys.stderr)
         return 2
     return passthrough(script, rest)
+
+
+def splits_command(args: list[str]) -> int:
+    """Print the official split borders and scaling rule of one dataset preset."""
+    from tsflab.data.protocol import split_protocol
+
+    parser = argparse.ArgumentParser(
+        prog="tsf data splits",
+        description="Official split of a dataset preset: rows used (with any truncation), train/val/test "
+                    "row ranges (val/test inputs start seq_len rows early), ratio, and scaling rule, "
+                    "computed by the loader's own code. Use these borders; never re-derive them.",
+    )
+    parser.add_argument("dataset", help="dataset preset name, for example etth1 or weather")
+    parser.add_argument("--seq-len", type=int, default=None,
+                        help="lookback (default: the first lookback in the card's [protocol])")
+    parser.add_argument("--pred-len", type=int, default=None,
+                        help="horizon; only window-index bundles use it (default: first card horizon)")
+    parser.add_argument("--path", default=None,
+                        help="apply the preset's protocol to this file or bundle directory instead")
+    parser.add_argument("--json", action="store_true", help="structured output")
+    parsed = parser.parse_args(args)
+    try:
+        protocol = split_protocol(parsed.dataset, parsed.seq_len, path=parsed.path, pred_len=parsed.pred_len,
+                                  root=ROOT)
+    except (FileNotFoundError, ValueError, KeyError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if parsed.json:
+        _print(protocol.to_dict())
+    else:
+        print(protocol.render())
+    return 0
 
 
 def _extract_from(args: list[str]) -> tuple[str | None, list[str]]:

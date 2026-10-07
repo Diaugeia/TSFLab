@@ -597,3 +597,99 @@ def test_dcrnn_without_gdown_points_to_manual_download(tmp_path, monkeypatch, ca
     monkeypatch.setitem(sys.modules, "gdown", None)
     assert dcrnn.main(["--out", str(tmp_path / "metr_la")]) == 2
     assert "--h5" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# Official split protocol (tsflab.data.protocol, `tsf data splits`)
+# ---------------------------------------------------------------------------
+
+
+def _ranges(protocol):
+    return {flag: (r.start, r.own_start, r.end) for flag, r in protocol.splits.items()}
+
+
+def _hourly_csv(path: Path, rows: int) -> Path:
+    frame = pd.DataFrame({
+        "date": pd.date_range("2016-07-01", periods=rows, freq="h").astype(str),
+        "a": np.sin(np.arange(rows) / 24.0), "OT": np.arange(rows, dtype=float),
+    })
+    frame.to_csv(path, index=False)
+    return path
+
+
+def test_split_borders_offset_val_and_test_by_seq_len() -> None:
+    from tsflab.data.protocol import split_borders, train_rows
+
+    assert split_borders(14400, (0.6, 0.2, 0.2), 96) == {
+        "train": (0, 8640), "val": (8544, 11520), "test": (11424, 14400)}
+    assert split_borders(14400, (12, 4, 4)) == split_borders(14400, (0.6, 0.2, 0.2))
+    assert train_rows(100, (0.7, 0.1, 0.2)) == 70
+
+
+def test_etth1_protocol_truncates_to_14400_rows() -> None:
+    from tsflab.data.protocol import split_protocol
+
+    protocol = split_protocol("ETTh1", 96)  # loader name resolves to the preset
+    assert protocol.dataset == "etth1" and protocol.kind == "chronological"
+    assert protocol.rows_used == 14400 and protocol.row_limit == 14400
+    assert protocol.split_ratio == (0.6, 0.2, 0.2)
+    assert _ranges(protocol) == {"train": (0, 0, 8640), "val": (8544, 8640, 11520),
+                                 "test": (11424, 11520, 14400)}
+    assert "[0, 8640)" in protocol.scaling
+    facts = protocol.facts()
+    assert "val [8640, 11520)" in facts["split borders"] and "tsf data splits etth1" in facts["protocol facts"]
+
+
+def test_ettm1_protocol_truncates_to_57600_rows() -> None:
+    from tsflab.data.protocol import split_protocol
+
+    protocol = split_protocol("ettm1", 336)
+    assert protocol.rows_used == 57600
+    assert _ranges(protocol) == {"train": (0, 0, 34560), "val": (34224, 34560, 46080),
+                                 "test": (45744, 46080, 57600)}
+
+
+def test_custom_ratio_preset_on_an_explicit_file(tmp_path) -> None:
+    from tsflab.data.protocol import load_splits, split_protocol
+
+    path = _hourly_csv(tmp_path / "weather.csv", 100)
+    protocol = split_protocol("weather", 10, path=path)
+    assert protocol.split_ratio == (0.7, 0.1, 0.2) and protocol.row_limit is None
+    assert protocol.file_rows == protocol.rows_used == 100
+    assert _ranges(protocol) == {"train": (0, 0, 70), "val": (60, 70, 80), "test": (70, 80, 100)}
+    assert any("-9999" in note for note in protocol.notes)
+    arrays = load_splits("weather", 10, path=path, features="S")
+    loader = Dataset_Custom(str(tmp_path), "weather.csv", (10, 0, 4), flag="val", features="S",
+                            target="OT", split_ratio=(0.7, 0.1, 0.2), missing_sentinels=[-9999])
+    assert np.array_equal(arrays.val, loader.data)
+    assert [len(arrays[flag]) for flag in ("train", "val", "test")] == [70, 20, 30]
+
+
+def test_ett_protocol_and_arrays_on_a_raw_copy(tmp_path) -> None:
+    from tsflab.data.protocol import load_splits, split_protocol
+
+    path = _hourly_csv(tmp_path / "ETTh1.csv", 15000)
+    protocol = split_protocol("etth1", 96, path=path)
+    assert (protocol.file_rows, protocol.rows_used, protocol.rows_basis) == (15000, 14400, "counted in the file")
+    arrays = load_splits("etth1", 96, path=path)
+    assert [len(arrays[flag]) for flag in ("train", "val", "test")] == [8640, 2976, 2976]
+    raw = pd.read_csv(path).iloc[:, 1:].to_numpy()
+    assert np.allclose(arrays.mean, raw[:8640].mean(axis=0))
+    # val/test rows read start seq_len rows early; the last used row is 14,399.
+    assert np.allclose(arrays.test[-1] * arrays.std + arrays.mean, raw[14399])
+    assert np.allclose(arrays.val[96] * arrays.std + arrays.mean, raw[8640])
+
+
+def test_tsf_data_splits_cli(tmp_path, capsys) -> None:
+    from tsflab.cli import main as cli
+
+    path = _hourly_csv(tmp_path / "ETTh1.csv", 15000)
+    assert cli.main(["data", "splits", "etth1", "--path", str(path), "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["rows_used"] == 14400 and payload["splits"]["test"] == {"start": 11424, "own_start": 11520,
+                                                                           "end": 14400}
+    assert cli.main(["data", "splits", "etth1", "--seq-len", "336", "--path", str(path)]) == 0
+    text = capsys.readouterr().out
+    assert "val    [8304, 11520)" in text and "first 14400" in text
+    assert cli.main(["data", "splits", "no_such_dataset"]) == 2
+    assert "unknown dataset preset" in capsys.readouterr().err

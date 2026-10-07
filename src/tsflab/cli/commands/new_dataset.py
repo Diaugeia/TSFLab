@@ -100,18 +100,19 @@ class {cls}(ForecastingDataset):
         scale: bool,
     ) -> Tuple[np.ndarray, np.ndarray]:
         # TODO: replace with the real loader. This template reads a CSV with a
-        # `date` column + numeric channels and splits it by ratio.
-        df_raw = pd.read_csv(self.file_path)
+        # `date` column + numeric channels and splits it by ratio. Set the class
+        # attribute `max_rows` when the protocol uses only the first rows.
+        df_raw = self._limit_rows(pd.read_csv(self.file_path))
         cols = [c for c in df_raw.columns if c != "date"]
         if features == "S":
             cols = [target]
         df_data = df_raw[cols]
 
         num_samples = len(df_data)
-        border1, border2 = self._get_borders(flag, num_samples, split_ratio)
+        border1, border2 = self._get_borders(flag, split_ratio, num_samples)
 
         if scale:
-            train_len = int(split_ratio[0] / sum(split_ratio) * num_samples)
+            train_len = self._train_len(split_ratio, num_samples)
             data = self._apply_scaling(df_data.to_numpy(), train_len)
         else:
             data = df_data.to_numpy()

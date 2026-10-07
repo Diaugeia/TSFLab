@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import ClassVar, Tuple
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset
+
+from tsflab.data.protocol import split_borders, train_rows
 
 
 class ForecastingDataset(ABC, Dataset):
@@ -47,7 +49,18 @@ class ForecastingDataset(ABC, Dataset):
         the previous behavior). The flag mainly exists so the value/covariate
         split needed by covariate (node) task mode is computed under our own
         control rather than sklearn's.
+
+    Notes
+    -----
+    The official split of every subclass is defined by ``max_rows`` (rows kept
+    from the file start before splitting), ``split_borders``, and
+    ``train_rows`` in :mod:`tsflab.data.protocol`; ``tsf data splits`` prints it.
     """
+
+    #: Rows kept from the start of the file before the split (``None`` keeps all).
+    max_rows: ClassVar[int | None] = None
+    #: Whether the first line of the file is a header row.
+    has_header: ClassVar[bool] = True
 
     def __init__(
         self,
@@ -240,39 +253,29 @@ class ForecastingDataset(ABC, Dataset):
         df_stamp = df_stamp.drop(["date"], axis=1).values
         return df_stamp
 
+    @classmethod
+    def count_rows(cls, file_path: str) -> int:
+        """Return the number of data rows in ``file_path`` (blank lines skipped)."""
+        with open(file_path, "rb") as handle:
+            rows = sum(1 for line in handle if line.strip())
+        return rows - 1 if cls.has_header else rows
+
+    def _limit_rows(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Keep the first ``max_rows`` rows of ``frame`` (all rows when unset)."""
+        return frame.iloc[: self.max_rows, :]
+
+    def _train_len(self, split_ratio: tuple[float, float, float], num_samples: int) -> int:
+        """Rows the scaler is fitted on: the training split of the rows used."""
+        return train_rows(num_samples, split_ratio)
+
     def _get_borders(
         self,
         flag: str,
         split_ratio: tuple[float, float, float],
         num_samples: int,
     ) -> Tuple[int, int]:
-        """Compute slice borders for the requested split.
-
-        Parameters
-        ----------
-        flag : str
-            Split flag: "train", "val", or "test".
-        split_ratio : tuple[float, float, float]
-            Train/val/test split ratios.
-        num_samples : int
-            Total number of samples in the dataset.
-
-        Returns
-        -------
-        tuple[int, int]
-            Start and end indices for the split.
-        """
-        flag_map = {"train": 0, "val": 1, "test": 2}
-        idx = flag_map[flag]
-        total_ratio = sum(split_ratio)
-        cum_ratios = [
-            sum(split_ratio[: i + 1]) / total_ratio for i in range(len(split_ratio))
-        ]
-        border1 = (
-            int(cum_ratios[idx - 1] * num_samples) - self.seq_len if idx > 0 else 0
-        )
-        border2 = int(cum_ratios[idx] * num_samples)
-        return border1, border2
+        """Return ``(start, end)`` rows of ``flag``; see ``protocol.split_borders``."""
+        return split_borders(num_samples, split_ratio, self.seq_len)[flag]
 
     @abstractmethod
     def _read_data(
