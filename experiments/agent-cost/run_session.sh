@@ -78,7 +78,20 @@ EOF
 nvidia-smi ${TRAIN_GPU:+-i "$TRAIN_GPU"} --query-gpu=timestamp,utilization.gpu,memory.used \
   --format=csv,noheader -l "$GPU_SAMPLE_S" > "$RUN/gpu.csv" 2>/dev/null &
 GPU_PID=$!
-trap 'kill $GPU_PID 2>/dev/null || true' EXIT
+# On exit, also stop every process the agent left running in its workspace (for example training started
+# with nohup), so a timed-out or stopped session never keeps a GPU busy for the next one.
+reap_workspace() {
+  local root pid cwd
+  root="$(realpath "$RUN/workspace" 2>/dev/null)" || return 0
+  for p in /proc/[0-9]*; do
+    pid=${p#/proc/}
+    [[ "$pid" == "$$" ]] && continue
+    cwd=$(readlink "$p/cwd" 2>/dev/null) || continue
+    [[ "$cwd" == "$root" || "$cwd" == "$root"/* ]] && kill "$pid" 2>/dev/null
+  done
+  return 0
+}
+trap 'kill $GPU_PID 2>/dev/null || true; reap_workspace' EXIT
 
 export AGENT_COST_DIR="$RUN"
 # Each session gets its own temporary directory, so sessions cannot see each other's files.
