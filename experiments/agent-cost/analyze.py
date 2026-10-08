@@ -102,7 +102,51 @@ def unwrap_shell(cmd: str) -> str:
     return m.group(3) if m else cmd
 
 
-def analyze_codex(events, stages):
+def codex_rollout_usage(run: Path, stages):
+    """True token usage of a Codex session from its own session log.
+
+    `turn.completed` in the exec stream reports a running total for the whole
+    conversation, and nothing at all for an attempt killed by the timeout, so
+    summing it over attempts is wrong. The session log under
+    <run>/codex/sessions records a `token_count` event after every model call
+    with the cumulative `total_token_usage`; resumes append to the same file.
+    Each increase of that total is one model call, attributed to the stage in
+    which it happened. Returns (usage, stage_tokens) or None if there is no log.
+    """
+    files = sorted((run / "codex" / "sessions").rglob("*.jsonl")) if (run / "codex").exists() else []
+    points = []
+    for f in files:
+        for line in f.read_text().splitlines():
+            if '"token_count"' not in line:
+                continue
+            e = json.loads(line)
+            info = ((e.get("payload") or {}).get("info") or {})
+            tu = info.get("total_token_usage")
+            if not tu:
+                continue
+            points.append((parse_ts(e["timestamp"]), tu))
+    if not points:
+        return None
+    points.sort(key=lambda x: (x[0], x[1].get("total_tokens", 0)))
+    def split(u):
+        cached = u.get("cached_input_tokens", 0) or 0
+        cw = u.get("cache_write_input_tokens", 0) or 0
+        return {"input": max(0, (u.get("input_tokens", 0) or 0) - cached - cw), "cache_read": cached,
+                "cache_write": cw, "output": u.get("output_tokens", 0) or 0}
+    prev = {"input": 0, "cache_read": 0, "cache_write": 0, "output": 0}
+    prev_total = 0
+    stage_tokens = defaultdict(float)
+    for t, tu in points:
+        total = tu.get("total_tokens", 0) or 0
+        if total <= prev_total:
+            continue  # repeated event, no new model call
+        cur = split(tu)
+        stage_tokens[stage_of(t, stages)] += sum(max(0, cur[k] - prev[k]) for k in cur)
+        prev, prev_total = cur, total
+    return prev, dict(stage_tokens)
+
+
+def analyze_codex(events, stages, run=None):
     """Token, time, and call counts of a Codex `exec --json` stream.
 
     Codex reports token usage per user turn, not per model call, so tokens are
@@ -151,6 +195,9 @@ def analyze_codex(events, stages):
                 secs[c] += t - started.pop(it.get("id", ""), t)
             chars[c] += n
             stage_chars[stage_of(t, stages)] += n
+    rollout = codex_rollout_usage(run, stages) if run is not None else None
+    if rollout is not None:
+        usage = rollout[0]
     total = sum(usage.values())
     all_chars = sum(chars.values()) or 1
     tokens = {c: {k: v * n / all_chars for k, v in usage.items()} for c, n in chars.items()}
@@ -250,7 +297,7 @@ def main() -> None:
 
     usage_total = None
     if is_codex:
-        tokens, secs, calls, luna, turns, stage_tokens, usage_total = analyze_codex(events, stages)
+        tokens, secs, calls, luna, turns, stage_tokens, usage_total = analyze_codex(events, stages, run)
         tokens = defaultdict(dict, tokens)
 
     wall = (events[-1][0] - events[0][0]) if events else 0.0
@@ -335,6 +382,11 @@ def main() -> None:
         },
         "stage_seconds": stage_secs,
         "stage_tokens": {k: round(v) for k, v in stage_tokens.items()},
+        # Tokens of each model call, by the stage in which the call happened (Codex only).
+        # stage_tokens instead splits the session total by the content each stage brought
+        # into the context, which is what the discovery cost measures.
+        "stage_tokens_by_call": ({k: round(v) for k, v in r[1].items()}
+                                 if is_codex and (r := codex_rollout_usage(run, stages)) else None),
         "gpu_busy_seconds": gpu_busy,
         "code_changes": dict(code),
         "sessions": results,
