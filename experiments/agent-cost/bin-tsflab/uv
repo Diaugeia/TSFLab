@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# TSFLab arms run in the environment that make_env.sh preinstalled (torch for the server's CUDA).
+# `uv run` must not re-sync it to the lockfile (UV_NO_SYNC=1, set by run_session.sh), and `uv sync`
+# is a no-op here, so the agent always uses the existing environment.
+self_dir="$(cd "$(dirname "$0")" && pwd)"
+real="$(PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$self_dir" | paste -sd:)" command -v uv)"
+if [[ "${1:-}" == sync ]]; then
+  echo "The environment is preinstalled for this session; 'uv sync' is not needed and was skipped."
+  exit 0
+fi
+exec "$real" "$@"

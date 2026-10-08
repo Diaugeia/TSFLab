@@ -41,6 +41,9 @@ def main() -> None:
                 budget=task["budget"],
             )
         )
+    elif task["task"] == "benchmark":
+        print(template.format(methods=", ".join(task["methods"]), file=task["file"], data_dir=data_dir,
+                              seq_len=task["seq_len"], pred_len=task["pred_len"]))
     else:
         raise SystemExit(f"unknown task kind: {task['task']}")
 

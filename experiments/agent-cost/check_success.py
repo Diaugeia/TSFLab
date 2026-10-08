@@ -7,6 +7,9 @@ required cell and results/report.md exists. Reports the relative error against
 the paper's numbers where the task gives them.
 Autoresearch: success when a final method has three validation seeds that beat
 the target on every prediction length and exactly one test read per length.
+Benchmark: success when results/results.json has a finite MSE and MAE for every
+listed method and results/report.md exists; methods are matched by name, ignoring
+case and non-alphanumeric characters.
 Exit code 0 on success, 1 otherwise; prints a JSON summary unless --quiet.
 """
 
@@ -126,11 +129,27 @@ def check_autoresearch(task: dict, ws: Path) -> dict:
     return {"success": best is not None, "method": best, "n_candidates": len(by_method), "targets": targets}
 
 
+def check_benchmark(task: dict, ws: Path) -> dict:
+    def norm(name) -> str:
+        return "".join(ch for ch in str(name).lower() if ch.isalnum())
+    got = {norm(r.get("method")): r for r in load_results(ws)}
+    methods, missing = [], []
+    for m in task["methods"]:
+        r = got.get(norm(m))
+        ok = bool(r) and finite(r.get("mse")) and finite(r.get("mae"))
+        methods.append({"method": m, "ok": ok, **({"mse": r["mse"], "mae": r["mae"]} if ok else {})})
+        if not ok:
+            missing.append(m)
+    report = (ws / "results" / "report.md").exists()
+    return {"success": not missing and report, "missing": missing, "report": report, "methods": methods}
+
+
 def main() -> None:
     task = json.loads(Path(sys.argv[1]).read_text())
     ws = Path(sys.argv[2])
     quiet = "--quiet" in sys.argv
-    out = check_reproduce(task, ws) if task["task"] == "reproduce" else check_autoresearch(task, ws)
+    check = {"reproduce": check_reproduce, "benchmark": check_benchmark}.get(task["task"], check_autoresearch)
+    out = check(task, ws)
     if not quiet:
         print(json.dumps(out, indent=2))
     sys.exit(0 if out["success"] else 1)

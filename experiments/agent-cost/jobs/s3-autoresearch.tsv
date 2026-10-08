@@ -1,0 +1,17 @@
+# Scaffold paper, task 3 (autoresearch), 2026-10-08: ETTh1 and Weather, every arm, 2 runs; TIMEOUT_H=10 for the 8 GPU-hour budget.
+ar-etth1	tsflab@79e3583b	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tsflab@79e3583b	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tslib	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tslib	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tfb	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tfb	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	empty	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	empty	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tsflab@79e3583b	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tsflab@79e3583b	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tslib	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tslib	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tfb	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tfb	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	empty	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	empty	2	codex	gpt-6-luna	TIMEOUT_H=10

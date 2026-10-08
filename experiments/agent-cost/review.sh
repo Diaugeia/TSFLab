@@ -7,14 +7,21 @@ ID="${2:-a}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TASK="$(python3 -c 'import json,sys; m=json.load(open(sys.argv[1])); print(m["task"])' "$RUN/meta.json")"
 TASK="$HERE/tasks/$TASK"
-PROMPT="$(python3 - "$TASK" "$HERE/prompts/review.md" <<'PY'
+PROMPT="$(python3 - "$TASK" "$HERE/prompts" <<'PY'
 import json, sys
-t = json.load(open(sys.argv[1])); tpl = open(sys.argv[2]).read()
-seen = []
-for c in t["cells"]:
-    s = f"{c['dataset']} at {c['pred_len']}"
-    if s not in seen: seen.append(s)
-print(tpl.format(paper_url=t["paper_url"], cells=", ".join(seen)))
+t = json.load(open(sys.argv[1])); d = sys.argv[2]
+if t["task"] == "reproduce":
+    seen = []
+    for c in t["cells"]:
+        s = f"{c['dataset']} at {c['pred_len']}"
+        if s not in seen: seen.append(s)
+    print(open(f"{d}/review.md").read().format(paper_url=t["paper_url"], cells=", ".join(seen)))
+elif t["task"] == "benchmark":
+    print(open(f"{d}/review-benchmark.md").read().format(methods=", ".join(t["methods"]), file=t["file"],
+          seq_len=t["seq_len"], pred_len=t["pred_len"]))
+else:
+    print(open(f"{d}/review-autoresearch.md").read().format(target_method=t["target_method"], dataset=t["dataset"],
+          split=t["split"], pred_lens=", ".join(str(p) for p in t["pred_lens"])))
 PY
 )"
 mkdir -p "$RUN/review-$ID"; ln -sf "$HOME/.codex/auth.json" "$RUN/review-$ID/auth.json"

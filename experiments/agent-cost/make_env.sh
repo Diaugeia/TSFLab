@@ -16,6 +16,9 @@
 #                    removed: `tsf run`, `tsf result`, and `tsf data` are disabled,
 #                    the runner entry points (run_one.py, evaluator.py) are deleted,
 #                    and the skills that run or analyze experiments are removed.
+#   tsflab-nometa    Same knowledge, code, and tools; the domain meta-cognition is
+#                    removed: the entry files (AGENTS.md, CLAUDE.md, .agents/) and
+#                    every skill (.agents/skills, .claude/skills).
 #   tslib            Time-Series-Library at TSLIB_COMMIT.
 #   tfb              TFB at TFB_COMMIT.
 #   empty            An empty directory.
@@ -33,9 +36,9 @@ WS="${2:?usage: make_env.sh <arm> <workspace> [tsflab-commit]}"
 TSFLAB_SRC="${TSFLAB_SRC:-$(cd "$(dirname "$0")/../.." && pwd)}"
 TSFLAB_COMMIT="${3:-$(git -C "$TSFLAB_SRC" rev-parse dev)}"
 TSLIB_URL="${TSLIB_URL:-https://github.com/thuml/Time-Series-Library.git}"
-TSLIB_COMMIT="${TSLIB_COMMIT:-main}"
+TSLIB_COMMIT="${TSLIB_COMMIT:-4e938a1}"   # main on 2026-10-06 (last change 2026-04-18)
 TFB_URL="${TFB_URL:-https://github.com/decisionintelligence/TFB.git}"
-TFB_COMMIT="${TFB_COMMIT:-master}"
+TFB_COMMIT="${TFB_COMMIT:-a0087ed7}"     # master on 2026-10-06
 INSTALL="${INSTALL:-local}"
 
 if [[ -e "$WS" ]]; then echo "workspace exists: $WS" >&2; exit 1; fi
@@ -98,6 +101,10 @@ case "$ARM" in
     } > "$WS/KNOWLEDGE.md"
     knowledge_dirs | while read -r d; do rm -f "$d/README.md" "$d/reference.md"; done
     disable_catalog
+    ;;
+  tsflab-nometa)
+    clone_tsflab
+    rm -rf "$WS/AGENTS.md" "$WS/CLAUDE.md" "$WS/.agents" "$WS/.claude/skills"
     ;;
   tsflab-notools)
     clone_tsflab

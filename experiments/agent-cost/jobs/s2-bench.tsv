@@ -1,0 +1,34 @@
+# Scaffold paper, task 2 (benchmarking on a new dataset), 2026-10-08: two TSFLab real-time tracks exported to CSV
+# (make_benchmark_data.py), 8 methods; Codex 3 runs per arm, Claude Code + Sonnet 1 run per arm for cross-agent agreement.
+bench-ercot	tsflab@79e3583b	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@79e3583b	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@79e3583b	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@79e3583b	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tslib	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tslib	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tslib	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tslib	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@79e3583b	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@79e3583b	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@79e3583b	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@79e3583b	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4

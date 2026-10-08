@@ -1,0 +1,20 @@
+{
+ "task": "benchmark",
+ "id": "bench-weather",
+ "kind": "benchmark",
+ "dataset": "weather_openmeteo_temp",
+ "file": "weather_openmeteo_temp.csv",
+ "methods": [
+  "DLinear",
+  "PatchTST",
+  "iTransformer",
+  "TimesNet",
+  "TimeMixer",
+  "Crossformer",
+  "SegRNN",
+  "TiDE"
+ ],
+ "seq_len": 168,
+ "pred_len": 24,
+ "note": "TSFLab real-time track exported by make_benchmark_data.py (window ending 2026-09-30 23:00); every listed method is in TSFLab, TSLib, and TFB"
+}

@@ -84,6 +84,9 @@ export AGENT_COST_DIR="$RUN"
 # Each session gets its own temporary directory, so sessions cannot see each other's files.
 mkdir -p "$RUN/tmp"; export TMPDIR="$RUN/tmp"
 export PATH="$HERE/bin:$PATH"
+# TSFLab arms use the preinstalled environment as is: no re-sync to the lockfile (whose torch is the
+# CUDA 13 build) and no `uv sync`. Other arms install their own environments in make_env.sh.
+if [[ "$ARM" == tsflab* ]]; then export UV_NO_SYNC=1 PATH="$HERE/bin-tsflab:$PATH"; fi
 [[ "$AGENT" == codex ]] || export CLAUDE_CONFIG_DIR="$RUN/config"
 
 BUDGET_ARGS=()

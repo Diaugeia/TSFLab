@@ -5,7 +5,9 @@ stages.tsv, interventions.tsv, gpu.csv, diff.numstat, success.json, meta.json.
 
 Every tool call is classified by action type:
   paper   reading or fetching the target paper (needed in every environment)
-  read    reading or searching the environment: knowledge, code, documentation
+  read    finding and reading information: the environment (knowledge, code,
+          documentation) and the web (searches, and fetching pages, code, or data
+          that are not the target paper)
   write   writing or editing files
   run     executing code (installs, training, scripts, git, ...)
   other   bookkeeping (todo lists, stage markers, subagent launches)
@@ -34,6 +36,11 @@ READ_CMD = re.compile(
     r"(uv\s+run\s+)?tsf\s+(catalog|model\s+(show|issues|similar|list)|component\s+(show|list)|dataset\s+(show|list)|data\s+(show|list))|"
     r"(uv\s+run\s+)?python3?\s+-c\s+['\"]\s*(import\s+\w+\s*;\s*)*print\(\s*open)"
 )
+# Fetching from the web (pages, repositories, data); a fetch of the target paper is `paper`.
+WEB_CMD = re.compile(
+    r"^(curl|wget|aria2c|git\s+clone|gh\s+(repo|api|release|search)|huggingface-cli\s+download|"
+    r"(uv\s+run\s+)?python3?\s+-c\s+.*\b(requests|urllib|httpx)\b)"
+)
 WRITE_CMD = re.compile(r"(^|\s)(cat|tee|echo|printf)\b[^|]*(>|<<)|^\s*(cp|mv|mkdir|touch|rm)\b")
 
 
@@ -61,6 +68,8 @@ def classify(name: str, inp: dict) -> str:
             return "other"
         if PAPER_HINT.search(cmd) and re.match(r"^(curl|wget|pdftotext|python3?|uv)", cmd):
             return "paper"
+        if WEB_CMD.match(cmd):
+            return "read"
         if WRITE_CMD.search(cmd):
             return "write"
         if READ_CMD.match(cmd):
@@ -182,7 +191,7 @@ def analyze_codex(events, stages, run=None):
                 c, n = "write", len(json.dumps(it.get("changes", [])))
             elif kind == "web_search":
                 q = json.dumps(it)
-                c, n = ("paper" if PAPER_HINT.search(q) else "other"), len(q)
+                c, n = ("paper" if PAPER_HINT.search(q) else "read"), len(q)
             elif kind in ("agent_message", "reasoning"):
                 c, n = "reason", len(it.get("text", "") or "")
             elif kind in ("mcp_tool_call", "todo_list"):
