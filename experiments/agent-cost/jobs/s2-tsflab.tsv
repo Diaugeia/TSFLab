@@ -1,0 +1,9 @@
+# TSFLab arm of task 2 on 845f1a0d.
+bench-ercot	tsflab@845f1a0d	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@845f1a0d	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@845f1a0d	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@845f1a0d	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4

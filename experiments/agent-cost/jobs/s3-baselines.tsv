@@ -1,0 +1,13 @@
+# Baseline arms (TSLib, TFB, no scaffold) of jobs/s3-autoresearch.tsv.
+ar-etth1	tslib	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tslib	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tfb	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tfb	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	empty	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	empty	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tslib	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tslib	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tfb	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tfb	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	empty	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	empty	2	codex	gpt-6-luna	TIMEOUT_H=10

@@ -1,0 +1,25 @@
+# Baseline arms (TSLib, TFB, no scaffold) of jobs/s2-bench.tsv; they do not depend on the TSFLab version.
+bench-ercot	tslib	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tslib	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tslib	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tslib	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tfb	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	empty	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tslib	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tfb	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	empty	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
