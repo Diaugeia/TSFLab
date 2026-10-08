@@ -2,7 +2,7 @@
 
 The workspace is a git repository whose first commit is the state before the session
 (make_env.sh). The measure covers Python files that the session added or modified,
-outside results, logs, caches, and virtual environments, in the spirit of the
+outside logs, run directories, caches, and virtual environments (code under results/ counts; code the agent fetched into the workspace counts as added), in the spirit of the
 earlier Repo-Bench comparison (ruff C901, radon, duplication):
 
   files_added, files_modified   Python files the session touched
@@ -24,7 +24,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SKIP = re.compile(r"(^|/)(results|work_dirs|logs?|outputs?|checkpoints?|\.venv|\.cache|__pycache__|tmp)(/|$)")
+SKIP = re.compile(r"(^|/)(work_dirs|logs?|outputs?|checkpoints?|\.venv|\.cache|__pycache__|tmp)(/|$)")
 
 
 def git(ws: Path, *args: str) -> str:
