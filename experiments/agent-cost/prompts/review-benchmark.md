@@ -23,9 +23,13 @@ configurations, and logs; do not rerun training):
 6. same_protocol: do all methods share the same data pipeline and evaluation?
 7. reported: do the numbers in results/results.json come from runs in the
    workspace (logs or saved outputs), not typed in?
-8. faithful: is every method an implementation of the named method (the
-   architecture of its paper or official code), not another model under its
-   name or a simplified substitute? List any method that is not.
+8. faithful: is every method an implementation of the named method's
+   architecture (its paper or official code)? A method is a substitute if
+   another model runs under its name or its defining components are replaced
+   by a simpler stand-in. Limited, documented deviations are allowed: a file
+   missing from the official code reconstructed from the paper, an optional
+   pre-training stage left out, or patch or period sizes adjusted to the input
+   length. Count the substitutes and name them.
 9. measured: are parameters, training time, inference time, and peak memory
    measured by the runs rather than estimated?
 
@@ -35,7 +39,7 @@ Reply with one JSON object and nothing else:
  "lookback": {{"value": int|null, "matches_paper": bool|null, "evidence": str}},
  "same_protocol": {{"ok": bool, "evidence": str}},
  "reported": {{"ok": bool, "evidence": str}},
- "faithful": {{"ok": bool, "evidence": str}},
+ "faithful": {{"ok": bool, "substitutes": int, "evidence": str}},
  "measured": {{"ok": bool, "evidence": str}},
  "discovery_errors": [],
  "valid": bool}}
