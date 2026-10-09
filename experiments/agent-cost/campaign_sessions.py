@@ -78,6 +78,11 @@ def record(run: Path):
         rec.update(completion=len(ok) / max(len(task.get("methods") or []), 1),
                    valid=(len(ok) / max(len(task.get("methods") or []), 1)) if session_valid else 0.0,
                    mse={x["method"]: x["mse"] for x in ok} if session_valid else {})
+        # faithful methods: the listed methods minus the substitutes the reviewers counted (mean over reviewers)
+        subs = [r["faithful"]["substitutes"] for r in (load(run / f"review.{i}.json") for i in "ab")
+                if isinstance(r, dict) and isinstance((r.get("faithful") or {}).get("substitutes"), int)]
+        if subs and ok:
+            rec["faithful_methods"] = len(ok) - sum(subs) / len(subs)
     else:
         succ = bool(s.get("success")) and produced
         gain, reads = ar_gain(run, task, s)
