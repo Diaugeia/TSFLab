@@ -6,7 +6,8 @@
 # Creates <run-dir>/workspace with make_env.sh, then runs the agent headless in
 # it with an isolated configuration (no user instructions, memory, plugins, or
 # MCP servers). AGENT=claude (default) runs Claude Code; AGENT=codex runs Codex
-# CLI with CODEX_HOME=<run-dir>/codex, which links the login of ~/.codex. Every stream-json line is stored with the time it arrived.
+# CLI with CODEX_HOME=<run-dir>/codex, which links the login of ~/.codex; AGENT=pi runs pi (provider openai, the
+# login of ~/.pi/agent, sessions in <run-dir>/pi). Every stream-json line is stored with the time it arrived.
 # If the session stops before results/results.json covers every cell, the
 # runner resumes it with one fixed message, at most MAX_RESUMES times; each
 # resume counts as one human intervention.
@@ -20,7 +21,7 @@ TASK="$(realpath "${1:?usage: run_session.sh <task.json> <arm> <run-dir> [model]
 ARM="${2:?arm}"
 RUN="$(realpath -m "${3:?run-dir}")"
 AGENT="${AGENT:-claude}"
-if [[ "$AGENT" == codex ]]; then MODEL="${4:-gpt-6-luna}"; else MODEL="${4:-claude-sonnet-5-5}"; fi
+if [[ "$AGENT" == codex || "$AGENT" == pi ]]; then MODEL="${4:-gpt-6-luna}"; else MODEL="${4:-claude-sonnet-5-5}"; fi
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DATA_DIR="${DATA_DIR:?set DATA_DIR to the raw data directory}"
 TIMEOUT_H="${TIMEOUT_H:-8}"
@@ -32,7 +33,12 @@ mkdir -p "$RUN"
 
 # Isolated agent configuration.
 mkdir -p "$RUN/config"
-if [[ "$AGENT" == codex ]]; then
+if [[ "$AGENT" == pi ]]; then
+  # pi is installed with npm under nvm; its OAuth login lives in ~/.pi/agent (shared, refreshed in place).
+  export PATH="$(dirname "$(bash -lc 'source ~/.nvm/nvm.sh >/dev/null 2>&1; command -v pi')"):$PATH"
+  mkdir -p "$RUN/pi"
+  AGENT_VERSION="pi $(pi --version | head -1)"
+elif [[ "$AGENT" == codex ]]; then
   # Link (not copy) the login so a token refresh in one session reaches the others.
   mkdir -p "$RUN/codex"
   export CODEX_HOME="$RUN/codex"
@@ -102,7 +108,7 @@ export PATH="$HERE/bin:$PATH"
 # TSFLab arms use the preinstalled environment as is: no re-sync to the lockfile (whose torch is the
 # CUDA 13 build) and no `uv sync`. Other arms install their own environments in make_env.sh.
 if [[ "$ARM" == tsflab* ]]; then export UV_NO_SYNC=1 PATH="$HERE/bin-tsflab:$PATH"; fi
-[[ "$AGENT" == codex ]] || export CLAUDE_CONFIG_DIR="$RUN/config"
+[[ "$AGENT" == codex || "$AGENT" == pi ]] || export CLAUDE_CONFIG_DIR="$RUN/config"
 
 BUDGET_ARGS=()
 [[ -n "${MAX_BUDGET_USD:-}" ]] && BUDGET_ARGS=(--max-budget-usd "$MAX_BUDGET_USD")
@@ -131,7 +137,21 @@ for attempt in $(seq 0 "$MAX_RESUMES"); do
     MSG="Continue until the task is complete."
     printf '%s\tresume %d\n' "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" "$attempt" >> "$RUN/interventions.tsv"
   fi
-  if [[ "$AGENT" == codex ]]; then
+  if [[ "$AGENT" == pi ]]; then
+    CONT=()
+    [[ $attempt -gt 0 ]] && CONT=(--continue)
+    (cd "$RUN/workspace" && timeout "${TIMEOUT_H}h" pi -p --mode json --provider openai --model "$MODEL" \
+        --thinking "${REASONING_EFFORT:-medium}" --session-dir "$RUN/pi" "${CONT[@]}" "$MSG" \
+        < /dev/null 2> "$RUN/stderr.$attempt.txt" | stamp > "$RUN/stream.$attempt.jsonl") || true
+    session_id="$(python3 -c '
+import json, sys
+sid = ""
+for l in open(sys.argv[1]):
+    d = json.loads(l)["d"]
+    if d.get("type") == "session":
+        sid = d.get("id", sid)
+print(sid)' "$RUN/stream.$attempt.jsonl")"
+  elif [[ "$AGENT" == codex ]]; then
     if [[ $attempt -eq 0 ]]; then CMD=(codex exec); else CMD=(codex exec resume "$session_id"); fi
     (cd "$RUN/workspace" && timeout "${TIMEOUT_H}h" "${CMD[@]}" --json -m "$MODEL" \
         -c model_reasoning_effort="${REASONING_EFFORT:-medium}" \

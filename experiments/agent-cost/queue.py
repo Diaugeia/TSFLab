@@ -36,6 +36,8 @@ def jobs(path: Path):
         env = dict(kv.split("=", 1) for kv in f[5:] if "=" in kv)
         arm, _, commit = spec.partition("@")
         tag = model.split("/")[-1] if model else agent
+        if agent == "pi":  # Codex and pi can run the same model; keep their run names apart
+            tag = f"pi-{tag}"
         name = f"{task}-{spec.replace('@', '-')}-{tag}-r{rep}"
         yield dict(task=task, arm=arm, commit=commit, agent=agent, model=model, env=env, name=name)
 

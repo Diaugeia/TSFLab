@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from analyze import PAPER_HINT, WEB_CMD, classify, strip_cmd, unwrap_shell  # noqa: E402
+from analyze import PAPER_HINT, WEB_CMD, classify, pi_tool, strip_cmd, unwrap_shell  # noqa: E402
 
 
 def events(run: Path):
@@ -58,6 +58,19 @@ def measure(run: Path) -> dict:
             elif kind == "web_search":
                 out["calls"] += 1
                 out["web_calls"] += 1
+                out["read_calls"] += 1
+        elif typ == "tool_execution_end":  # pi
+            name, args = pi_tool(d)
+            out["calls"] += 1
+            res = d.get("result") if isinstance(d.get("result"), dict) else {}
+            text = json.dumps(res)
+            code = (res.get("structuredContent") or {}).get("exit_code") if isinstance(res.get("structuredContent"), dict) else None
+            if d.get("isError") or (code not in (0, None)) or "Traceback (most recent call last)" in text:
+                out["failed_calls"] += 1
+            cmd = unwrap_shell(str(args.get("command", ""))) if name == "Bash" else ""
+            if name == "Bash" and is_web_cmd(cmd):
+                out["web_calls"] += 1
+            if classify(name, {"command": cmd} if name == "Bash" else args) in ("read", "paper"):
                 out["read_calls"] += 1
         elif typ == "assistant":  # Claude Code
             for b in (d.get("message") or {}).get("content") or []:

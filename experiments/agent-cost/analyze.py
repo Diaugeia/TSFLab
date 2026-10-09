@@ -215,6 +215,66 @@ def analyze_codex(events, stages, run=None):
     return tokens, secs, calls, luna, steps, stage_tokens, usage
 
 
+PI_EVENTS = {"agent_start", "agent_end", "turn_start", "turn_end", "tool_execution_start", "tool_execution_end"}
+PI_TOOLS = {"bash": "Bash", "read": "Read", "write": "Write", "edit": "Edit", "grep": "Grep", "find": "Glob", "ls": "LS"}
+
+
+def pi_tool(d: dict) -> tuple[str, dict]:
+    """Claude Code-style tool name and input of a pi tool event (for classify)."""
+    name = PI_TOOLS.get(str(d.get("toolName", "")), str(d.get("toolName", "")))
+    args = d.get("args") if isinstance(d.get("args"), dict) else {}
+    if name == "Read" and "path" in args:
+        args = {**args, "file_path": args["path"]}
+    return name, args
+
+
+def analyze_pi(events, stages):
+    """Token, time, and call counts of a pi `--mode json` stream.
+
+    Each assistant message reports its own usage at `message_end`; tokens are attributed to actions by the
+    size of what each tool call brought into the context, as for Codex.
+    """
+    usage = {"input": 0, "cache_read": 0, "cache_write": 0, "output": 0}
+    calls, secs, chars = defaultdict(int), defaultdict(float), defaultdict(float)
+    stage_chars = defaultdict(float)
+    started: dict[str, float] = {}
+    steps = 0
+    for t, d in events:
+        typ = d.get("type")
+        if typ == "message_end":
+            m = d.get("message") or {}
+            if m.get("role") != "assistant":
+                continue
+            u = m.get("usage") or {}
+            usage["input"] += u.get("input", 0) or 0
+            usage["cache_read"] += u.get("cacheRead", 0) or 0
+            usage["cache_write"] += u.get("cacheWrite", 0) or 0
+            usage["output"] += u.get("output", 0) or 0
+            n = sum(len(str(c.get("text", "") or c.get("thinking", "") or "")) for c in m.get("content") or []
+                    if isinstance(c, dict))
+            chars["reason"] += n
+            stage_chars[stage_of(t, stages)] += n
+        elif typ == "tool_execution_start":
+            started[str(d.get("toolCallId", ""))] = t
+        elif typ == "tool_execution_end":
+            name, args = pi_tool(d)
+            if name == "Bash":
+                args = {"command": unwrap_shell(str(args.get("command", "")))}
+            c = classify(name, args)
+            n = len(json.dumps(args)) + len(json.dumps(d.get("result", "")))
+            calls[c] += 1
+            steps += 1
+            secs[c] += t - started.pop(str(d.get("toolCallId", "")), t)
+            chars[c] += n
+            stage_chars[stage_of(t, stages)] += n
+    total = sum(usage.values())
+    all_chars = sum(chars.values()) or 1
+    tokens = {c: {k: v * n / all_chars for k, v in usage.items()} for c, n in chars.items()}
+    luna = sum(usage[k] * LUNA[k] for k in usage) / 1e6
+    stage_tokens = {s: total * n / all_chars for s, n in stage_chars.items()}
+    return tokens, secs, calls, luna, steps, stage_tokens, usage
+
+
 def main() -> None:
     run = Path(sys.argv[1])
     events = load_stream(run)
@@ -225,6 +285,7 @@ def main() -> None:
                 stages.append((parse_ts(row[0]), row[1]))
 
     is_codex = any(d.get("type") in CODEX_EVENTS for _, d in events)
+    is_pi = not is_codex and any(d.get("type") in PI_EVENTS for _, d in events)
     tokens = defaultdict(lambda: {"input": 0, "cache_read": 0, "cache_write": 0, "output": 0})
     secs = defaultdict(float)
     stage_tokens = defaultdict(float)
@@ -307,6 +368,9 @@ def main() -> None:
     usage_total = None
     if is_codex:
         tokens, secs, calls, luna, turns, stage_tokens, usage_total = analyze_codex(events, stages, run)
+        tokens = defaultdict(dict, tokens)
+    elif is_pi:
+        tokens, secs, calls, luna, turns, stage_tokens, usage_total = analyze_pi(events, stages)
         tokens = defaultdict(dict, tokens)
 
     wall = (events[-1][0] - events[0][0]) if events else 0.0
