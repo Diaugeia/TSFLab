@@ -91,11 +91,13 @@ reap_workspace() {
   done
   return 0
 }
-trap 'kill $GPU_PID 2>/dev/null || true; reap_workspace' EXIT
+trap 'kill $GPU_PID 2>/dev/null || true; reap_workspace; rm -rf "$TMPDIR"' EXIT
 
 export AGENT_COST_DIR="$RUN"
 # Each session gets its own temporary directory, so sessions cannot see each other's files.
-mkdir -p "$RUN/tmp"; export TMPDIR="$RUN/tmp"
+# A short private temporary directory: multiprocessing sockets live there, and AF_UNIX paths are limited to
+# 108 bytes, so a directory under the run path makes data-loader workers fail to start.
+export TMPDIR="$(mktemp -d /tmp/ac.XXXXXX)"; echo "$TMPDIR" > "$RUN/tmpdir.txt"
 export PATH="$HERE/bin:$PATH"
 # TSFLab arms use the preinstalled environment as is: no re-sync to the lockfile (whose torch is the
 # CUDA 13 build) and no `uv sync`. Other arms install their own environments in make_env.sh.
