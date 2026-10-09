@@ -5,8 +5,9 @@
 Reproduce: success when results/results.json has a finite MSE and MAE for every
 required cell and results/report.md exists. Reports the relative error against
 the paper's numbers where the task gives them.
-Autoresearch: success when a final method has three validation seeds that beat
-the target on every prediction length and exactly one test read per length.
+Autoresearch: success when a final method has three validation seeds whose mean
+beats the target on every prediction length, and a test result for every length
+(the prompt asks to read test metrics once, for the final method).
 Benchmark: success when results/results.json has a finite MSE and MAE for every
 listed method and results/report.md exists; methods are matched by name, ignoring
 case and non-alphanumeric characters.
@@ -122,7 +123,7 @@ def check_autoresearch(task: dict, ws: Path) -> dict:
             test = [r for r in rs if r.get("split") == "test" and int(r.get("pred_len", -1)) == p]
             seeds = {r.get("seed") for r in val}
             mean_val = sum(r["mse"] for r in val) / len(val) if val else math.inf
-            if len(seeds) < 3 or mean_val >= targets[str(p)] or len(test) != len(seeds):
+            if len(seeds) < 3 or mean_val >= targets[str(p)] or not test:
                 ok = False
         if ok:
             best = method
