@@ -9,7 +9,8 @@ Autoresearch: success when a final method has three validation seeds whose mean
 beats the target on every prediction length, and a test result for every length
 (the prompt asks to read test metrics once, for the final method).
 Benchmark: success when results/results.json has a finite MSE and MAE for every
-listed method and results/report.md exists; methods are matched by name, ignoring
+listed method (and parameters, training and inference time, and peak memory when the
+task names newer methods with their papers) and results/report.md exists; methods are matched by name, ignoring
 case and non-alphanumeric characters.
 Exit code 0 on success, 1 otherwise; prints a JSON summary unless --quiet.
 """
@@ -137,8 +138,9 @@ def check_benchmark(task: dict, ws: Path) -> dict:
     methods, missing = [], []
     for m in task["methods"]:
         r = got.get(norm(m))
-        ok = bool(r) and finite(r.get("mse")) and finite(r.get("mae"))
-        methods.append({"method": m, "ok": ok, **({"mse": r["mse"], "mae": r["mae"]} if ok else {})})
+        cost = ("params", "train_s", "infer_s", "peak_mem_mb") if task.get("papers") else ()
+        ok = bool(r) and finite(r.get("mse")) and finite(r.get("mae")) and all(finite(r.get(k)) for k in cost)
+        methods.append({"method": m, "ok": ok, **({k: r[k] for k in ("mse", "mae", *cost, "epochs") if k in r} if ok else {})})
         if not ok:
             missing.append(m)
     report = (ws / "results" / "report.md").exists()

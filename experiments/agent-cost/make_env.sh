@@ -133,7 +133,8 @@ case "$ARM" in
   *) echo "unknown arm: $ARM" >&2; exit 1 ;;
 esac
 
-# Install the environment before the session (not measured). SKIP_INSTALL=1 skips it (tests only).
+# Install the environment before the session (not measured). SKIP_INSTALL=1 leaves it to the agent, so that
+# installing is part of the session (benchmarking on new methods, 2026-10-09) or for tests.
 TORCH=()
 [[ "$INSTALL" == server ]] && TORCH=(--torch-backend cu126)
 [[ "${SKIP_INSTALL:-0}" == 1 ]] || case "$ARM" in

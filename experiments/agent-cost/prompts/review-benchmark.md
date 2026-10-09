@@ -23,6 +23,11 @@ configurations, and logs; do not rerun training):
 6. same_protocol: do all methods share the same data pipeline and evaluation?
 7. reported: do the numbers in results/results.json come from runs in the
    workspace (logs or saved outputs), not typed in?
+8. faithful: is every method an implementation of the named method (the
+   architecture of its paper or official code), not another model under its
+   name or a simplified substitute? List any method that is not.
+9. measured: are parameters, training time, inference time, and peak memory
+   measured by the runs rather than estimated?
 
 Reply with one JSON object and nothing else:
 {{"split": {{"ok": bool, "evidence": str}}, "scaling": {{"ok": bool, "evidence": str}},
@@ -30,8 +35,10 @@ Reply with one JSON object and nothing else:
  "lookback": {{"value": int|null, "matches_paper": bool|null, "evidence": str}},
  "same_protocol": {{"ok": bool, "evidence": str}},
  "reported": {{"ok": bool, "evidence": str}},
+ "faithful": {{"ok": bool, "evidence": str}},
+ "measured": {{"ok": bool, "evidence": str}},
  "discovery_errors": [],
  "valid": bool}}
 where "valid" is true only if split, scaling, selection, test_windows,
-same_protocol, and reported are all ok, and lookback "matches_paper" means the
+same_protocol, reported, faithful, and measured are all ok, and lookback "matches_paper" means the
 input length is {seq_len}.

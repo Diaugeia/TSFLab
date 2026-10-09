@@ -42,7 +42,9 @@ def main() -> None:
             )
         )
     elif task["task"] == "benchmark":
-        print(template.format(methods=", ".join(task["methods"]), file=task["file"], data_dir=data_dir,
+        papers = "".join(f"- {m}: {t}\n" for m, t in (task.get("papers") or {}).items())
+        papers = f"Papers of the newer methods:\n{papers}" if papers else ""
+        print(template.format(methods=", ".join(task["methods"]), papers=papers, file=task["file"], data_dir=data_dir,
                               seq_len=task["seq_len"], pred_len=task["pred_len"]))
     else:
         raise SystemExit(f"unknown task kind: {task['task']}")
