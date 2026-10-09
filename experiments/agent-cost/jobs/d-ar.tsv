@@ -1,0 +1,5 @@
+# 2026-10-09: task 3 TSFLab arm on 845f1a0d.
+ar-etth1	tsflab@845f1a0d	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-etth1	tsflab@845f1a0d	2	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tsflab@845f1a0d	1	codex	gpt-6-luna	TIMEOUT_H=10
+ar-weather	tsflab@845f1a0d	2	codex	gpt-6-luna	TIMEOUT_H=10

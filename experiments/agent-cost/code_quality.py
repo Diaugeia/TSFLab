@@ -14,10 +14,14 @@ earlier Repo-Bench comparison (ruff C901, radon, duplication):
   dup_lines                     added lines that repeat an existing line of the
                                 workspace, ignoring blank lines, comments, imports,
                                 and lines shorter than 30 characters
+  config_lines                  lines added to configuration files (TOML, YAML), outside results
+  reuse_share                   share of touched files that import a module that
+                                existed in the workspace before the session
 
 radon runs through `uvx radon` (no install in the session environment).
 """
 
+import ast
 import json
 import re
 import subprocess
@@ -66,7 +70,12 @@ def measure(run: Path) -> dict:
         git(ws, "reset", "-q")
     touched = {p[-1]: p[0][0] for p in status
                if p[-1].endswith(".py") and p[0][0] in "AM" and not SKIP.search(p[-1])}
-    res = {"files_added": sum(v == "A" for v in touched.values()),
+    cfg = 0
+    for n in numstat:
+        if len(n) == 3 and n[0] != "-" and n[2].endswith((".toml", ".yaml", ".yml")) and not SKIP.search(n[2]) \
+                and not n[2].startswith("results/"):
+            cfg += int(n[0])
+    res = {"config_lines": cfg, "files_added": sum(v == "A" for v in touched.values()),
            "files_modified": sum(v == "M" for v in touched.values()),
            "lines_added": 0, "lines_removed": 0}
     for a, r, path in (n for n in numstat if len(n) == 3):
@@ -107,6 +116,46 @@ def measure(run: Path) -> dict:
             if len(k) >= 30 and not k.startswith(("#", "import ", "from ")) and existing.get(k, 0) > 1:
                 dup += 1
     res["dup_lines"] = dup
+    # reuse: touched files importing a module of the baseline workspace
+    base_files = git(ws, "ls-tree", "-r", "--name-only", base).split()
+    base_mods = set()
+    for f in base_files:
+        if f.endswith(".py") and not SKIP.search(f):
+            parts = f[:-3].split("/")
+            if parts[-1] == "__init__":
+                parts = parts[:-1]
+            for i in range(len(parts)):
+                base_mods.add(".".join(parts[i:]))  # src/tsflab/models/x -> tsflab.models.x, models.x, ...
+    reused = 0
+    for p in touched:
+        try:
+            tree = ast.parse((ws / p).read_text(errors="ignore"))
+        except (OSError, SyntaxError):
+            continue
+        mods = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module and not node.level:
+                mods.add(node.module)
+            elif isinstance(node, ast.Import):
+                mods.update(a.name for a in node.names)
+            elif isinstance(node, ast.Call):  # __import__("models." + name), importlib.import_module(f"models.{x}")
+                fn = node.func
+                name = fn.id if isinstance(fn, ast.Name) else getattr(fn, "attr", "")
+                if name in ("__import__", "import_module") and node.args:
+                    arg = node.args[0]
+                    lit = ""
+                    if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+                        lit = arg.value
+                    elif isinstance(arg, ast.BinOp) and isinstance(arg.left, ast.Constant) and isinstance(arg.left.value, str):
+                        lit = arg.left.value
+                    elif isinstance(arg, ast.JoinedStr) and arg.values and isinstance(arg.values[0], ast.Constant):
+                        lit = str(arg.values[0].value)
+                    if lit:
+                        mods.add(lit.rstrip("."))
+        own = {".".join(p[:-3].split("/")[i:]) for i in range(len(p.split("/")))}
+        if any(m in base_mods and m not in own for m in mods):
+            reused += 1
+    res["reuse_share"] = round(reused / len(touched), 3) if touched else None
     return res
 
 

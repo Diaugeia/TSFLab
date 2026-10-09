@@ -1,0 +1,30 @@
+# 2026-10-09 day campaign: task 2 TSFLab arm (845f1a0d), then task 1 reruns and ablation fill on 79e3583b, Sonnet on 79e3583b.
+bench-ercot	tsflab@845f1a0d	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@845f1a0d	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@845f1a0d	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-ercot	tsflab@845f1a0d	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	1	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	2	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	3	codex	gpt-6-luna	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+bench-weather	tsflab@845f1a0d	1	claude	claude-sonnet-5-5	DATA_DIR=/data/cshen20/datasets/agent-cost-benchmark	TIMEOUT_H=4
+rhymix	tsflab@79e3583b	4	codex	gpt-6-luna
+rhymix	tsflab@79e3583b	5	codex	gpt-6-luna
+rhymix	tsflab@79e3583b	6	codex	gpt-6-luna
+aosnet	tsflab@79e3583b	4	codex	gpt-6-luna
+aosnet	tsflab@79e3583b	5	codex	gpt-6-luna
+aosnet	tsflab@79e3583b	6	codex	gpt-6-luna
+rhymix	tsflab-flat@79e3583b	3	codex	gpt-6-luna
+aosnet	tsflab-flat@79e3583b	3	codex	gpt-6-luna
+rhymix	tsflab-noknow@79e3583b	3	codex	gpt-6-luna
+aosnet	tsflab-noknow@79e3583b	3	codex	gpt-6-luna
+aosnet	tsflab-notools@79e3583b	3	codex	gpt-6-luna
+rhymix	tsflab-nometa@79e3583b	1	codex	gpt-6-luna
+aosnet	tsflab-nometa@79e3583b	1	codex	gpt-6-luna
+stateflow	tsflab-nometa@79e3583b	1	codex	gpt-6-luna
+adardiff	tsflab-nometa@79e3583b	1	codex	gpt-6-luna
+core	tsflab-nometa@79e3583b	1	codex	gpt-6-luna
+rhymix	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+aosnet	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+stateflow	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+adardiff	tsflab@79e3583b	1	claude	claude-sonnet-5-5
+core	tsflab@79e3583b	1	claude	claude-sonnet-5-5
