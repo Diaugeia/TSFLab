@@ -1,0 +1,27 @@
+{
+ "task": "benchmark",
+ "id": "bench2-ercot",
+ "kind": "benchmark",
+ "dataset": "grid_ercot",
+ "file": "grid_ercot.csv",
+ "methods": [
+  "DLinear",
+  "PatchTST",
+  "iTransformer",
+  "TimeAlign",
+  "TimeMosaic",
+  "GTR",
+  "PHAT",
+  "EMAformer"
+ ],
+ "seq_len": 168,
+ "pred_len": 24,
+ "note": "TSFLab real-time track exported by make_benchmark_data.py (window ending 2026-09-30 23:00); three baselines in TSFLab, TSLib, and TFB, and the five most cited forecasting methods published at 2026 venues that TSFLab contains and TSLib and TFB do not (Semantic Scholar, 2026-10-09)",
+ "papers": {
+  "TimeAlign": "Bridging Past and Future: Distribution-Aware Alignment for Time Series Forecasting (ICLR 2026)",
+  "TimeMosaic": "TimeMosaic: Temporal Heterogeneity Guided Time Series Forecasting via Adaptive Granularity Patch and Segment-wise Decoding (AAAI 2026)",
+  "GTR": "Enhancing Multivariate Time Series Forecasting with Global Temporal Retrieval (ICLR 2026)",
+  "PHAT": "PHAT: Modeling Period Heterogeneity for Multivariate Time Series Forecasting (ICLR 2026)",
+  "EMAformer": "EMAformer: Enhancing Transformer through Embedding Armor for Time Series Forecasting (AAAI 2026)"
+ }
+}
