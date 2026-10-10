@@ -139,7 +139,8 @@ def check_benchmark(task: dict, ws: Path) -> dict:
     for m in task["methods"]:
         r = got.get(norm(m))
         cost = ("params", "train_s", "infer_s", "peak_mem_mb") if task.get("papers") else ()
-        ok = bool(r) and finite(r.get("mse")) and finite(r.get("mae")) and all(finite(r.get(k)) for k in cost)
+        # measured values are positive; zeros are placeholders, not results
+        ok = bool(r) and all(finite(r.get(k)) and r.get(k) > 0 for k in ("mse", "mae", *cost))
         methods.append({"method": m, "ok": ok, **({k: r[k] for k in ("mse", "mae", *cost, "epochs") if k in r} if ok else {})})
         if not ok:
             missing.append(m)
